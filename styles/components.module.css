@@ -1,0 +1,250 @@
+/* 핵심 Gantt Chart 스타일만 유지 - 문제 해결 중점 */
+
+/* Gantt Chart 헤더 스타일 */
+.ganttChartHeader {
+  height: 80px;
+  border-bottom: 2px solid #e5e7eb;
+  background: #f9fafb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  overflow-x: auto; /* 주별 표시 시 가로 스크롤 */
+  overflow-y: hidden;
+}
+
+/* 기본 Gantt Chart 컨테이너 */
+.ganttChartContainer {
+  max-height: calc(70vh - 80px); /* 헤더 높이 제외 */
+  overflow-x: hidden; /* 기본적으로 가로 스크롤 숨김 */
+  overflow-y: auto;   /* 세로 스크롤 항상 허용 */
+  position: relative;
+  border: 1px solid #e5e7eb;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1), 0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  background: white;
+  /* 중요: 컨테이너 크기 고정하여 스크롤 영역 확실히 생성 */
+  width: 100% !important;
+  max-width: 100% !important;
+  contain: layout style; /* 스크롤 영역 최적화 */
+  /* flex 설정 추가 */
+  flex: 1 1 0%;
+}
+
+/* 주별 선택시 가로 스크롤 활성화 - 핵심 수정 */
+.ganttChartContainer.ganttChartContainerWeekly {
+  overflow-x: auto !important; /* 주별 시에만 가로 스크롤 강제 활성화 */
+  overflow-y: auto !important;
+  border: 2px solid #3b82f6 !important; /* 주별 모드 시각적 구분 */
+  /* 컨테이너 자체는 고정 크기 유지 - 이것이 핵심! */
+  width: 100% !important;
+  max-width: 100% !important;
+  min-width: auto !important; /* 확장 방지 */
+}
+
+/* 컨테이너 내부 div (canvas의 직접 부모) 스타일 */
+.ganttChartContainer > div {
+  position: relative;
+  min-width: 100%; /* 최소 너비 보장 */
+}
+
+/* 주별 모드에서 컨테이너 내부 div가 확장되도록 - 핵심! */
+.ganttChartContainerWeekly > div {
+  width: max-content !important; /* 내용에 맞춰 가로 확장 */
+  min-width: 1200px !important;   /* 최소 너비 보장 */
+}
+
+/* 주별 시 캔버스 스타일 강화 */
+.ganttChartContainerWeekly canvas {
+  min-width: 1200px !important; /* 최소 너비 강제 */
+  display: block !important;     /* 블록 요소로 강제 */
+  max-width: none !important;    /* 최대 너비 제한 해제 */
+}
+
+/* 커스텀 간트차트 컨테이너 */
+.customGanttContainer {
+  background: white;
+  border-radius: 0.5rem;
+  min-height: 500px;
+  height: auto;
+}
+
+/* Action Item 영역 스타일 */
+.actionItemArea {
+  width: 350px;
+  border-right: 2px solid #e5e7eb;
+  background: white;
+  flex-shrink: 0; /* 크기 고정 */
+}
+
+.actionItemHeader {
+  height: 80px;
+  padding: 12px;
+  border-bottom: 2px solid #e5e7eb;
+  background: #f9fafb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+}
+
+.actionItemList {
+  max-height: calc(70vh - 80px);
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.actionItemRow {
+  height: 35px;
+  padding: 8px 12px;
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  line-height: 1.2;
+  color: #374151;
+  position: relative; /* 들여쓰기를 위한 relative 위치 */
+}
+
+.actionItemRowEven {
+  background: white;
+}
+
+.actionItemRowOdd {
+  background: #f9fafb;
+}
+
+.actionItemRowGroup {
+  font-weight: 600;
+  color: #1f2937;
+}
+
+.actionItemText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: inherit;
+}
+
+/* 트리 구조를 위한 새로운 스타일들 */
+.treeNode {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.treeToggle {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-right: 4px;
+  border-radius: 3px;
+  transition: background-color 0.2s;
+  font-size: 12px;
+}
+
+.treeToggle:hover {
+  background-color: #f3f4f6;
+}
+
+.treeToggleEmpty {
+  width: 20px;
+  margin-right: 4px;
+}
+
+.treeIcon {
+  margin-right: 6px;
+  font-size: 14px;
+}
+
+.treeText {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* 레벨별 들여쓰기 */
+.treeLevel0 { padding-left: 0px; }
+.treeLevel1 { padding-left: 20px; }
+.treeLevel2 { padding-left: 40px; }
+.treeLevel3 { padding-left: 60px; }
+
+/* 레벨별 배경색 구분 */
+.treeLevel0 {
+  background-color: #f8fafc;
+  font-weight: 600;
+}
+
+.treeLevel1 {
+  background-color: #f1f5f9;
+  font-weight: 500;
+}
+
+.treeLevel2 {
+  background-color: #f9fafb;
+  font-weight: 400;
+}
+
+.treeLevel3 {
+  background-color: white;
+  font-weight: 400;
+}
+
+/* 주별 표시 시 스크롤바 스타일링 */
+.ganttChartContainerWeekly::-webkit-scrollbar {
+  height: 14px;
+  width: 8px;
+}
+
+.ganttChartContainerWeekly::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 6px;
+  margin: 2px;
+}
+
+.ganttChartContainerWeekly::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #3b82f6, #1d4ed8);
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.ganttChartContainerWeekly::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, #2563eb, #1e40af);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 추가 클래스들 - 인라인 스타일 제거용 */
+.ganttFlexContainer {
+  display: flex;
+  width: 100%;
+  max-width: 100%;
+  overflow: hidden; /* 부모 컨테이너 확장 방지 */
+}
+
+.ganttChartArea {
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 0%;
+  min-width: 0; /* flex 요소가 컨테이너를 벗어나는 것 방지 */
+  width: 100%;
+  max-width: 100%;
+}
+
+.ganttCanvasContainer {
+  position: relative;
+}
+
+.ganttCanvasContainerWeek {
+  position: relative;
+  width: max-content;
+  min-width: 1200px;
+}
+
+.ganttCanvas {
+  display: block;
+  max-width: none;
+}

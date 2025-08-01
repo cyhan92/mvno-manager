@@ -1,0 +1,111 @@
+/* 레거시 Google Charts 간트차트 스타일 - 호환성 유지 */
+.ganttHeader {
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 20;
+  padding-bottom: 1rem;
+  border-bottom: 2px solid #e5e7eb;
+  margin-bottom: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.ganttChartSticky {
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 15;
+  border-bottom: 2px solid #e5e7eb;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Google Charts 내부 헤더 고정을 위한 스타일 */
+.ganttChartContainer div[dir="ltr"] {
+  position: relative;
+  text-align: left !important;
+}
+
+/* Google Charts Gantt 차트 내부 스타일 개선 */
+.ganttChartContainer .google-visualization-table-table {
+  border-collapse: separate !important;
+  border-spacing: 0 !important;
+}
+
+.ganttChartContainer .google-visualization-table-table thead {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 15 !important;
+  background: #f7f7f7 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+  border-bottom: 2px solid #d1d5db !important;
+}
+
+.ganttChartContainer .google-visualization-table-table thead tr {
+  position: sticky !important;
+  top: 0 !important;
+  background: #f7f7f7 !important;
+  z-index: 15 !important;
+}
+
+.ganttChartContainer .google-visualization-table-table thead th {
+  position: sticky !important;
+  top: 0 !important;
+  background: #f7f7f7 !important;
+  z-index: 15 !important;
+  font-weight: bold !important;
+  border-bottom: 2px solid #e5e7eb !important;
+}
+
+/* Action Item 텍스트 정렬 개선 */
+.ganttChartContainer text[text-anchor="end"] {
+  text-anchor: start !important;
+  transform: translateX(15px) !important;
+}
+
+.ganttChartContainer text[text-anchor="middle"] {
+  text-anchor: start !important;
+  transform: translateX(15px) !important;
+}
+
+.ganttChartContainer text {
+  text-anchor: start !important;
+  text-align: left !important;
+}
+
+/* SVG 내부 모든 텍스트 요소들 왼쪽 정렬 강화 */
+.ganttChartContainer svg text {
+  text-anchor: start !important;
+  text-align: left !important;
+}
+
+.ganttChartContainer svg g text {
+  text-anchor: start !important;
+  text-align: left !important;
+}
+
+/* 간트차트 왼쪽 레이블 영역 확대 및 정렬 강화 */
+.ganttChartContainer svg g g:first-child text {
+  text-anchor: start !important;
+  font-weight: 500 !important;
+  fill: #374151 !important;
+  transform: translateX(15px) !important;
+  text-align: left !important;
+}
+
+/* 테이블 셀 왼쪽 정렬 강화 */
+.ganttChartContainer table td:first-child,
+.ganttChartContainer table th:first-child {
+  text-align: left !important;
+  padding-left: 15px !important;
+  font-weight: 500 !important;
+}
+
+/* 헤더 행 고정을 위한 추가 스타일 강화 */
+.ganttChartContainer .google-visualization-table-table tr:first-child {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 15 !important;
+  background: #f7f7f7 !important;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.15) !important;
+  border-bottom: 2px solid #d1d5db !important;
+}

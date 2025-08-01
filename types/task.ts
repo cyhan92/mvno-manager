@@ -1,0 +1,65 @@
+export interface Task {
+  id: string
+  name: string
+  resource: string
+  start: Date
+  end: Date
+  duration: number | null
+  percentComplete: number
+  dependencies: string | null
+  category?: string
+  subcategory?: string
+  detail?: string
+  department?: string
+  status?: string
+  cost?: string | number
+  notes?: string
+  // 그룹핑을 위한 추가 필드
+  majorCategory?: string
+  middleCategory?: string
+  minorCategory?: string
+  // 그룹 여부 표시
+  isGroup?: boolean
+  // 트리 구조를 위한 추가 필드
+  level?: number // 0: 대분류, 1: 중분류, 2: 소분류, 3: 실제 작업
+  parentId?: string // 부모 항목 ID
+  hasChildren?: boolean // 자식 항목 여부
+}
+
+export type ViewMode = 'overview' | 'detailed'
+export type GroupBy = 'resource' | 'action' | 'major' | 'middle' | 'minor'
+export type DateUnit = 'week' | 'month'
+
+// 트리 노드 상태 관리
+export interface TreeNodeState {
+  id: string
+  isExpanded: boolean
+  level: number
+  hasChildren: boolean
+}
+
+// 트리 상태 관리 인터페이스
+export interface TreeState {
+  expandedNodes: Set<string>
+  toggleNode: (nodeId: string) => void
+  isExpanded: (nodeId: string) => boolean
+}
+
+export interface TaskStats {
+  total: number
+  completed: number
+  inProgress: number
+  notStarted: number
+  averageProgress: number
+}
+
+export interface ResourceStats {
+  total: number
+  completed: number
+  progress: number
+}
+
+export interface RiskAnalysis {
+  riskTasks: Task[]
+  delayedTasks: Task[]
+}

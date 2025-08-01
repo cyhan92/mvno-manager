@@ -1,0 +1,92 @@
+import { Task, DateUnit } from '../../types/task'
+
+// 날짜 범위 계산
+export const calculateDateRange = (tasks: Task[]) => {
+  if (tasks.length === 0) {
+    const today = new Date()
+    const startDate = new Date(today.getFullYear(), today.getMonth(), 1)
+    const endDate = new Date(today.getFullYear(), today.getMonth() + 3, 0)
+    return {
+      startDate,
+      endDate,
+      timeRange: endDate.getTime() - startDate.getTime()
+    }
+  }
+
+  const startDate = new Date(Math.min(...tasks.map(task => task.start.getTime())))
+  const endDate = new Date(Math.max(...tasks.map(task => task.end.getTime())))
+  
+  // 시작일을 월 첫째 날로, 끝날을 월 마지막 날로 조정
+  startDate.setDate(1)
+  endDate.setMonth(endDate.getMonth() + 1, 0)
+  
+  return { 
+    startDate, 
+    endDate,
+    timeRange: endDate.getTime() - startDate.getTime()
+  }
+}
+
+// 캔버스 차원 계산
+export const calculateCanvasDimensions = (
+  containerWidth: number,
+  taskCount: number,
+  dateUnit: DateUnit
+) => {
+  const rowHeight = 35
+  const headerHeight = 80
+  const leftMargin = 350
+  
+  const contentHeight = Math.max(taskCount * rowHeight, 500)
+  
+  let chartWidth = containerWidth - leftMargin
+  
+  // 주별 표시시 확대
+  if (dateUnit === 'week') {
+    chartWidth = Math.max(chartWidth * 4, 1200)
+  }
+  
+  return {
+    width: leftMargin + chartWidth,
+    height: headerHeight + contentHeight,
+    chartWidth,
+    chartHeight: contentHeight,
+    leftMargin,
+    topMargin: headerHeight,
+    containerWidth: leftMargin + chartWidth
+  }
+}
+
+// 차트 설정 상수
+export const CHART_CONFIG = {
+  MARGINS: {
+    LEFT_RATIO: 0.35,
+    MIN_LEFT: 350,
+    TOP: 80,
+    RIGHT: 50,
+    BOTTOM: 50
+  },
+  DIMENSIONS: {
+    ROW_HEIGHT: 35,
+    MIN_HEIGHT: 500,
+    BAR_PADDING: 8,
+    MIN_BAR_WIDTH: 2,
+    TEXT_PADDING: 15,
+    PROGRESS_TEXT_MIN_WIDTH: 40
+  },
+  SCALING: {
+    WEEK_SCALE_MULTIPLIER: 4,
+    MIN_WEEK_CHART_WIDTH: 1200
+  },
+  COLORS: {
+    BACKGROUND: '#ffffff',
+    HEADER_BG: '#f7f7f7',
+    ACTION_ITEM_BG: '#f9fafb',
+    ROW_EVEN: '#ffffff',
+    ROW_ODD: '#f9fafb',
+    BORDER: '#e5e7eb',
+    GRID_LINE: '#f0f0f0',
+    TEXT_PRIMARY: '#1f2937',
+    TEXT_SECONDARY: '#6b7280'
+  }
+}

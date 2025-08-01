@@ -1,0 +1,55 @@
+/* Action Item 영역 스타일 - 완전 분리 구조 */
+.actionItemArea {
+  width: 350px;
+  border-right: 2px solid #e5e7eb;
+  background: white;
+}
+
+.actionItemHeader {
+  height: 80px; /* Gantt Chart 헤더와 동일한 높이 */
+  padding: 12px;
+  border-bottom: 2px solid #e5e7eb; /* Gantt Chart 헤더와 동일한 테두리 */
+  background: #f9fafb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+}
+
+.actionItemList {
+  max-height: calc(70vh - 80px); /* 헤더 높이 제외 */
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+.actionItemRow {
+  height: 35px; /* canvasGanttUtils.ts의 ROW_HEIGHT와 정확히 일치 */
+  padding: 8px 12px; /* 세로 중앙 정렬을 위한 패딩 조정 */
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  font-size: 13px;
+  line-height: 1.2; /* 텍스트 세로 정렬 개선 */
+  color: #374151; /* 텍스트 색상을 더 진하게 */
+}
+
+.actionItemRowEven {
+  background: white;
+}
+
+.actionItemRowOdd {
+  background: #f9fafb;
+}
+
+.actionItemRowGroup {
+  font-weight: 600;
+  color: #1f2937; /* 그룹 항목은 더 진한 색상 */
+}
+
+.actionItemText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: inherit; /* 부모 색상 상속 */
+}

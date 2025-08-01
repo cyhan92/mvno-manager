@@ -1,0 +1,46 @@
+/* 주별 표시 시 스크롤바 스타일링 */
+.ganttChartContainerWeekly::-webkit-scrollbar {
+  height: 14px; /* 하단 스크롤바를 더 두껍게 */
+  width: 8px;   /* 우측 스크롤바는 기본 크기 */
+}
+
+.ganttChartContainerWeekly::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 6px;
+  margin: 2px;
+}
+
+.ganttChartContainerWeekly::-webkit-scrollbar-thumb {
+  background: linear-gradient(45deg, #3b82f6, #1d4ed8);
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+}
+
+.ganttChartContainerWeekly::-webkit-scrollbar-thumb:hover {
+  background: linear-gradient(45deg, #2563eb, #1e40af);
+  box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.ganttChartContainerWeekly::-webkit-scrollbar-corner {
+  background: #f8fafc;
+}
+
+/* 기본 간트차트 스크롤바 스타일링 */
+.ganttChartContainer::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+
+.ganttChartContainer::-webkit-scrollbar-track {
+  background: #f1f5f9;
+  border-radius: 4px;
+}
+
+.ganttChartContainer::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+
+.ganttChartContainer::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}
