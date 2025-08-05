@@ -159,9 +159,14 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
   const handleSave = async () => {
     setIsLoading(true)
     try {
+      // 그룹 노드인지 확인
+      if (task.isGroup || task.hasChildren) {
+        throw new Error('그룹 항목은 편집할 수 없습니다. 개별 작업만 편집 가능합니다.')
+      }
+
       // 실제 서버에 저장
       if (!task.dbId) {
-        throw new Error('작업의 데이터베이스 ID를 찾을 수 없습니다.')
+        throw new Error('작업의 데이터베이스 ID를 찾을 수 없습니다. 이 작업은 편집할 수 없습니다.')
       }
 
       const updateData = {
@@ -292,7 +297,7 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
             📋 작업 상세 정보 {isEditing && '(편집 모드)'}
           </h3>
           <div className="flex gap-2 pointer-events-auto">
-            {!isEditing && (
+            {!isEditing && !task.isGroup && !task.hasChildren && task.dbId && (
               <button
                 onClick={() => setIsEditing(true)}
                 className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
@@ -478,7 +483,11 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
         
         {!isEditing && (
           <div className="mt-6 pt-4 border-t border-gray-200">
-            <p className="text-xs text-gray-500">💡 팁: 편집 버튼을 클릭하여 작업 정보를 수정할 수 있습니다.</p>
+            {!task.isGroup && !task.hasChildren && task.dbId ? (
+              <p className="text-xs text-gray-500">💡 팁: 편집 버튼을 클릭하여 작업 정보를 수정할 수 있습니다.</p>
+            ) : (
+              <p className="text-xs text-gray-500">📋 그룹 항목은 편집할 수 없습니다. 개별 작업만 편집 가능합니다.</p>
+            )}
           </div>
         )}
       </div>
