@@ -12,6 +12,7 @@ interface ActionItemListProps {
   onTreeToggle: (nodeId: string) => void
   scrollRef: React.RefObject<HTMLDivElement | null>
   onScroll: (e: React.UIEvent<HTMLDivElement>) => void
+  showAssigneeInfo: boolean // 담당자 정보 표시 여부
 }
 
 const ActionItemList: React.FC<ActionItemListProps> = ({
@@ -21,7 +22,8 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
   onTaskDoubleClick,
   onTreeToggle,
   scrollRef,
-  onScroll
+  onScroll,
+  showAssigneeInfo
 }) => {
   return (
     <div className={`${styles.actionItemArea} flex-shrink-0`}>
@@ -74,9 +76,33 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
               </span>
               
               {/* 텍스트 */}
-              <span className={styles.treeText}>
-                {task.name || task.detail || `작업 ${index + 1}`}
-              </span>
+              <div className={styles.treeText}>
+                <span className={task.percentComplete === 100 ? 'text-gray-400' : ''}>
+                  {/* 중분류와 소분류를 분리해서 표시 */}
+                  {(() => {
+                    const taskName = task.name || task.detail || `작업 ${index + 1}`
+                    const middleCategoryMatch = taskName.match(/^\[([^\]]+)\]\s*(.*)/)
+                    
+                    if (middleCategoryMatch) {
+                      const [, middleCategory, remainingName] = middleCategoryMatch
+                      return (
+                        <>
+                          <span className="text-xs text-gray-500">[{middleCategory}]</span>
+                          <span className="ml-1">{remainingName}</span>
+                        </>
+                      )
+                    }
+                    
+                    return taskName
+                  })()}
+                </span>
+                {/* 담당자 정보 표시 (세부업무만) */}
+                {showAssigneeInfo && !task.hasChildren && (
+                  <span className="text-xs text-gray-500 ml-2">
+                    ({task.department || '미정'}/{task.resource || '미정'})
+                  </span>
+                )}
+              </div>
             </div>
           </div>
         ))}

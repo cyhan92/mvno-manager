@@ -100,20 +100,10 @@ export const drawGridLines = (
     const weeks = generateWeekHeaders(startDate, endDate)
     
     weeks.forEach((week, index) => {
-      // 주 시작 지점에 세로선 그리기
-      const startX = leftMargin + ((week.start - startDate.getTime()) / timeRange) * chartWidth
+      // 주 끝 지점에 점선만 표시 (시작 지점 실선 제거)
       const endX = leftMargin + ((week.end - startDate.getTime()) / timeRange) * chartWidth
       
-      // 주 시작선 - 실선으로 명확하게 표시
-      ctx.strokeStyle = '#9ca3af' // 중간 회색
-      ctx.lineWidth = 1.5
-      ctx.setLineDash([]) // 실선
-      ctx.beginPath()
-      ctx.moveTo(startX, 0)
-      ctx.lineTo(startX, canvasHeight)
-      ctx.stroke()
-      
-      // 주 끝선 - 점선으로 구분
+      // 주 끝선 - 점선으로 구분 (점선만 유지)
       ctx.strokeStyle = '#d1d5db' // 연한 회색
       ctx.lineWidth = 1
       ctx.setLineDash([2, 2]) // 점선 패턴

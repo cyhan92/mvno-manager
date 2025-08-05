@@ -25,7 +25,8 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
     startDate: '',
     endDate: '',
     percentComplete: 0,
-    resource: ''
+    resource: '',
+    department: ''
   })
 
   // Initialize edit data
@@ -34,7 +35,8 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
       startDate: task.start ? task.start.toISOString().split('T')[0] : '',
       endDate: task.end ? task.end.toISOString().split('T')[0] : '',
       percentComplete: task.percentComplete || 0,
-      resource: task.resource || ''
+      resource: task.resource || '',
+      department: task.department || ''
     })
   }, [task])
 
@@ -161,7 +163,8 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
         start: editData.startDate ? new Date(editData.startDate) : task.start,
         end: editData.endDate ? new Date(editData.endDate) : task.end,
         percentComplete: editData.percentComplete,
-        resource: editData.resource
+        resource: editData.resource,
+        department: editData.department
       }
 
       const response = await fetch(`/api/tasks/${task.id}`, {
@@ -199,7 +202,8 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
       startDate: task.start ? task.start.toISOString().split('T')[0] : '',
       endDate: task.end ? task.end.toISOString().split('T')[0] : '',
       percentComplete: task.percentComplete || 0,
-      resource: task.resource || ''
+      resource: task.resource || '',
+      department: task.department || ''
     })
     setIsEditing(false)
   }
@@ -354,10 +358,30 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
             )}
           </div>
 
-          {task.category && (
+          <div>
+            <label className="text-sm font-medium text-gray-600">부서</label>
+            {isEditing ? (
+              <input
+                type="text"
+                value={editData.department}
+                onChange={(e) => setEditData(prev => ({ ...prev, department: e.target.value }))}
+                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="부서명을 입력하세요"
+                title="부서명을 입력하세요"
+              />
+            ) : (
+              <p className="text-sm text-gray-900 mt-1">{task.department || '미정'}</p>
+            )}
+          </div>
+
+          {(task.majorCategory || task.middleCategory || task.minorCategory) && (
             <div>
               <label className="text-sm font-medium text-gray-600">카테고리</label>
-              <p className="text-sm text-gray-900 mt-1">{task.category}</p>
+              <p className="text-sm text-gray-900 mt-1">
+                {[task.majorCategory, task.middleCategory, task.minorCategory]
+                  .filter(Boolean)
+                  .join(' > ')}
+              </p>
             </div>
           )}
 

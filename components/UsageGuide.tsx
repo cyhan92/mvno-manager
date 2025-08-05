@@ -196,7 +196,11 @@ const UsageGuide: React.FC = () => {
                 <Stack spacing={2}>
                   <Box display="flex" alignItems="center" gap={2}>
                     <Chip label="1" color="primary" size="small" />
-                    <Typography>상단의 <Chip label="📁 Excel → DB" color="success" size="small" /> 버튼 클릭</Typography>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Typography component="span">상단의</Typography>
+                      <Chip label="📁 Excel → DB" color="success" size="small" />
+                      <Typography component="span">버튼 클릭</Typography>
+                    </Box>
                   </Box>
                   <Box display="flex" alignItems="center" gap={2}>
                     <Chip label="2" color="primary" size="small" />
@@ -227,7 +231,7 @@ const UsageGuide: React.FC = () => {
                     Excel 파일 형식
                   </Typography>
                 </Box>
-                <Typography variant="body2" color="text.secondary" paragraph>
+                <Typography variant="body2" color="text.secondary" component="div" sx={{ mb: 2 }}>
                   Excel 파일의 첫 번째 행은 헤더이고, 다음 컬럼 순서를 지켜주세요:
                 </Typography>
                 <Box display="flex" flexWrap="wrap" gap={1}>
@@ -274,7 +278,11 @@ const UsageGuide: React.FC = () => {
                   </Box>
                   <Box display="flex" alignItems="center" gap={2}>
                     <PlayArrowIcon color="secondary" fontSize="small" />
-                    <Typography>팝업에서 <Chip label="✏️ 편집" color="info" size="small" /> 버튼 클릭</Typography>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Typography component="span">팝업에서</Typography>
+                      <Chip label="✏️ 편집" color="info" size="small" />
+                      <Typography component="span">버튼 클릭</Typography>
+                    </Box>
                   </Box>
                   <Box display="flex" alignItems="center" gap={2}>
                     <PlayArrowIcon color="secondary" fontSize="small" />
@@ -282,7 +290,10 @@ const UsageGuide: React.FC = () => {
                   </Box>
                   <Box display="flex" alignItems="center" gap={2}>
                     <PlayArrowIcon color="secondary" fontSize="small" />
-                    <Typography><Chip label="💾 저장" color="primary" size="small" /> 버튼 클릭하여 데이터베이스에 반영</Typography>
+                    <Box display="flex" alignItems="center" gap={1}>
+                      <Chip label="💾 저장" color="primary" size="small" />
+                      <Typography component="span">버튼 클릭하여 데이터베이스에 반영</Typography>
+                    </Box>
                   </Box>
                   <Alert severity="info" sx={{ mt: 2 }}>
                     <Typography variant="body2">

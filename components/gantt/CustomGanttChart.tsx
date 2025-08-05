@@ -18,24 +18,40 @@ interface CustomGanttChartProps {
   tasks: Task[]
   viewMode: ViewMode
   dateUnit: DateUnit
+  onDateUnitChange: (dateUnit: DateUnit) => void
   chartData: any[]
   groupedTasks: Record<string, Task[]>
   onTaskSelect: (selection: any) => void
   onTaskUpdate?: (updatedTask: Task) => void
   groupBy?: string
+  showAssigneeInfo: boolean
 }
 
 const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
   tasks,
   viewMode,
   dateUnit,
+  onDateUnitChange,
   chartData,
   groupedTasks,
   onTaskSelect,
   onTaskUpdate,
-  groupBy
+  groupBy,
+  showAssigneeInfo
 }) => {
   const [renderTrigger, setRenderTrigger] = React.useState(0)
+  const renderTriggerRef = React.useRef<NodeJS.Timeout | null>(null) // 디바운싱을 위한 ref
+
+  // 디바운싱된 렌더 트리거 함수
+  const triggerRender = React.useCallback(() => {
+    if (renderTriggerRef.current) {
+      clearTimeout(renderTriggerRef.current)
+    }
+    
+    renderTriggerRef.current = setTimeout(() => {
+      setRenderTrigger(prev => prev + 1)
+    }, 100) // 100ms 디바운싱
+  }, [])
   
   // 팝업 상태 관리
   const popup = useGanttPopup()
@@ -73,7 +89,8 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
     displayTasks,
     handleCanvasClick,
     handleCanvasDoubleClick,
-    renderChart
+    renderChart,
+    chartWidth // 계산된 차트 너비
   } = useCustomGanttChart({
     tasks: flattenedTasks, // 평면화된 트리 구조 전달
     viewMode,
@@ -97,7 +114,7 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
           
           // 헤더 렌더링 트리거 (한 번만)
           setTimeout(() => {
-            setRenderTrigger(prev => prev + 1)
+            triggerRender() // 디바운싱된 함수 사용
           }, 80) // 메인 차트 렌더링 완료 후 적절한 지연
         }
       }
@@ -107,7 +124,7 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
       
       return () => clearTimeout(timer)
     }
-  }, [displayTasks, treeState.expandedNodes, renderChart, canvasRef])
+  }, [displayTasks.length, treeState.expandedNodes, renderChart, canvasRef]) // 배열 대신 길이만 사용
 
   // 트리 노드 토글 핸들러
   const handleTreeToggle = (nodeId: string) => {
@@ -126,7 +143,7 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
       
       // 헤더 렌더링 (한 번만, 적절한 지연으로)
       setTimeout(() => {
-        setRenderTrigger(prev => prev + 1)
+        triggerRender() // 디바운싱된 함수 사용
         
         // 스크롤 위치 복원
         setTimeout(() => {
@@ -158,7 +175,7 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
           <h3 className="text-lg font-semibold text-gray-900">
             📊 프로젝트 간트 차트
           </h3>
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-gray-700 font-bold mt-1">
             A: 재무&정산, B: 사업&기획, C: 고객관련, D: 개발&연동, O: Beta오픈, S: 정보보안&법무
           </p>
         </div>
@@ -180,6 +197,7 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
           onTreeToggle={handleTreeToggle}
           scrollRef={scroll.actionItemScrollRef}
           onScroll={scroll.handleActionItemScroll}
+          showAssigneeInfo={showAssigneeInfo}
         />
         
         {/* Gantt Chart 영역 - 동적 크기 */}
@@ -192,6 +210,8 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
             scrollRef={scroll.headerScrollRef}
             renderTrigger={renderTrigger}
             containerRef={containerRef} // 메인 차트 컨테이너 참조 전달
+            chartWidth={chartWidth} // 계산된 차트 너비 전달
+            onScroll={scroll.handleHeaderScroll} // 헤더 스크롤 핸들러 전달
           />
           
           {/* Gantt Chart 내용 */}

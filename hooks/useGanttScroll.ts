@@ -45,11 +45,28 @@ export const useGanttScroll = () => {
     })
   }, [])
 
+  // 헤더 스크롤과 간트차트 가로 스크롤 동기화 (새로 추가)
+  const handleHeaderScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    if (isScrollingSyncRef.current) return
+    
+    const scrollLeft = e.currentTarget.scrollLeft
+    
+    if (ganttChartScrollRef.current) {
+      isScrollingSyncRef.current = true
+      ganttChartScrollRef.current.scrollLeft = scrollLeft
+      
+      requestAnimationFrame(() => {
+        isScrollingSyncRef.current = false
+      })
+    }
+  }, [])
+
   return {
     actionItemScrollRef,
     ganttChartScrollRef,
     headerScrollRef,
     handleActionItemScroll,
-    handleGanttChartScroll
+    handleGanttChartScroll,
+    handleHeaderScroll // 새로 추가된 헤더 스크롤 핸들러
   }
 }

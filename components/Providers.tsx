@@ -18,6 +18,16 @@ const theme = createTheme({
   typography: {
     fontFamily: 'var(--font-geist-sans), Arial, sans-serif',
   },
+  // SSR 관련 설정 추가
+  components: {
+    MuiCssBaseline: {
+      styleOverrides: {
+        body: {
+          scrollbarGutter: 'stable',
+        },
+      },
+    },
+  },
 })
 
 interface ProvidersProps {
@@ -27,7 +37,7 @@ interface ProvidersProps {
 export default function Providers({ children }: ProvidersProps) {
   return (
     <ThemeProvider theme={theme}>
-      <CssBaseline />
+      <CssBaseline enableColorScheme />
       <AuthProvider>
         {children}
       </AuthProvider>

@@ -38,16 +38,23 @@ export const calculateCanvasDimensions = (
   // leftMargin을 0으로 설정 - 캔버스는 간트차트 영역만 차지
   const leftMargin = 0
   
+  // 안전한 컨테이너 너비 보장
+  const safeContainerWidth = Math.max(300, Math.min(containerWidth, 50000))
+  
   // taskCount와 정확히 일치하는 높이 계산 (헤더 높이 제외)
   const contentHeight = taskCount * rowHeight
   
-  // chartWidth는 전체 컨테이너 너비를 사용
-  let chartWidth = containerWidth
+  // chartWidth 계산 - dateUnit에 따라 다르게 처리
+  let chartWidth = safeContainerWidth
   
-  // 주별 표시시 대폭 확대 - 더 넓은 간격 제공
   if (dateUnit === 'week') {
-    // 기본 컨테이너 너비의 6배로 확장 (더 넓은 주별 보기)
-    chartWidth = Math.max(containerWidth * 6, 1800) // 최소 1800px 보장
+    // 주별 표시시 대폭 확대 - 더 넓은 간격 제공
+    chartWidth = Math.max(safeContainerWidth * 6, 1800) // 최소 1800px 보장
+    console.log(`📏 [DEBUG] WEEK mode - chartWidth: ${chartWidth}px (from ${safeContainerWidth}px)`)
+  } else {
+    // 월별 모드에서는 적절한 너비 유지 (스크롤 가능한 고정 너비)
+    chartWidth = Math.max(safeContainerWidth, 1000) // 최소 1000px 보장
+    console.log(`📏 [DEBUG] MONTH mode - chartWidth: ${chartWidth}px (from ${safeContainerWidth}px, minimum 1000px)`)
   }
   
   return {

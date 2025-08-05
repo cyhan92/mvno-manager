@@ -1,5 +1,5 @@
 'use client'
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import { 
   Box, 
   Container, 
@@ -33,6 +33,12 @@ import Loading from '../components/Loading'
 
 export default function ClientHome() {
   const { tasks, loading, error, source, refetch, updateTask } = useTasksFromDatabase()
+  const [mounted, setMounted] = useState(false)
+  
+  // Hydration 에러 방지를 위한 mounted 상태
+  useEffect(() => {
+    setMounted(true)
+  }, [])
   
   // tasks가 유효한 배열인지 확인
   const safeTasks = Array.isArray(tasks) ? tasks : []
@@ -101,7 +107,7 @@ export default function ClientHome() {
               <Typography variant="h4" component="h1" gutterBottom sx={{ fontWeight: 600 }}>
                 📊 MVNO 프로젝트 관리 시스템
               </Typography>
-              <Typography variant="body1" color="text.secondary">
+              <Typography variant="body1" color="text.secondary" component="div">
                 스노우모바일 MVNO 프로젝트의 전체 진행 상황을 한눈에 관리하세요
               </Typography>
             </Box>
@@ -112,7 +118,7 @@ export default function ClientHome() {
                 variant="outlined"
                 color="primary"
               />
-              {source === 'excel_fallback' && (
+              {mounted && source === 'excel_fallback' && (
                 <Chip 
                   icon={<StorageIcon />}
                   label="Excel 모드"

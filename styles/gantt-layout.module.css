@@ -87,7 +87,8 @@
   flex: 1 1 0%;
   min-width: 600px; /* 최소 너비 증가 */
   width: 100%;
-  max-width: none; /* 최대 너비 제한 해제 */
+  max-width: 100%; /* 최대 너비를 100%로 제한하여 무한 확장 방지 */
+  overflow: hidden; /* 넘치는 내용 숨김 */
 }
 
 .ganttChartContent {

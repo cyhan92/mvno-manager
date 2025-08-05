@@ -22,7 +22,8 @@ export const flattenTree = (tree: TreeNode[], expandedNodes: Set<string>): TreeN
 // 노드의 들여쓰기 레벨에 따른 아이콘 반환 (3단계 구조)
 export const getTreeIcon = (node: TreeNode, isExpanded: boolean): string => {
   if (!node.hasChildren) {
-    return '📄' // 세부업무 (실제 작업)
+    // 완료된 세부업무는 체크 아이콘, 미완료는 문서 아이콘
+    return node.percentComplete === 100 ? '✅' : '📄'
   }
   
   switch (node.level) {

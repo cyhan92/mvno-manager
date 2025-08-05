@@ -40,6 +40,8 @@ export default function GanttChart({
     setPopupPosition
   } = useGanttChart(tasks, viewMode, groupBy)
 
+  const [showAssigneeInfo, setShowAssigneeInfo] = React.useState(true) // 담당자 정보 표시 상태 - 기본값 ON
+
   return (
     <div className="space-y-4">
       <GanttControlPanel
@@ -47,17 +49,21 @@ export default function GanttChart({
         dateUnit={dateUnit}
         onViewModeChange={onViewModeChange}
         onDateUnitChange={setDateUnit}
+        showAssigneeInfo={showAssigneeInfo}
+        onShowAssigneeInfoChange={setShowAssigneeInfo}
       />
 
       <CustomGanttChart
         tasks={viewMode === 'overview' ? tasks : filteredTasks}
         viewMode={viewMode}
         dateUnit={dateUnit}
+        onDateUnitChange={setDateUnit}
         chartData={chartData}
         groupedTasks={groupedTasks}
         onTaskSelect={handleTaskSelect}
         onTaskUpdate={onTaskUpdate}
         groupBy={groupBy}
+        showAssigneeInfo={showAssigneeInfo}
       />
 
       <GanttTaskDetail
