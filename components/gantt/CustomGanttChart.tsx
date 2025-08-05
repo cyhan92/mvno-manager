@@ -35,6 +35,8 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
   onTaskUpdate,
   groupBy
 }) => {
+  const [renderTrigger, setRenderTrigger] = React.useState(0)
+  
   // 팝업 상태 관리
   const popup = useGanttPopup()
   
@@ -108,6 +110,9 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
     // 트리 상태 토글
     treeState.toggleNode(nodeId)
     
+    // 헤더 재렌더링 트리거
+    setRenderTrigger(prev => prev + 1)
+    
     // 다음 렌더링 사이클에서 스크롤 위치 복원
     setTimeout(() => {
       if (scroll.actionItemScrollRef.current) {
@@ -168,6 +173,7 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
             dateUnit={dateUnit}
             expandedNodesSize={treeState.expandedNodes.size}
             scrollRef={scroll.headerScrollRef}
+            renderTrigger={renderTrigger}
           />
           
           {/* Gantt Chart 내용 */}

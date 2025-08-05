@@ -28,15 +28,13 @@ interface GanttHeaderProps {
   dateUnit: DateUnit
   expandedNodesSize: number
   scrollRef: React.RefObject<HTMLDivElement | null>
-  renderTrigger?: number // 강제 재렌더링을 위한 트리거
 }
 
 const GanttHeader: React.FC<GanttHeaderProps> = ({
   displayTasks,
   dateUnit,
   expandedNodesSize,
-  scrollRef,
-  renderTrigger
+  scrollRef
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const renderTimeoutRef = useRef<NodeJS.Timeout | null>(null)
@@ -210,22 +208,8 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
 
   // 초기 렌더링 및 props 변경 시 재렌더링
   useEffect(() => {
-    // 트리 상태 변경 시 메인 차트와 동일한 딜레이 적용
-    const timer = setTimeout(() => {
-      renderHeader()
-    }, 100) // 메인 차트와 동일한 100ms 딜레이
-    
-    return () => clearTimeout(timer)
-  }, [displayTasks, dateUnit, expandedNodesSize, renderTrigger])
-
-  // displayTasks 길이가 변경될 때 추가로 강제 재렌더링
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      renderHeader()
-    }, 150) // 약간 더 긴 딜레이로 확실한 동기화
-    
-    return () => clearTimeout(timer)
-  }, [displayTasks.length])
+    renderHeader()
+  }, [displayTasks, dateUnit, expandedNodesSize])
 
   return (
     <div 
@@ -234,8 +218,8 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
     >
       <canvas 
         ref={canvasRef}
-        key={`header-${displayTasks.length}-${expandedNodesSize}-${dateUnit}`}
-        className="block"
+        key={`header-${displayTasks.length}-${expandedNodesSize}`}
+        style={{ display: 'block' }}
       />
     </div>
   )
