@@ -7,13 +7,15 @@ interface TaskDetailPopupProps {
   position: { x: number; y: number }
   onClose: () => void
   onTaskUpdate?: (updatedTask: Task) => void
+  onDataRefresh?: () => void // 전체 데이터 다시 로드 함수
 }
 
 const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
   task,
   position,
   onClose,
-  onTaskUpdate
+  onTaskUpdate,
+  onDataRefresh
 }) => {
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
@@ -225,6 +227,16 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
       const result = await response.json()
       console.log('Task updated successfully:', result)
       
+      // DB 저장 성공 후 전체 데이터 다시 로드
+      if (onDataRefresh) {
+        console.log('Calling onDataRefresh to reload all data...')
+        await onDataRefresh() // await를 추가하여 완전히 완료될 때까지 대기
+        console.log('Data refresh completed')
+      } else {
+        console.warn('onDataRefresh function not provided')
+      }
+      
+      // 로컬 업데이트도 수행 (즉시 반영용)
       if (onTaskUpdate && result.data) {
         const updatedTask = {
           ...task,
@@ -235,9 +247,13 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
           department: result.data.department
         }
         onTaskUpdate(updatedTask)
+        console.log('Local task update completed')
       }
 
       setIsEditing(false)
+      
+      // 성공 메시지 표시
+      alert('작업이 성공적으로 저장되었습니다!')
       
       // TODO: 실제 서버 저장이 필요한 경우 아래 주석을 해제하고 위의 로컬 업데이트 로직을 제거
       /*

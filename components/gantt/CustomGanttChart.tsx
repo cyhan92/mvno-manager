@@ -23,6 +23,7 @@ interface CustomGanttChartProps {
   groupedTasks: Record<string, Task[]>
   onTaskSelect: (selection: any) => void
   onTaskUpdate?: (updatedTask: Task) => void
+  onDataRefresh?: () => void // 전체 데이터 다시 로드 함수
   groupBy?: string
   showAssigneeInfo: boolean
   onTreeStateChange?: (state: {
@@ -41,6 +42,7 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
   groupedTasks,
   onTaskSelect,
   onTaskUpdate,
+  onDataRefresh,
   groupBy,
   showAssigneeInfo,
   onTreeStateChange
@@ -263,6 +265,7 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
             }
             popup.closePopup()
           }}
+          onDataRefresh={onDataRefresh}
         />
       )}
     </div>

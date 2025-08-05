@@ -147,6 +147,7 @@ export default function ClientHome() {
               onViewModeChange={setViewMode}
               onGroupByChange={setGroupBy}
               onTaskUpdate={updateTask}
+              onDataRefresh={refetch}
             />
           </Paper>
 

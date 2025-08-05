@@ -36,6 +36,8 @@ export async function PUT(
       updates.department = updateData.department
     }
 
+    console.log('Prepared updates for Supabase:', updates)
+
     // Supabase에 업데이트
     const { data, error } = await supabase
       .from('tasks')
@@ -52,13 +54,14 @@ export async function PUT(
     }
 
     if (!data || data.length === 0) {
+      console.error('No task found with ID:', taskId)
       return NextResponse.json(
         { error: 'Task not found' },
         { status: 404 }
       )
     }
 
-    console.log('Task updated successfully:', data[0])
+    console.log('Task updated successfully in DB:', data[0])
 
     return NextResponse.json({
       success: true,
