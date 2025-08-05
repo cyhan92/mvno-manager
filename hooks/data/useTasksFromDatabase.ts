@@ -49,6 +49,7 @@ export const useTasksFromDatabase = () => {
 
           return {
             id: String(task.id),
+            dbId: String(task.id), // DB ID 추가 - 실제 DB 레코드 ID
             name: String(task.name),
             resource: String(task.resource || ''),
             start: parseDate(task.start),
