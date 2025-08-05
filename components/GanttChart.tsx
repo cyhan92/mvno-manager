@@ -49,6 +49,25 @@ export default function GanttChart({
     expandToLevel: (level: number) => void
   } | null>(null)
 
+  // 트리 컨트롤 함수들을 안전하게 래핑
+  const handleExpandAll = React.useCallback(() => {
+    if (treeControls?.expandAll) {
+      treeControls.expandAll()
+    }
+  }, [treeControls])
+
+  const handleCollapseAll = React.useCallback(() => {
+    if (treeControls?.collapseAll) {
+      treeControls.collapseAll()
+    }
+  }, [treeControls])
+
+  const handleExpandToLevel = React.useCallback((level: number) => {
+    if (treeControls?.expandToLevel) {
+      treeControls.expandToLevel(level)
+    }
+  }, [treeControls])
+
   return (
     <div className="space-y-4">
       <GanttControlPanel
@@ -58,9 +77,9 @@ export default function GanttChart({
         onDateUnitChange={setDateUnit}
         showAssigneeInfo={showAssigneeInfo}
         onShowAssigneeInfoChange={setShowAssigneeInfo}
-        onExpandAll={treeControls?.expandAll}
-        onCollapseAll={treeControls?.collapseAll}
-        onExpandToLevel={treeControls?.expandToLevel}
+        onExpandAll={treeControls ? handleExpandAll : undefined}
+        onCollapseAll={treeControls ? handleCollapseAll : undefined}
+        onExpandToLevel={treeControls ? handleExpandToLevel : undefined}
       />
 
       <CustomGanttChart

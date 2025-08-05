@@ -239,7 +239,7 @@ export const drawGanttBar = (
   
   // 진행률 텍스트 표시 - 0%도 포함하여 표시
   if (progress >= 0) { // 0% 이상 모든 진행률 표시
-    const progressText = `${Math.round(progress)}%`
+    const progressText = progress >= 100 ? `${Math.round(progress)}% - 완료` : `${Math.round(progress)}%`
     
     // 텍스트 스타일 설정 - 폰트 크기 증가
     ctx.font = dateUnit === 'week' ? 'bold 14px Arial' : 'bold 13px Arial'
@@ -250,7 +250,10 @@ export const drawGanttBar = (
     const textX = x + width / 2
     const textY = barY + height / 2
     
-    if (width > 20) {
+    // 100% 완료 텍스트는 더 넓은 공간이 필요하므로 조건 조정
+    const minWidthForInternalText = progress >= 100 ? 60 : 30
+    
+    if (width > minWidthForInternalText) {
       // 바 안에 텍스트 표시 - 배경색에 따른 대비 색상 로직
       let textColor = '#1f2937' // 기본 어두운 색상
       
@@ -286,12 +289,16 @@ export const drawGanttBar = (
       // 텍스트 그리기 - 그림자 효과 제거
       ctx.fillStyle = textColor
       ctx.fillText(progressText, textX, textY)
-    } else if (width > 10) {
+    } else {
       // 작은 바의 경우 바 오른쪽에 텍스트 표시 - 폰트 크기 증가
-      ctx.font = 'bold 11px Arial'
+      ctx.font = dateUnit === 'week' ? 'bold 12px Arial' : 'bold 11px Arial'
       ctx.textAlign = 'left'
-      ctx.fillStyle = '#1f2937' // 외부 텍스트는 항상 진한 색상
-      ctx.fillText(progressText, x + width + 2, textY)
+      
+      // 100% 완료인 경우 진한 녹색, 그 외는 진한 회색
+      const externalTextColor = progress >= 100 ? '#166534' : '#374151' // 진한 녹색 또는 진한 회색
+      ctx.fillStyle = externalTextColor
+      
+      ctx.fillText(`(${progressText})`, x + width + 3, textY)
     }
   }
 }

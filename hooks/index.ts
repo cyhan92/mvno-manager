@@ -5,7 +5,7 @@ export { useTaskAnalytics } from './data/useTaskAnalytics'
 
 // State hooks
 export { useViewState } from './state/useViewState'
-export { useTreeState } from './state/useTreeState'
+export { useTreeState } from './useTreeState'
 
 // Gantt hooks
 export { useGanttPopup } from './useGanttPopup'

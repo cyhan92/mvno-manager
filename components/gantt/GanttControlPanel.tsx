@@ -25,10 +25,7 @@ const GanttControlPanel: React.FC<GanttControlPanelProps> = ({
   onCollapseAll,
   onExpandToLevel
 }) => {
-  console.log(`🎮 [DEBUG] GanttControlPanel render - dateUnit: ${dateUnit}`)
-  
   const handleDateUnitChange = (unit: DateUnit) => {
-    console.log(`🎮 [DEBUG] Date unit changing from ${dateUnit} to ${unit}`)
     onDateUnitChange(unit)
   }
   
