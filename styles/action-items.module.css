@@ -26,6 +26,10 @@
   box-sizing: border-box;
   margin: 0;
   padding: 0;
+  max-height: calc(70vh - 80px); /* 헤더 높이 제외 */
+  height: calc(70vh - 80px); /* 간트차트와 정확히 일치하는 고정 높이 */
+  /* 스크롤 동작 개선 */
+  scroll-behavior: auto;
 }
 
 .actionItemListDynamic {

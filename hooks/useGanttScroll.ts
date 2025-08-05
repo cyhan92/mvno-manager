@@ -1,4 +1,4 @@
-import { useRef } from 'react'
+import { useRef, useCallback } from 'react'
 
 export const useGanttScroll = () => {
   const actionItemScrollRef = useRef<HTMLDivElement>(null)
@@ -7,22 +7,22 @@ export const useGanttScroll = () => {
   const isScrollingSyncRef = useRef(false)
 
   // Action Item 스크롤과 Gantt Chart 스크롤 동기화
-  const handleActionItemScroll = (e: React.UIEvent<HTMLDivElement>) => {
+  const handleActionItemScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     if (isScrollingSyncRef.current) return
     
     const scrollTop = e.currentTarget.scrollTop
+    
     if (ganttChartScrollRef.current) {
       isScrollingSyncRef.current = true
       ganttChartScrollRef.current.scrollTop = scrollTop
       
-      // 다음 프레임에서 플래그 리셋
       requestAnimationFrame(() => {
         isScrollingSyncRef.current = false
       })
     }
-  }
+  }, [])
 
-  const handleGanttChartScroll = (e: React.UIEvent<HTMLDivElement>) => {
+  const handleGanttChartScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     if (isScrollingSyncRef.current) return
     
     const scrollTop = e.currentTarget.scrollTop
@@ -40,11 +40,10 @@ export const useGanttScroll = () => {
       headerScrollRef.current.scrollLeft = scrollLeft
     }
     
-    // 다음 프레임에서 플래그 리셋
     requestAnimationFrame(() => {
       isScrollingSyncRef.current = false
     })
-  }
+  }, [])
 
   return {
     actionItemScrollRef,

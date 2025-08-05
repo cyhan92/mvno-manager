@@ -15,6 +15,7 @@
 /* 기본 Gantt Chart 컨테이너 */
 .ganttChartContainer {
   max-height: calc(70vh - 80px); /* 헤더 높이 제외 */
+  height: calc(70vh - 80px); /* 고정 높이 설정으로 Action Item과 일치 */
   overflow-x: hidden; /* 기본적으로 가로 스크롤 숨김 */
   overflow-y: auto;   /* 세로 스크롤 항상 허용 */
   position: relative;
@@ -28,6 +29,10 @@
   contain: layout style; /* 스크롤 영역 최적화 */
   /* flex 설정 추가 */
   flex: 1 1 0%;
+  /* 스크롤바 동기화를 위한 정확한 박스 사이징 */
+  box-sizing: border-box;
+  /* 스크롤 동작 개선 */
+  scroll-behavior: auto;
 }
 
 /* 주별 선택시 가로 스크롤 활성화 */

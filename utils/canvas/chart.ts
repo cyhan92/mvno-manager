@@ -38,7 +38,8 @@ export const calculateCanvasDimensions = (
   // leftMargin을 0으로 설정 - 캔버스는 간트차트 영역만 차지
   const leftMargin = 0
   
-  const contentHeight = Math.max(taskCount * rowHeight, 500)
+  // taskCount와 정확히 일치하는 높이 계산 (헤더 높이 제외)
+  const contentHeight = taskCount * rowHeight
   
   // chartWidth는 전체 컨테이너 너비를 사용
   let chartWidth = containerWidth
@@ -50,11 +51,11 @@ export const calculateCanvasDimensions = (
   
   return {
     width: chartWidth, // leftMargin 제거
-    height: headerHeight + contentHeight,
+    height: contentHeight, // 헤더 높이 제외하여 Action Item과 정확히 일치
     chartWidth,
     chartHeight: contentHeight,
     leftMargin,
-    topMargin: headerHeight,
+    topMargin: 0, // 헤더 영역은 별도 컴포넌트에서 처리
     containerWidth: chartWidth // leftMargin 제거
   }
 }

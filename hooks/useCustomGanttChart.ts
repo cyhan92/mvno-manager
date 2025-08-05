@@ -75,6 +75,16 @@ export const useCustomGanttChart = ({
     canvas.width = dimensions.width
     canvas.height = dimensions.height
     
+    // 캔버스 컨테이너 크기를 정확히 설정하여 스크롤 높이 일치
+    const canvasParent = canvas.parentElement
+    if (canvasParent) {
+      // Action Item과 정확히 일치하는 높이 설정 (헤더 제외)
+      const actionItemHeight = displayTasks.length * 40 // ROW_HEIGHT = 40px
+      canvasParent.style.height = `${actionItemHeight}px`
+      canvasParent.style.minHeight = `${actionItemHeight}px`
+      canvasParent.style.maxHeight = `${actionItemHeight}px`
+    }
+    
     if (dateUnit === 'week') {
       // 주별: 캔버스는 실제 크기로 설정하되, CSS로 컨테이너 스크롤 제어
       canvas.style.width = `${dimensions.width}px`
@@ -83,7 +93,6 @@ export const useCustomGanttChart = ({
       canvas.style.maxWidth = 'none'   // 최대 너비 제한 해제
       
       // 캔버스 부모 컨테이너도 확장
-      const canvasParent = canvas.parentElement
       if (canvasParent) {
         canvasParent.style.width = 'max-content'
         canvasParent.style.minWidth = '1200px'
@@ -96,7 +105,6 @@ export const useCustomGanttChart = ({
       canvas.style.maxWidth = '100%'
       
       // 캔버스 부모 컨테이너 복원
-      const canvasParent = canvas.parentElement
       if (canvasParent) {
         canvasParent.style.width = '100%'
         canvasParent.style.minWidth = '100%'
