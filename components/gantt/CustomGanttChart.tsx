@@ -82,6 +82,9 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
     groupBy
   })
 
+  // Action Item과 Gantt Chart에서 동일한 데이터 사용 보장
+  const synchronizedTasks = flattenedTasks
+
   // 트리 상태가 변경될 때마다 캔버스 다시 그리기
   React.useEffect(() => {
     // 직접 캔버스를 다시 그리기
@@ -148,7 +151,7 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
       <div className={styles.ganttFlexContainer}>
         {/* Action Item 영역 - 고정 크기 */}
         <ActionItemList 
-          displayTasks={displayTasks}
+          displayTasks={synchronizedTasks}
           treeState={treeState}
           onTaskSelect={onTaskSelect}
           onTaskDoubleClick={popup.openPopupFromEvent}
@@ -161,7 +164,7 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
         <div className={styles.ganttChartArea}>
           {/* Gantt Chart 헤더 - 날짜 표시 */}
           <GanttHeader 
-            displayTasks={displayTasks}
+            displayTasks={synchronizedTasks}
             dateUnit={dateUnit}
             expandedNodesSize={treeState.expandedNodes.size}
             scrollRef={scroll.headerScrollRef}

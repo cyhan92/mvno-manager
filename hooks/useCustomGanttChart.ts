@@ -35,16 +35,8 @@ export const useCustomGanttChart = ({
 
   // 실제 렌더링할 데이터 계산
   const displayTasks = useMemo(() => {
-    // 트리 구조에서 전달받은 flattenedTasks를 직접 사용
-    // TreeNode의 속성들을 Task 인터페이스에 맞게 매핑
-    const tasksWithTreeProps = tasks.map(task => ({ 
-      ...task,
-      isGroup: task.hasChildren || false, // TreeNode의 hasChildren 속성 사용
-      level: task.level || 0, // TreeNode의 level 속성 사용
-      hasChildren: task.hasChildren || false // 트리 토글 버튼용
-    }))
-    
-    return tasksWithTreeProps
+    // 트리 구조에서 전달받은 flattenedTasks를 직접 사용 (순서 보장)
+    return tasks
   }, [tasks])
 
   // 차트 렌더링 함수
