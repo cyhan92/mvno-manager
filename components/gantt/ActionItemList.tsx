@@ -41,7 +41,15 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
             } ${task.hasChildren ? styles.actionItemRowGroup : styles.actionItemRowLeaf} ${
               styles[`treeLevel${task.level || 0}`]
             }`}
-            onClick={() => onTaskSelect(task)}
+            onClick={() => {
+              if (task.hasChildren) {
+                // 자식이 있는 경우 확대/축소
+                onTreeToggle(task.id)
+              } else {
+                // 자식이 없는 경우 작업 선택
+                onTaskSelect(task)
+              }
+            }}
             onDoubleClick={(e) => onTaskDoubleClick(task, e)}
           >
             <div className={styles.treeNode}>
