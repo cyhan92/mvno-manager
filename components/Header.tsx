@@ -1,5 +1,6 @@
 'use client'
 import React, { useRef } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 
 interface HeaderProps {
   taskCount: number
@@ -9,6 +10,15 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ taskCount, onRefresh, source }) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const { logout } = useAuth()
+
+  const handleLogout = () => {
+    const confirmed = window.confirm('로그아웃 하시겠습니까?')
+    if (confirmed) {
+      logout()
+      window.location.reload()
+    }
+  }
 
   const handleExcelUpload = async () => {
     if (!fileInputRef.current) return
@@ -82,6 +92,13 @@ const Header: React.FC<HeaderProps> = ({ taskCount, onRefresh, source }) => {
             className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium text-sm"
           >
             📁 Excel → DB
+          </button>
+          
+          <button
+            onClick={handleLogout}
+            className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 transition-colors font-medium text-sm"
+          >
+            🚪 로그아웃
           </button>
         </div>
       </div>
