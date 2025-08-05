@@ -1,9 +1,11 @@
 'use client'
 import React from 'react'
+import { CacheProvider } from '@emotion/react'
 import { ThemeProvider } from '@mui/material/styles'
 import CssBaseline from '@mui/material/CssBaseline'
 import { createTheme } from '@mui/material/styles'
 import { AuthProvider } from '../contexts/AuthContext'
+import { clientSideEmotionCache } from '../lib/emotion'
 
 // MUI 테마 생성
 const theme = createTheme({
@@ -36,11 +38,13 @@ interface ProvidersProps {
 
 export default function Providers({ children }: ProvidersProps) {
   return (
-    <ThemeProvider theme={theme}>
-      <CssBaseline enableColorScheme />
-      <AuthProvider>
-        {children}
-      </AuthProvider>
-    </ThemeProvider>
+    <CacheProvider value={clientSideEmotionCache}>
+      <ThemeProvider theme={theme}>
+        <CssBaseline enableColorScheme />
+        <AuthProvider>
+          {children}
+        </AuthProvider>
+      </ThemeProvider>
+    </CacheProvider>
   )
 }
