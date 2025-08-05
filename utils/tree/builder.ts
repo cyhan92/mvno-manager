@@ -2,6 +2,20 @@ import { Task } from '../../types/task'
 import { TreeNode } from './types'
 import { calculateAverageProgress } from './progress'
 
+// 대분류 정렬 순서 정의 (B -> A -> S -> D -> C -> O)
+const getMajorCategoryOrder = (category: string): number => {
+  const firstChar = category.charAt(0).toUpperCase()
+  const orderMap: Record<string, number> = {
+    'B': 1,
+    'A': 2,
+    'S': 3,
+    'D': 4,
+    'C': 5,
+    'O': 6
+  }
+  return orderMap[firstChar] || 999 // 정의되지 않은 것은 맨 뒤로
+}
+
 // 작업 데이터를 트리 구조로 변환 (대분류 > 소분류 > 세부업무)
 export const buildTaskTree = (tasks: Task[]): TreeNode[] => {
   const tree: TreeNode[] = []
@@ -19,7 +33,13 @@ export const buildTaskTree = (tasks: Task[]): TreeNode[] => {
   })
 
   // 트리 구조 생성 (대분류 > 소분류 > 세부업무)
-  majorGroups.forEach((majorTasks, majorCategory) => {
+  // 대분류를 B, A, S, D, C, O 순서로 정렬
+  const sortedMajorCategories = Array.from(majorGroups.keys()).sort((a, b) => {
+    return getMajorCategoryOrder(a) - getMajorCategoryOrder(b)
+  })
+
+  sortedMajorCategories.forEach((majorCategory) => {
+    const majorTasks = majorGroups.get(majorCategory)!
     const majorId = `major_${majorCategory}`
     
     // 대분류 노드 생성
@@ -55,9 +75,13 @@ export const buildTaskTree = (tasks: Task[]): TreeNode[] => {
       const minorCategory = minorKey.split('_').slice(1).join('_')
       const minorId = `minor_${minorKey}`
 
+      // 중분류 정보를 가져와서 "[중분류] 소분류" 형태로 표시
+      const middleCategory = minorTasks[0]?.middleCategory || ''
+      const displayName = middleCategory ? `[${middleCategory}] ${minorCategory}` : minorCategory
+
       const minorNode: TreeNode = {
         id: minorId,
-        name: minorCategory,
+        name: displayName,
         resource: '',
         start: new Date(Math.min(...minorTasks.map(t => t.start.getTime()))),
         end: new Date(Math.max(...minorTasks.map(t => t.end.getTime()))),

@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import * as XLSX from 'xlsx'
+import { parseExcelData } from '../../../lib/excel/parser'
+import { transformExcelToDatabase } from '../../../lib/database/tasks'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
@@ -107,17 +109,17 @@ export async function POST(request: NextRequest) {
           }
 
           return {
-            id: `excel-${index + 1}`,
-            name: String(row[0] || '').trim(),
+            task_id: `TASK-${String(index + 1).padStart(3, '0')}`,
+            title: String(row[0] || '').trim(),
             detail: String(row[1] || '').trim(),
             category: String(row[2] || '').trim(),
             department: String(row[3] || '').trim(),
-            resource: String(row[4] || '').trim(),
+            assignee: String(row[4] || '').trim(),
             start_date: parseDate(row[5]),
             end_date: parseDate(row[6]),
-            percent_complete: parsePercent(row[7]),
-            status: String(row[8] || '').trim(),
-            priority: String(row[9] || '').trim() || 'Medium'
+            progress: Math.round(parsePercent(row[7])),
+            status: String(row[8] || '').trim() || '미완료',
+            notes: String(row[9] || '').trim()
           }
         } catch (error) {
           console.error(`Error processing row ${index + 1}:`, error)
@@ -140,7 +142,7 @@ export async function POST(request: NextRequest) {
     const { error: deleteError } = await supabase
       .from('tasks')
       .delete()
-      .neq('id', '') // 모든 레코드 삭제
+      .not('id', 'is', null) // 모든 레코드 삭제 (id가 null이 아닌 모든 레코드)
 
     if (deleteError) {
       console.error('Delete error:', deleteError)
