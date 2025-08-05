@@ -27,10 +27,10 @@ export async function PUT(
       updates.end_date = updateData.endDate
     }
     if (updateData.percentComplete !== undefined) {
-      updates.percent_complete = updateData.percentComplete
+      updates.progress = updateData.percentComplete
     }
     if (updateData.resource) {
-      updates.resource = updateData.resource
+      updates.assignee = updateData.resource
     }
     if (updateData.department) {
       updates.department = updateData.department

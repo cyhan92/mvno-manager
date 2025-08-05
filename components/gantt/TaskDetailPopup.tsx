@@ -159,20 +159,47 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
   const handleSave = async () => {
     setIsLoading(true)
     try {
-      // 로컬 데이터 업데이트 (현재 프로젝트에서는 실제 서버 저장 없이 로컬 상태만 업데이트)
-      const updatedTask = {
-        ...task,
-        start: editData.startDate ? new Date(editData.startDate) : task.start,
-        end: editData.endDate ? new Date(editData.endDate) : task.end,
+      // 실제 서버에 저장
+      if (!task.dbId) {
+        throw new Error('작업의 데이터베이스 ID를 찾을 수 없습니다.')
+      }
+
+      const updateData = {
+        startDate: editData.startDate ? new Date(editData.startDate).toISOString() : task.start.toISOString(),
+        endDate: editData.endDate ? new Date(editData.endDate).toISOString() : task.end.toISOString(),
         percentComplete: editData.percentComplete,
         resource: editData.resource,
         department: editData.department
       }
 
-      // 부모 컴포넌트에 업데이트 알림
-      if (onTaskUpdate) {
+      console.log('Updating task:', task.dbId, 'with data:', updateData)
+
+      const response = await fetch(`/api/tasks/${task.dbId}`, {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(updateData),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update task')
+      }
+
+      const result = await response.json()
+      console.log('Task updated successfully:', result)
+      
+      if (onTaskUpdate && result.data) {
+        const updatedTask = {
+          ...task,
+          start: new Date(result.data.start_date),
+          end: new Date(result.data.end_date),
+          percentComplete: result.data.progress,
+          resource: result.data.assignee,
+          department: result.data.department
+        }
         onTaskUpdate(updatedTask)
-        console.log('Task updated locally:', updatedTask)
       }
 
       setIsEditing(false)

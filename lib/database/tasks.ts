@@ -32,7 +32,8 @@ export const transformExcelToDatabase = (excelTask: ExcelTask): Database['public
  */
 export const transformDatabaseToTask = (dbTask: DatabaseTask): ExcelTask => {
   return {
-    id: dbTask.task_id,
+    id: dbTask.task_id, // TASK-001, TASK-002 등
+    dbId: dbTask.id, // 실제 DB의 UUID
     name: dbTask.title,
     resource: dbTask.assignee || 'N/A',
     start: dbTask.start_date ? new Date(dbTask.start_date) : new Date(),

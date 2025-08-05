@@ -1,5 +1,6 @@
 export interface Task {
-  id: string
+  id: string // task_id (TASK-001, TASK-002 등)
+  dbId?: string // 실제 DB의 UUID
   name: string
   resource: string
   start: Date
