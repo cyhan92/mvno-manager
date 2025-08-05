@@ -43,6 +43,10 @@ export interface TreeState {
   expandedNodes: Set<string>
   toggleNode: (nodeId: string) => void
   isExpanded: (nodeId: string) => boolean
+  expandAll: () => void
+  collapseAll: () => void
+  expandToLevel: (level: number) => void
+  setTreeData?: (data: any[]) => void
 }
 
 export interface TaskStats {

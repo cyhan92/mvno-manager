@@ -41,6 +41,13 @@ export default function GanttChart({
   } = useGanttChart(tasks, viewMode, groupBy)
 
   const [showAssigneeInfo, setShowAssigneeInfo] = React.useState(true) // 담당자 정보 표시 상태 - 기본값 ON
+  
+  // 트리 상태 관리 함수들
+  const [treeControls, setTreeControls] = React.useState<{
+    expandAll: () => void
+    collapseAll: () => void
+    expandToLevel: (level: number) => void
+  } | null>(null)
 
   return (
     <div className="space-y-4">
@@ -51,6 +58,9 @@ export default function GanttChart({
         onDateUnitChange={setDateUnit}
         showAssigneeInfo={showAssigneeInfo}
         onShowAssigneeInfoChange={setShowAssigneeInfo}
+        onExpandAll={treeControls?.expandAll}
+        onCollapseAll={treeControls?.collapseAll}
+        onExpandToLevel={treeControls?.expandToLevel}
       />
 
       <CustomGanttChart
@@ -64,6 +74,7 @@ export default function GanttChart({
         onTaskUpdate={onTaskUpdate}
         groupBy={groupBy}
         showAssigneeInfo={showAssigneeInfo}
+        onTreeStateChange={setTreeControls}
       />
 
       <GanttTaskDetail

@@ -9,6 +9,9 @@ interface GanttControlPanelProps {
   onDateUnitChange: (unit: DateUnit) => void
   showAssigneeInfo: boolean // 담당자 정보 표시 여부
   onShowAssigneeInfoChange: (show: boolean) => void // 담당자 정보 표시 토글
+  onExpandAll?: () => void // 전체 확장
+  onCollapseAll?: () => void // 전체 축소  
+  onExpandToLevel?: (level: number) => void // 레벨별 확장
 }
 
 const GanttControlPanel: React.FC<GanttControlPanelProps> = ({
@@ -17,7 +20,10 @@ const GanttControlPanel: React.FC<GanttControlPanelProps> = ({
   onViewModeChange,
   onDateUnitChange,
   showAssigneeInfo,
-  onShowAssigneeInfoChange
+  onShowAssigneeInfoChange,
+  onExpandAll,
+  onCollapseAll,
+  onExpandToLevel
 }) => {
   console.log(`🎮 [DEBUG] GanttControlPanel render - dateUnit: ${dateUnit}`)
   
@@ -67,6 +73,31 @@ const GanttControlPanel: React.FC<GanttControlPanelProps> = ({
                 {option.label}
               </button>
             ))}
+          </div>
+
+          {/* 트리 확장/축소 컨트롤 */}
+          <div className="flex gap-2">
+            <button
+              onClick={() => onCollapseAll?.()}
+              className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md border transition-colors"
+              title="전체 축소 (대분류만 표시)"
+            >
+              전체 축소
+            </button>
+            <button
+              onClick={() => onExpandToLevel?.(1)}
+              className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md border transition-colors"
+              title="1단계 확장 (대분류, 소분류까지 표시)"
+            >
+              1단계 확장
+            </button>
+            <button
+              onClick={() => onExpandAll?.()}
+              className="px-3 py-1.5 text-sm font-medium text-gray-600 bg-gray-50 hover:bg-gray-100 rounded-md border transition-colors"
+              title="전체 확장 (모든 항목 표시)"
+            >
+              전체 확장
+            </button>
           </div>
         </div>
       </div>

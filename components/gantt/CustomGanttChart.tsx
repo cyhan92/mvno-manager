@@ -25,6 +25,11 @@ interface CustomGanttChartProps {
   onTaskUpdate?: (updatedTask: Task) => void
   groupBy?: string
   showAssigneeInfo: boolean
+  onTreeStateChange?: (state: {
+    expandAll: () => void
+    collapseAll: () => void
+    expandToLevel: (level: number) => void
+  }) => void
 }
 
 const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
@@ -37,7 +42,8 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
   onTaskSelect,
   onTaskUpdate,
   groupBy,
-  showAssigneeInfo
+  showAssigneeInfo,
+  onTreeStateChange
 }) => {
   const [renderTrigger, setRenderTrigger] = React.useState(0)
   const renderTriggerRef = React.useRef<NodeJS.Timeout | null>(null) // 디바운싱을 위한 ref
@@ -59,14 +65,32 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
   // 스크롤 관리
   const scroll = useGanttScroll()
   
-  // 트리 상태 관리
-  const treeState = useTreeState()
-
   // 트리 구조 생성
   const taskTree = React.useMemo(() => {
     const tree = buildTaskTree(tasks)
     return tree
   }, [tasks])
+  
+  // 트리 상태 관리
+  const treeState = useTreeState()
+
+  // taskTree가 변경될 때 treeState에 전달
+  React.useEffect(() => {
+    if (treeState.setTreeData) {
+      treeState.setTreeData(taskTree)
+    }
+  }, [taskTree, treeState.setTreeData])
+
+  // 트리 상태 함수들을 부모 컴포넌트에 전달
+  React.useEffect(() => {
+    if (onTreeStateChange) {
+      onTreeStateChange({
+        expandAll: treeState.expandAll,
+        collapseAll: treeState.collapseAll,
+        expandToLevel: treeState.expandToLevel
+      })
+    }
+  }, [onTreeStateChange, treeState.expandAll, treeState.collapseAll, treeState.expandToLevel])
   
   // 펼쳐진 노드만 평면화
   const flattenedTasks = React.useMemo(() => {
