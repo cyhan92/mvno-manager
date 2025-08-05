@@ -21,17 +21,49 @@ const generateMonthHeaders = (startDate: Date, endDate: Date) => {
   return months
 }
 
-// 주별 헤더 생성 (임시 구현)
+// 주별 헤더 생성 (개선된 구현)
 const generateWeekHeaders = (startDate: Date, endDate: Date) => {
   const weeks = []
   const current = new Date(startDate)
   
-  while (current <= endDate) {
+  // 시작 날짜를 주의 시작일(월요일)로 조정
+  const dayOfWeek = current.getDay()
+  const adjustedStart = new Date(current)
+  adjustedStart.setDate(current.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
+  
+  let weekStart = new Date(adjustedStart)
+  let weekNumber = 1
+  
+  while (weekStart < endDate) {
+    const weekEnd = new Date(weekStart)
+    weekEnd.setDate(weekStart.getDate() + 6) // 일주일 끝
+    
+    // 더 명확한 주별 라벨 생성
+    const startMonth = weekStart.getMonth() + 1
+    const startDay = weekStart.getDate()
+    const endMonth = weekEnd.getMonth() + 1
+    const endDay = weekEnd.getDate()
+    
+    let weekLabel = ''
+    if (startMonth === endMonth) {
+      // 같은 달 내의 주
+      weekLabel = `${startMonth}/${startDay}-${endDay}`
+    } else {
+      // 월을 넘나드는 주
+      weekLabel = `${startMonth}/${startDay}~${endMonth}/${endDay}`
+    }
+    
     weeks.push({
-      start: current.getTime(),
-      label: `Week ${Math.ceil((current.getTime() - startDate.getTime()) / (7 * 24 * 60 * 60 * 1000)) + 1}`
+      start: weekStart.getTime(),
+      end: weekEnd.getTime(),
+      label: weekLabel,
+      weekNumber: weekNumber
     })
-    current.setDate(current.getDate() + 7)
+    
+    // 다음 주로 이동
+    weekStart = new Date(weekStart)
+    weekStart.setDate(weekStart.getDate() + 7)
+    weekNumber++
   }
   
   return weeks
@@ -64,19 +96,34 @@ export const drawGridLines = (
       // 점선 패턴 리셋
       ctx.setLineDash([])
     })
-  } else {
+  } else if (dateUnit === 'week') {
     const weeks = generateWeekHeaders(startDate, endDate)
     
     weeks.forEach((week, index) => {
-      const x = leftMargin + ((week.start - startDate.getTime()) / timeRange) * chartWidth
+      // 주 시작 지점에 세로선 그리기
+      const startX = leftMargin + ((week.start - startDate.getTime()) / timeRange) * chartWidth
+      const endX = leftMargin + ((week.end - startDate.getTime()) / timeRange) * chartWidth
       
-      // 주 구분선
-      ctx.strokeStyle = index % 2 === 0 ? (CANVAS_CONFIG.COLORS.GRID_LINE || '#e5e7eb') : '#9ca3af'
-      ctx.lineWidth = index % 2 === 0 ? 2 : 1
+      // 주 시작선 - 실선으로 명확하게 표시
+      ctx.strokeStyle = '#9ca3af' // 중간 회색
+      ctx.lineWidth = 1.5
+      ctx.setLineDash([]) // 실선
       ctx.beginPath()
-      ctx.moveTo(x, 0)
-      ctx.lineTo(x, canvasHeight)
+      ctx.moveTo(startX, 0)
+      ctx.lineTo(startX, canvasHeight)
       ctx.stroke()
+      
+      // 주 끝선 - 점선으로 구분
+      ctx.strokeStyle = '#d1d5db' // 연한 회색
+      ctx.lineWidth = 1
+      ctx.setLineDash([2, 2]) // 점선 패턴
+      ctx.beginPath()
+      ctx.moveTo(endX, 0)
+      ctx.lineTo(endX, canvasHeight)
+      ctx.stroke()
+      
+      // 점선 패턴 리셋
+      ctx.setLineDash([])
     })
   }
 }

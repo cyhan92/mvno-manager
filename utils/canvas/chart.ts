@@ -44,9 +44,10 @@ export const calculateCanvasDimensions = (
   // chartWidth는 전체 컨테이너 너비를 사용
   let chartWidth = containerWidth
   
-  // 주별 표시시 확대
+  // 주별 표시시 대폭 확대 - 더 넓은 간격 제공
   if (dateUnit === 'week') {
-    chartWidth = Math.max(chartWidth * 4, 1200)
+    // 기본 컨테이너 너비의 6배로 확장 (더 넓은 주별 보기)
+    chartWidth = Math.max(containerWidth * 6, 1800) // 최소 1800px 보장
   }
   
   return {
@@ -78,8 +79,8 @@ export const CHART_CONFIG = {
     PROGRESS_TEXT_MIN_WIDTH: 40
   },
   SCALING: {
-    WEEK_SCALE_MULTIPLIER: 4,
-    MIN_WEEK_CHART_WIDTH: 1200
+    WEEK_SCALE_MULTIPLIER: 6, // 4에서 6으로 증가
+    MIN_WEEK_CHART_WIDTH: 1800 // 1200에서 1800으로 증가
   },
   COLORS: {
     BACKGROUND: '#ffffff',

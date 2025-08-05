@@ -41,7 +41,10 @@ export const useCustomGanttChart = ({
 
   // 차트 렌더링 함수
   const renderChart = () => {
+    console.log(`🔍 [DEBUG] renderChart called - dateUnit: ${dateUnit}, tasks: ${displayTasks.length}`)
+    
     if (!canvasRef.current || !containerRef.current || displayTasks.length === 0) {
+      console.log('❌ [DEBUG] Early return - missing refs or no tasks')
       return
     }
 
@@ -57,11 +60,14 @@ export const useCustomGanttChart = ({
     if (!dateRange) return
 
     const { startDate, endDate, timeRange } = dateRange
+    console.log(`📅 [DEBUG] Date range: ${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}, dateUnit: ${dateUnit}`)
 
     // 캔버스 크기 계산
     const container = containerRef.current
     const containerWidth = container.clientWidth
     const dimensions = calculateCanvasDimensions(containerWidth, displayTasks.length, dateUnit)
+    
+    console.log(`📐 [DEBUG] Canvas dimensions - width: ${dimensions.width}, height: ${dimensions.height}, chartWidth: ${dimensions.chartWidth}`)
     
     // 캔버스 실제 크기 설정 (항상 실제 렌더링 크기)
     canvas.width = dimensions.width
@@ -81,13 +87,14 @@ export const useCustomGanttChart = ({
       // 주별: 캔버스는 실제 크기로 설정하되, CSS로 컨테이너 스크롤 제어
       canvas.style.width = `${dimensions.width}px`
       canvas.style.height = `${dimensions.height}px`
-      canvas.style.minWidth = '1200px' // 최소 너비 보장
+      canvas.style.minWidth = '1800px' // 최소 너비 대폭 증가
       canvas.style.maxWidth = 'none'   // 최대 너비 제한 해제
       
       // 캔버스 부모 컨테이너도 확장
       if (canvasParent) {
         canvasParent.style.width = 'max-content'
-        canvasParent.style.minWidth = '1200px'
+        canvasParent.style.minWidth = '1800px'
+        canvasParent.style.overflowX = 'auto' // 가로 스크롤 활성화
       }
     } else {
       // 월별: 컨테이너 너비에 맞춰 표시
@@ -100,6 +107,7 @@ export const useCustomGanttChart = ({
       if (canvasParent) {
         canvasParent.style.width = '100%'
         canvasParent.style.minWidth = '100%'
+        canvasParent.style.overflowX = 'auto' // 스크롤 유지
       }
     }
 

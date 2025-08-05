@@ -1,164 +1,458 @@
 'use client'
 import React, { useState } from 'react'
+import {
+  Paper,
+  Typography,
+  Button,
+  Collapse,
+  Box,
+  Alert,
+  AlertTitle,
+  Card,
+  CardContent,
+  Chip,
+  Stack,
+  List,
+  ListItem,
+  ListItemIcon,
+  ListItemText,
+  Divider,
+  Grid
+} from '@mui/material'
+import {
+  MenuBook as MenuBookIcon,
+  ExpandMore as ExpandMoreIcon,
+  ExpandLess as ExpandLessIcon,
+  CloudUpload as CloudUploadIcon,
+  TableChart as TableChartIcon,
+  Edit as EditIcon,
+  People as PeopleIcon,
+  Assignment as AssignmentIcon,
+  Warning as WarningIcon,
+  Build as BuildIcon,
+  CheckCircle as CheckCircleIcon,
+  Info as InfoIcon,
+  Storage as StorageIcon,
+  Schedule as ScheduleIcon,
+  TrendingUp as TrendingUpIcon,
+  PlayArrow as PlayArrowIcon
+} from '@mui/icons-material'
 
 const UsageGuide: React.FC = () => {
   const [isExpanded, setIsExpanded] = useState(false)
 
+  const featureCards = [
+    {
+      icon: <CloudUploadIcon color="primary" />,
+      title: 'Excel → DB',
+      description: 'Excel 파일을 업로드하여 데이터베이스에 저장',
+      color: 'primary'
+    },
+    {
+      icon: <TableChartIcon color="success" />,
+      title: 'Gantt 차트',
+      description: '프로젝트 일정을 시각적으로 표시',
+      color: 'success'
+    },
+    {
+      icon: <AssignmentIcon color="info" />,
+      title: 'Action Items',
+      description: '작업 목록을 트리 구조로 관리',
+      color: 'info'
+    },
+    {
+      icon: <EditIcon color="warning" />,
+      title: '작업 편집',
+      description: '작업 상세 정보를 팝업에서 직접 편집',
+      color: 'warning'
+    },
+    {
+      icon: <PeopleIcon color="secondary" />,
+      title: '담당자별 현황',
+      description: '담당자별 업무 할당 및 진행 상황 확인',
+      color: 'secondary'
+    },
+    {
+      icon: <TrendingUpIcon color="error" />,
+      title: '통계 대시보드',
+      description: '프로젝트 전체 진행률 및 리스크 분석',
+      color: 'error'
+    }
+  ]
+
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6 mt-6">
-      <div className="flex justify-between items-center mb-4">
-        <h3 className="text-lg font-semibold text-gray-900">
-          📖 사용 가이드
-        </h3>
-        <button
-          onClick={() => setIsExpanded(!isExpanded)}
-          className="px-4 py-2 text-sm font-medium text-gray-700 bg-gray-100 hover:bg-gray-200 hover:text-gray-900 border border-gray-300 rounded-lg transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-        >
-          {isExpanded ? '📤 접기' : '📥 펼치기'}
-        </button>
-      </div>
+    <Paper elevation={2} sx={{ overflow: 'hidden' }}>
+      {/* Header */}
+      <Box sx={{ p: 3, bgcolor: 'primary.main', color: 'primary.contrastText' }}>
+        <Box display="flex" justifyContent="space-between" alignItems="center">
+          <Box display="flex" alignItems="center" gap={2}>
+            <MenuBookIcon fontSize="large" />
+            <Typography variant="h5" component="h2" fontWeight={600}>
+              사용 가이드
+            </Typography>
+          </Box>
+          <Button
+            variant="outlined"
+            onClick={() => setIsExpanded(!isExpanded)}
+            endIcon={isExpanded ? <ExpandLessIcon /> : <ExpandMoreIcon />}
+            sx={{ 
+              color: 'white', 
+              borderColor: 'rgba(255,255,255,0.5)',
+              '&:hover': { 
+                borderColor: 'white',
+                bgcolor: 'rgba(255,255,255,0.1)'
+              }
+            }}
+          >
+            {isExpanded ? '접기' : '펼치기'}
+          </Button>
+        </Box>
+      </Box>
 
-      {isExpanded && (
-        <div className="space-y-6">
-          {/* 시스템 개요 */}
-          <div className="p-4 bg-blue-50 border border-blue-200 rounded-lg">
-            <h4 className="font-semibold text-blue-900 mb-2">� 시스템 개요</h4>
-            <div className="text-sm text-blue-700 space-y-1">
-              <p><strong>스노우모바일 MVNO 프로젝트 관리 시스템</strong></p>
-              <p>• Excel 파일을 업로드하여 프로젝트 작업을 관리하는 웹 기반 시스템</p>
-              <p>• Gantt 차트를 통한 시각적 프로젝트 일정 관리</p>
-              <p>• 담당자별 업무 현황 및 진행률 모니터링</p>
-              <p>• 작업 상세 정보 편집 및 실시간 업데이트</p>
-            </div>
-          </div>
+      <Collapse in={isExpanded}>
+        <Box sx={{ p: 3 }}>
+          <Stack spacing={4}>
+            {/* 시스템 개요 */}
+            <Card variant="outlined" sx={{ bgcolor: 'info.50', border: '1px solid', borderColor: 'info.200' }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" gap={2} mb={2}>
+                  <InfoIcon color="info" />
+                  <Typography variant="h6" color="info.main" fontWeight={600}>
+                    시스템 개요
+                  </Typography>
+                </Box>
+                <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: 'info.dark' }}>
+                  스노우모바일 MVNO 프로젝트 관리 시스템
+                </Typography>
+                <List dense>
+                  <ListItem>
+                    <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+                    <ListItemText primary="Excel 파일을 업로드하여 프로젝트 작업을 관리하는 웹 기반 시스템" />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+                    <ListItemText primary="Gantt 차트를 통한 시각적 프로젝트 일정 관리" />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+                    <ListItemText primary="담당자별 업무 현황 및 진행률 모니터링" />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+                    <ListItemText primary="작업 상세 정보 편집 및 실시간 업데이트" />
+                  </ListItem>
+                </List>
+              </CardContent>
+            </Card>
 
-          {/* 주요 기능 */}
-          <div className="p-4 bg-green-50 border border-green-200 rounded-lg">
-            <h4 className="font-semibold text-green-900 mb-2">⭐ 주요 기능</h4>
-            <div className="text-sm text-green-700 space-y-2">
-              <div>
-                <strong>📁 Excel → DB</strong>: Excel 파일을 업로드하여 데이터베이스에 저장
-              </div>
-              <div>
-                <strong>📊 Gantt 차트</strong>: 프로젝트 일정을 시각적으로 표시
-              </div>
-              <div>
-                <strong>📋 Action Items</strong>: 작업 목록을 트리 구조로 관리
-              </div>
-              <div>
-                <strong>✏️ 작업 편집</strong>: 작업 상세 정보를 팝업에서 직접 편집
-              </div>
-              <div>
-                <strong>👥 담당자별 현황</strong>: 담당자별 업무 할당 및 진행 상황 확인
-              </div>
-              <div>
-                <strong>📈 통계 대시보드</strong>: 프로젝트 전체 진행률 및 리스크 분석
-              </div>
-            </div>
-          </div>
+            {/* 주요 기능 */}
+            <Card variant="outlined" sx={{ bgcolor: 'success.50', border: '1px solid', borderColor: 'success.200' }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" gap={2} mb={3}>
+                  <TrendingUpIcon color="success" />
+                  <Typography variant="h6" color="success.main" fontWeight={600}>
+                    주요 기능
+                  </Typography>
+                </Box>
+                <Box display="flex" flexWrap="wrap" gap={2}>
+                  {featureCards.map((feature, index) => (
+                    <Card 
+                      key={index}
+                      variant="outlined" 
+                      sx={{ 
+                        minWidth: 200,
+                        flex: '1 1 300px',
+                        transition: 'all 0.2s',
+                        '&:hover': {
+                          transform: 'translateY(-2px)',
+                          boxShadow: 2
+                        }
+                      }}
+                    >
+                      <CardContent sx={{ textAlign: 'center', p: 2 }}>
+                        <Box mb={1}>{feature.icon}</Box>
+                        <Typography variant="subtitle2" fontWeight={600} gutterBottom>
+                          {feature.title}
+                        </Typography>
+                        <Typography variant="caption" color="text.secondary">
+                          {feature.description}
+                        </Typography>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </Box>
+              </CardContent>
+            </Card>
 
-          {/* Excel 파일 업로드 가이드 */}
-          <div className="p-4 bg-purple-50 border border-purple-200 rounded-lg">
-            <h4 className="font-semibold text-purple-900 mb-2">📁 Excel 파일 업로드</h4>
-            <div className="text-sm text-purple-700 space-y-2">
-              <p><strong>1단계</strong>: 상단의 <span className="bg-green-100 px-2 py-1 rounded">📁 Excel → DB</span> 버튼 클릭</p>
-              <p><strong>2단계</strong>: 파일 선택 다이얼로그에서 Excel 파일(.xlsx, .xls) 선택</p>
-              <p><strong>3단계</strong>: 경고 메시지 확인 후 "확인" 클릭</p>
-              <p><strong>4단계</strong>: 업로드 완료 후 자동으로 페이지 새로고침</p>
-              <div className="mt-2 p-2 bg-purple-100 rounded">
-                <p className="font-medium text-purple-800">⚠️ 주의: 기존 데이터베이스의 모든 데이터가 삭제되고 Excel 데이터로 교체됩니다!</p>
-              </div>
-            </div>
-          </div>
+            {/* Excel 파일 업로드 가이드 */}
+            <Card variant="outlined" sx={{ bgcolor: 'primary.50', border: '1px solid', borderColor: 'primary.200' }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" gap={2} mb={3}>
+                  <CloudUploadIcon color="primary" />
+                  <Typography variant="h6" color="primary.main" fontWeight={600}>
+                    Excel 파일 업로드 가이드
+                  </Typography>
+                </Box>
+                <Stack spacing={2}>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <Chip label="1" color="primary" size="small" />
+                    <Typography>상단의 <Chip label="📁 Excel → DB" color="success" size="small" /> 버튼 클릭</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <Chip label="2" color="primary" size="small" />
+                    <Typography>파일 선택 다이얼로그에서 Excel 파일(.xlsx, .xls) 선택</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <Chip label="3" color="primary" size="small" />
+                    <Typography>경고 메시지 확인 후 "확인" 클릭</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <Chip label="4" color="primary" size="small" />
+                    <Typography>업로드 완료 후 자동으로 페이지 새로고침</Typography>
+                  </Box>
+                  <Alert severity="warning" sx={{ mt: 2 }}>
+                    <AlertTitle>주의사항</AlertTitle>
+                    기존 데이터베이스의 모든 데이터가 삭제되고 Excel 데이터로 교체됩니다!
+                  </Alert>
+                </Stack>
+              </CardContent>
+            </Card>
 
-          {/* Excel 파일 형식 */}
-          <div className="p-4 bg-yellow-50 border border-yellow-200 rounded-lg">
-            <h4 className="font-semibold text-yellow-900 mb-2">� Excel 파일 형식</h4>
-            <div className="text-sm text-yellow-700">
-              <p className="mb-2">Excel 파일의 첫 번째 행은 헤더이고, 다음 컬럼 순서를 지켜주세요:</p>
-              <div className="grid grid-cols-2 gap-2 text-xs">
-                <div><strong>A열</strong>: 작업명 (name)</div>
-                <div><strong>B열</strong>: 상세 설명 (detail)</div>
-                <div><strong>C열</strong>: 카테고리 (category)</div>
-                <div><strong>D열</strong>: 부서 (department)</div>
-                <div><strong>E열</strong>: 담당자 (resource)</div>
-                <div><strong>F열</strong>: 시작일 (start_date)</div>
-                <div><strong>G열</strong>: 종료일 (end_date)</div>
-                <div><strong>H열</strong>: 진행률 (percent_complete)</div>
-                <div><strong>I열</strong>: 상태 (status)</div>
-                <div><strong>J열</strong>: 우선순위 (priority)</div>
-              </div>
-            </div>
-          </div>
+            {/* Excel 파일 형식 */}
+            <Card variant="outlined" sx={{ bgcolor: 'warning.50', border: '1px solid', borderColor: 'warning.200' }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" gap={2} mb={3}>
+                  <StorageIcon color="warning" />
+                  <Typography variant="h6" color="warning.main" fontWeight={600}>
+                    Excel 파일 형식
+                  </Typography>
+                </Box>
+                <Typography variant="body2" color="text.secondary" paragraph>
+                  Excel 파일의 첫 번째 행은 헤더이고, 다음 컬럼 순서를 지켜주세요:
+                </Typography>
+                <Box display="flex" flexWrap="wrap" gap={1}>
+                  {[
+                    { col: 'A', field: '작업명 (name)' },
+                    { col: 'B', field: '상세 설명 (detail)' },
+                    { col: 'C', field: '카테고리 (category)' },
+                    { col: 'D', field: '부서 (department)' },
+                    { col: 'E', field: '담당자 (resource)' },
+                    { col: 'F', field: '시작일 (start_date)' },
+                    { col: 'G', field: '종료일 (end_date)' },
+                    { col: 'H', field: '진행률 (percent_complete)' },
+                    { col: 'I', field: '상태 (status)' },
+                    { col: 'J', field: '우선순위 (priority)' }
+                  ].map((item, index) => (
+                    <Box 
+                      key={index} 
+                      display="flex" 
+                      alignItems="center" 
+                      gap={1} 
+                      sx={{ minWidth: '300px', flex: '1 1 300px' }}
+                    >
+                      <Chip label={`${item.col}열`} size="small" color="warning" />
+                      <Typography variant="body2">{item.field}</Typography>
+                    </Box>
+                  ))}
+                </Box>
+              </CardContent>
+            </Card>
 
-          {/* 작업 편집 가이드 */}
-          <div className="p-4 bg-cyan-50 border border-cyan-200 rounded-lg">
-            <h4 className="font-semibold text-cyan-900 mb-2">✏️ 작업 편집 방법</h4>
-            <div className="text-sm text-cyan-700 space-y-2">
-              <p><strong>1단계</strong>: Gantt 차트에서 작업 바를 클릭하여 상세 정보 팝업 열기</p>
-              <p><strong>2단계</strong>: 팝업에서 <span className="bg-blue-100 px-2 py-1 rounded">✏️ 편집</span> 버튼 클릭</p>
-              <p><strong>3단계</strong>: 시작일, 종료일, 진행률, 담당자 수정</p>
-              <p><strong>4단계</strong>: <span className="bg-blue-100 px-2 py-1 rounded">💾 저장</span> 버튼 클릭하여 데이터베이스에 반영</p>
-              <p className="text-cyan-600">💡 변경 사항은 즉시 Gantt 차트와 통계에 반영됩니다.</p>
-            </div>
-          </div>
+            {/* 작업 편집 가이드 */}
+            <Card variant="outlined" sx={{ bgcolor: 'secondary.50', border: '1px solid', borderColor: 'secondary.200' }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" gap={2} mb={3}>
+                  <EditIcon color="secondary" />
+                  <Typography variant="h6" color="secondary.main" fontWeight={600}>
+                    작업 편집 방법
+                  </Typography>
+                </Box>
+                <Stack spacing={2}>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <PlayArrowIcon color="secondary" fontSize="small" />
+                    <Typography>Gantt 차트에서 작업 바를 클릭하여 상세 정보 팝업 열기</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <PlayArrowIcon color="secondary" fontSize="small" />
+                    <Typography>팝업에서 <Chip label="✏️ 편집" color="info" size="small" /> 버튼 클릭</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <PlayArrowIcon color="secondary" fontSize="small" />
+                    <Typography>시작일, 종료일, 진행률, 담당자 수정</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <PlayArrowIcon color="secondary" fontSize="small" />
+                    <Typography><Chip label="💾 저장" color="primary" size="small" /> 버튼 클릭하여 데이터베이스에 반영</Typography>
+                  </Box>
+                  <Alert severity="info" sx={{ mt: 2 }}>
+                    <Typography variant="body2">
+                      💡 변경 사항은 즉시 Gantt 차트와 통계에 반영됩니다.
+                    </Typography>
+                  </Alert>
+                </Stack>
+              </CardContent>
+            </Card>
 
-          {/* 담당자별 현황 */}
-          <div className="p-4 bg-orange-50 border border-orange-200 rounded-lg">
-            <h4 className="font-semibold text-orange-900 mb-2">👥 담당자별 현황</h4>
-            <div className="text-sm text-orange-700 space-y-2">
-              <p><strong>담당자 카드 더블클릭</strong>: 해당 담당자의 세부 업무 목록 팝업 표시</p>
-              <p><strong>업무 분류</strong>: 대분류 &gt; 소분류 &gt; 세부업무 계층 구조 (중분류는 데이터에만 포함)</p>
-              <p><strong>완료 상태</strong>: ✅ 완료 (100%) / ⏳ 진행중 (100% 미만)</p>
-              <p><strong>진행률 표시</strong>: 각 업무별 진행률 시각적 표시</p>
-            </div>
-          </div>
+            {/* Action Items 사용법 */}
+            <Card variant="outlined" sx={{ bgcolor: 'cyan.50', border: '1px solid', borderColor: 'cyan.200' }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" gap={2} mb={3}>
+                  <AssignmentIcon sx={{ color: 'cyan.700' }} />
+                  <Typography variant="h6" sx={{ color: 'cyan.700' }} fontWeight={600}>
+                    Action Items 사용법
+                  </Typography>
+                </Box>
+                <Stack spacing={2}>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <PlayArrowIcon sx={{ color: 'cyan.600' }} fontSize="small" />
+                    <Typography>트리 확장/축소: 그룹 항목 클릭 시 하위 항목 표시/숨김</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <PlayArrowIcon sx={{ color: 'cyan.600' }} fontSize="small" />
+                    <Typography>작업 선택: 개별 작업 클릭 시 해당 작업 선택</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <PlayArrowIcon sx={{ color: 'cyan.600' }} fontSize="small" />
+                    <Typography>작업 상세보기: 작업 더블클릭 시 상세 정보 팝업</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <PlayArrowIcon sx={{ color: 'cyan.600' }} fontSize="small" />
+                    <Typography>스크롤 동기화: Action Items와 Gantt 차트 스크롤 자동 동기화</Typography>
+                  </Box>
+                </Stack>
+              </CardContent>
+            </Card>
 
-          {/* Action Items 사용법 */}
-          <div className="p-4 bg-teal-50 border border-teal-200 rounded-lg">
-            <h4 className="font-semibold text-teal-900 mb-2">📋 Action Items 사용법</h4>
-            <div className="text-sm text-teal-700 space-y-2">
-              <p><strong>트리 확장/축소</strong>: 그룹 항목 클릭 시 하위 항목 표시/숨김</p>
-              <p><strong>작업 선택</strong>: 개별 작업 클릭 시 해당 작업 선택</p>
-              <p><strong>작업 상세보기</strong>: 작업 더블클릭 시 상세 정보 팝업</p>
-              <p><strong>스크롤 동기화</strong>: Action Items와 Gantt 차트 스크롤 자동 동기화</p>
-            </div>
-          </div>
+            {/* 담당자별 현황 */}
+            <Card variant="outlined" sx={{ bgcolor: 'orange.50', border: '1px solid', borderColor: 'orange.200' }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" gap={2} mb={3}>
+                  <PeopleIcon sx={{ color: 'orange.700' }} />
+                  <Typography variant="h6" sx={{ color: 'orange.700' }} fontWeight={600}>
+                    담당자별 현황
+                  </Typography>
+                </Box>
+                <Stack spacing={2}>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <PlayArrowIcon sx={{ color: 'orange.600' }} fontSize="small" />
+                    <Typography>담당자 카드 더블클릭: 해당 담당자의 세부 업무 목록 팝업 표시</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <PlayArrowIcon sx={{ color: 'orange.600' }} fontSize="small" />
+                    <Typography>업무 분류: 대분류 &gt; 소분류 &gt; 세부업무 계층 구조</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <PlayArrowIcon sx={{ color: 'orange.600' }} fontSize="small" />
+                    <Typography>완료 상태: ✅ 완료 (100%) / ⏳ 진행중 (100% 미만)</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <PlayArrowIcon sx={{ color: 'orange.600' }} fontSize="small" />
+                    <Typography>진행률 표시: 각 업무별 진행률 시각적 표시</Typography>
+                  </Box>
+                </Stack>
+              </CardContent>
+            </Card>
 
-          {/* 주의사항 및 팁 */}
-          <div className="p-4 bg-red-50 border border-red-200 rounded-lg">
-            <h4 className="font-semibold text-red-900 mb-2">⚠️ 주의사항 및 팁</h4>
-            <div className="text-sm text-red-700 space-y-1">
-              <p>• <strong>데이터 백업</strong>: Excel 업로드 전 기존 데이터를 백업하세요</p>
-              <p>• <strong>파일 형식</strong>: .xlsx 또는 .xls 파일만 업로드 가능</p>
-              <p>• <strong>날짜 형식</strong>: Excel 날짜 형식 사용 (자동 변환됨)</p>
-              <p>• <strong>진행률</strong>: 0~1 사이 소수(0.8) 또는 0~100 정수(80) 모두 지원</p>
-              <p>• <strong>빈 셀</strong>: 필수 필드(작업명)를 제외하고 빈 셀 허용</p>
-              <p>• <strong>브라우저 호환성</strong>: Chrome, Firefox, Safari, Edge 지원</p>
-            </div>
-          </div>
+            {/* 주의사항 및 팁 */}
+            <Card variant="outlined" sx={{ bgcolor: 'error.50', border: '1px solid', borderColor: 'error.200' }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" gap={2} mb={3}>
+                  <WarningIcon color="error" />
+                  <Typography variant="h6" color="error.main" fontWeight={600}>
+                    주의사항 및 팁
+                  </Typography>
+                </Box>
+                <List dense>
+                  <ListItem>
+                    <ListItemIcon><WarningIcon color="error" fontSize="small" /></ListItemIcon>
+                    <ListItemText 
+                      primary="데이터 백업" 
+                      secondary="Excel 업로드 전 기존 데이터를 백업하세요" 
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+                    <ListItemText 
+                      primary="파일 형식" 
+                      secondary=".xlsx 또는 .xls 파일만 업로드 가능" 
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><ScheduleIcon color="info" fontSize="small" /></ListItemIcon>
+                    <ListItemText 
+                      primary="날짜 형식" 
+                      secondary="Excel 날짜 형식 사용 (자동 변환됨)" 
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><TrendingUpIcon color="primary" fontSize="small" /></ListItemIcon>
+                    <ListItemText 
+                      primary="진행률" 
+                      secondary="0~1 사이 소수(0.8) 또는 0~100 정수(80) 모두 지원" 
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><InfoIcon color="action" fontSize="small" /></ListItemIcon>
+                    <ListItemText 
+                      primary="빈 셀" 
+                      secondary="필수 필드(작업명)를 제외하고 빈 셀 허용" 
+                    />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+                    <ListItemText 
+                      primary="브라우저 호환성" 
+                      secondary="Chrome, Firefox, Safari, Edge 지원" 
+                    />
+                  </ListItem>
+                </List>
+              </CardContent>
+            </Card>
 
-          {/* 문제 해결 */}
-          <div className="p-4 bg-gray-50 border border-gray-200 rounded-lg">
-            <h4 className="font-semibold text-gray-900 mb-2">🛠️ 문제 해결</h4>
-            <div className="text-sm text-gray-700 space-y-2">
-              <div>
-                <strong>업로드 실패</strong>: Excel 파일 형식과 데이터를 확인하고 다시 시도
-              </div>
-              <div>
-                <strong>데이터가 표시되지 않음</strong>: 페이지 새로고침 또는 캐시 삭제
-              </div>
-              <div>
-                <strong>편집이 저장되지 않음</strong>: 네트워크 연결 상태 확인 후 재시도
-              </div>
-              <div>
-                <strong>Gantt 차트가 안 보임</strong>: 브라우저 개발자 도구에서 JavaScript 오류 확인
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-    </div>
+            {/* 문제 해결 */}
+            <Card variant="outlined" sx={{ bgcolor: 'grey.50', border: '1px solid', borderColor: 'grey.300' }}>
+              <CardContent>
+                <Box display="flex" alignItems="center" gap={2} mb={3}>
+                  <BuildIcon color="action" />
+                  <Typography variant="h6" color="text.primary" fontWeight={600}>
+                    문제 해결
+                  </Typography>
+                </Box>
+                <Stack spacing={2}>
+                  <Box>
+                    <Typography variant="subtitle2" fontWeight={600}>업로드 실패</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      Excel 파일 형식과 데이터를 확인하고 다시 시도
+                    </Typography>
+                  </Box>
+                  <Divider />
+                  <Box>
+                    <Typography variant="subtitle2" fontWeight={600}>데이터가 표시되지 않음</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      페이지 새로고침 또는 캐시 삭제
+                    </Typography>
+                  </Box>
+                  <Divider />
+                  <Box>
+                    <Typography variant="subtitle2" fontWeight={600}>편집이 저장되지 않음</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      네트워크 연결 상태 확인 후 재시도
+                    </Typography>
+                  </Box>
+                  <Divider />
+                  <Box>
+                    <Typography variant="subtitle2" fontWeight={600}>Gantt 차트가 안 보임</Typography>
+                    <Typography variant="body2" color="text.secondary">
+                      브라우저 개발자 도구에서 JavaScript 오류 확인
+                    </Typography>
+                  </Box>
+                </Stack>
+              </CardContent>
+            </Card>
+          </Stack>
+        </Box>
+      </Collapse>
+    </Paper>
   )
 }
 

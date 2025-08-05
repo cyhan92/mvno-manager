@@ -15,6 +15,13 @@ const GanttControlPanel: React.FC<GanttControlPanelProps> = ({
   onViewModeChange,
   onDateUnitChange
 }) => {
+  console.log(`🎮 [DEBUG] GanttControlPanel render - dateUnit: ${dateUnit}`)
+  
+  const handleDateUnitChange = (unit: DateUnit) => {
+    console.log(`🎮 [DEBUG] Date unit changing from ${dateUnit} to ${unit}`)
+    onDateUnitChange(unit)
+  }
+  
   return (
     <div className="bg-white rounded-lg shadow-sm border p-4">
       <div className="flex flex-wrap items-center justify-between gap-4">
@@ -28,7 +35,7 @@ const GanttControlPanel: React.FC<GanttControlPanelProps> = ({
             {DATE_UNIT_OPTIONS.map((option) => (
               <button
                 key={option.key}
-                onClick={() => onDateUnitChange(option.key)}
+                onClick={() => handleDateUnitChange(option.key)}
                 className={`px-3 py-1 rounded-md text-sm font-medium transition-colors ${
                   dateUnit === option.key
                     ? 'bg-white text-gray-900 shadow-sm' 

@@ -30,6 +30,54 @@ const generateMonthHeaders = (startDate: Date, endDate: Date) => {
   return months
 }
 
+// 주별 헤더 생성 함수 (개선된 구현)
+const generateWeekHeaders = (startDate: Date, endDate: Date) => {
+  const weeks = []
+  const current = new Date(startDate)
+  
+  // 시작 날짜를 주의 시작일(월요일)로 조정
+  const dayOfWeek = current.getDay()
+  const adjustedStart = new Date(current)
+  adjustedStart.setDate(current.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
+  
+  let weekStart = new Date(adjustedStart)
+  let weekNumber = 1
+  
+  while (weekStart < endDate) {
+    const weekEnd = new Date(weekStart)
+    weekEnd.setDate(weekStart.getDate() + 6) // 일주일 끝
+    
+    // 더 명확한 주별 라벨 생성
+    const startMonth = weekStart.getMonth() + 1
+    const startDay = weekStart.getDate()
+    const endMonth = weekEnd.getMonth() + 1
+    const endDay = weekEnd.getDate()
+    
+    let weekLabel = ''
+    if (startMonth === endMonth) {
+      // 같은 달 내의 주
+      weekLabel = `${startMonth}/${startDay}-${endDay}`
+    } else {
+      // 월을 넘나드는 주
+      weekLabel = `${startMonth}/${startDay}~${endMonth}/${endDay}`
+    }
+    
+    weeks.push({
+      label: weekLabel,
+      start: weekStart.getTime(),
+      end: weekEnd.getTime(),
+      weekNumber: weekNumber
+    })
+    
+    // 다음 주로 이동
+    weekStart = new Date(weekStart)
+    weekStart.setDate(weekStart.getDate() + 7)
+    weekNumber++
+  }
+  
+  return weeks
+}
+
 interface GanttHeaderProps {
   displayTasks: Task[]
   dateUnit: DateUnit
@@ -53,9 +101,14 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
 
   // 헤더 렌더링 함수
   const renderHeader = () => {
+    console.log(`🎯 [DEBUG] GanttHeader renderHeader called - dateUnit: ${dateUnit}, tasks: ${displayTasks.length}`)
+    
     const canvas = canvasRef.current
     const container = scrollRef.current
-    if (!canvas || !container) return
+    if (!canvas || !container) {
+      console.log('❌ [DEBUG] GanttHeader early return - missing canvas or container')
+      return
+    }
 
     const ctx = canvas.getContext('2d')
     if (!ctx) return
@@ -69,6 +122,7 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
     }
     
     const dimensions = calculateCanvasDimensions(containerWidth, displayTasks.length, dateUnit)
+    console.log(`🎯 [DEBUG] GanttHeader dimensions - width: ${dimensions.chartWidth}, dateUnit: ${dateUnit}`)
 
     canvas.width = dimensions.chartWidth
     canvas.height = 80
@@ -77,11 +131,13 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
     canvas.style.height = '80px'
 
     if (dateUnit === 'week') {
-      canvas.style.minWidth = '1200px'
+      canvas.style.minWidth = '1800px'
       canvas.style.maxWidth = 'none'
+      console.log('🎯 [DEBUG] GanttHeader applying week styles')
     } else {
       canvas.style.minWidth = 'auto'
       canvas.style.maxWidth = '100%'
+      console.log('🎯 [DEBUG] GanttHeader applying month styles')
     }
 
     const validTasks = displayTasks.filter(task => task.start && task.end)
@@ -101,26 +157,43 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
     const leftMargin = 0
     const chartWidth = dimensions.chartWidth
 
-    // 월별 구분선과 라벨 그리기
-    const months = generateMonthHeaders(startDate, endDate)
+    // 월별/주별 구분선과 라벨 그리기
+    let headers = []
+    if (dateUnit === 'month') {
+      headers = generateMonthHeaders(startDate, endDate)
+    } else {
+      headers = generateWeekHeaders(startDate, endDate)
+    }
     
-    ctx.font = '14px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+    ctx.font = dateUnit === 'week' ? '12px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' : '14px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
     ctx.fillStyle = '#374151'
     ctx.textAlign = 'center'
 
-    months.forEach((month) => {
-        const x = leftMargin + ((month.start - startDate.getTime()) / timeRange) * chartWidth
-        const width = ((month.end - month.start) / timeRange) * chartWidth
-        ctx.fillText(month.label, x + width / 2, 40)
+    headers.forEach((header) => {
+        const x = leftMargin + ((header.start - startDate.getTime()) / timeRange) * chartWidth
+        const width = ((header.end - header.start) / timeRange) * chartWidth
+        
+        // 헤더 라벨 그리기
+        ctx.fillText(header.label, x + width / 2, dateUnit === 'week' ? 30 : 40)
 
-        // 세로선 그리기
-        const endX = leftMargin + ((month.end - startDate.getTime()) / timeRange) * chartWidth
-        ctx.strokeStyle = '#e5e7eb'
-        ctx.lineWidth = 1
+        // 세로선 그리기 - 구간 끝에만
+        const endX = leftMargin + ((header.end - startDate.getTime()) / timeRange) * chartWidth
+        ctx.strokeStyle = dateUnit === 'week' ? '#9ca3af' : '#e5e7eb'
+        ctx.lineWidth = dateUnit === 'week' ? 1.5 : 1
+        
+        if (dateUnit === 'week') {
+          ctx.setLineDash([]) // 주별은 실선
+        } else {
+          ctx.setLineDash([4, 4]) // 월별은 점선
+        }
+        
         ctx.beginPath()
         ctx.moveTo(endX, 0)
         ctx.lineTo(endX, canvas.height)
         ctx.stroke()
+        
+        // 점선 패턴 리셋
+        ctx.setLineDash([])
     })
 
     // 오늘 날짜 세로선
