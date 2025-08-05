@@ -12,6 +12,7 @@ interface GanttChartProps {
   groupBy?: GroupBy
   onViewModeChange: (mode: ViewMode) => void
   onGroupByChange: (groupBy: GroupBy) => void
+  onTaskUpdate?: (updatedTask: Task) => void
 }
 
 export default function GanttChart({ 
@@ -19,7 +20,8 @@ export default function GanttChart({
   viewMode, 
   groupBy, 
   onViewModeChange, 
-  onGroupByChange 
+  onGroupByChange,
+  onTaskUpdate
 }: GanttChartProps) {
   const {
     selectedTask,
@@ -54,6 +56,7 @@ export default function GanttChart({
         chartData={chartData}
         groupedTasks={groupedTasks}
         onTaskSelect={handleTaskSelect}
+        onTaskUpdate={onTaskUpdate}
         groupBy={groupBy}
       />
 

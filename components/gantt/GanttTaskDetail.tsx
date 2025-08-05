@@ -1,7 +1,7 @@
 import React from 'react'
 import { Task } from '../../types/task'
 import { getStatusBadgeClass, formatDate, formatDuration, formatProgress } from '../../utils/gantt'
-import styles from '../../styles'
+import { styles } from '../../styles'
 
 interface GanttTaskDetailProps {
   selectedTask: Task | null

@@ -10,7 +10,7 @@ import UsageGuide from '../components/UsageGuide'
 import Loading from '../components/Loading'
 
 export default function ClientHome() {
-  const { tasks, loading, error, source, refetch } = useTasksFromDatabase()
+  const { tasks, loading, error, source, refetch, updateTask } = useTasksFromDatabase()
   
   // tasks가 유효한 배열인지 확인
   const safeTasks = Array.isArray(tasks) ? tasks : []
@@ -19,7 +19,7 @@ export default function ClientHome() {
   const { viewMode, groupBy, setViewMode, setGroupBy } = useViewState()
 
   if (loading) {
-    return <Loading />
+    return <Loading message="프로젝트 데이터를 불러오는 중..." />
   }
 
   if (error) {
@@ -48,7 +48,6 @@ export default function ClientHome() {
     <div className="min-h-screen bg-gray-50">
       <Header
         taskCount={safeTasks.length}
-        onRefresh={refetch}
         source={source}
       />
 
@@ -61,8 +60,9 @@ export default function ClientHome() {
           groupBy={groupBy}
           onViewModeChange={setViewMode}
           onGroupByChange={setGroupBy}
+          onTaskUpdate={updateTask}
         />
-        <ResourceStatsComponent resourceStats={resourceStats} />
+        <ResourceStatsComponent resourceStats={resourceStats} tasks={safeTasks} />
         <UsageGuide />
       </div>
     </div>

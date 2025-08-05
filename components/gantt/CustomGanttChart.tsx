@@ -12,7 +12,7 @@ import GanttHeader from './GanttHeader'
 import GanttCanvas from './GanttCanvas'
 import TaskDetailPopup from './TaskDetailPopup'
 import EmptyState from './EmptyState'
-import styles from '../../styles'
+import { styles } from '../../styles'
 
 interface CustomGanttChartProps {
   tasks: Task[]
@@ -21,6 +21,7 @@ interface CustomGanttChartProps {
   chartData: any[]
   groupedTasks: Record<string, Task[]>
   onTaskSelect: (selection: any) => void
+  onTaskUpdate?: (updatedTask: Task) => void
   groupBy?: string
 }
 
@@ -31,6 +32,7 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
   chartData,
   groupedTasks,
   onTaskSelect,
+  onTaskUpdate,
   groupBy
 }) => {
   // 팝업 상태 관리
@@ -179,6 +181,12 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
           task={popup.selectedTaskDetail!}
           position={popup.popupPosition!}
           onClose={popup.closePopup}
+          onTaskUpdate={(updatedTask: Task) => {
+            if (onTaskUpdate) {
+              onTaskUpdate(updatedTask)
+            }
+            popup.closePopup()
+          }}
         />
       )}
     </div>

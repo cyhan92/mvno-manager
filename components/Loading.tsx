@@ -4,7 +4,7 @@ interface LoadingProps {
   message?: string
 }
 
-const Loading: React.FC<LoadingProps> = ({ message = "Excel 파일에서 데이터를 로딩 중..." }) => {
+const Loading: React.FC<LoadingProps> = ({ message = "데이터를 로딩 중..." }) => {
   return (
     <div className="min-h-screen flex items-center justify-center">
       <div className="flex flex-col items-center space-y-4">

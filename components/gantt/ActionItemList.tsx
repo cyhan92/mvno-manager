@@ -2,7 +2,7 @@ import React from 'react'
 import { Task } from '../../types/task'
 import { getTreeIcon, TreeNode } from '../../utils/tree'
 import { TreeState } from '../../types/task'
-import styles from '../../styles'
+import { styles } from '../../styles'
 
 interface ActionItemListProps {
   displayTasks: Task[]

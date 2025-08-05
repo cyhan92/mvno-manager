@@ -1,6 +1,6 @@
 import React from 'react'
 import { DateUnit } from '../../types/task'
-import styles from '../../styles'
+import { styles } from '../../styles'
 
 interface GanttHeaderProps {
   displayTasks: any[]

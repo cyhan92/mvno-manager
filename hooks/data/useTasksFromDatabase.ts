@@ -123,11 +123,21 @@ export const useTasksFromDatabase = () => {
     }
   }, [fetchTasks])
 
+  // Task 업데이트 함수
+  const updateTask = useCallback((updatedTask: Task) => {
+    setTasks(prevTasks => 
+      prevTasks.map(task => 
+        task.id === updatedTask.id ? updatedTask : task
+      )
+    )
+  }, [])
+
   return { 
     tasks, 
     loading, 
     error, 
     source,
-    refetch: fetchTasks 
+    refetch: fetchTasks,
+    updateTask
   }
 }

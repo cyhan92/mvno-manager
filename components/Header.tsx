@@ -1,120 +1,101 @@
-import React, { useState } from 'react'
+'use client'
+import React, { useRef } from 'react'
 
 interface HeaderProps {
   taskCount: number
-  onRefresh: () => void
-  source?: 'database' | 'excel_fallback' | null
+  onRefresh?: () => Promise<void>
+  source: 'database' | 'excel_fallback' | null
 }
 
-const Header: React.FC<HeaderProps> = ({
-  taskCount,
-  onRefresh,
-  source
-}) => {
-  const [isLoading, setIsLoading] = useState(false)
-  const [message, setMessage] = useState<string>('')
+const Header: React.FC<HeaderProps> = ({ taskCount, onRefresh, source }) => {
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
-  // 동기화 상태 확인
-  const checkSyncStatus = async () => {
-    setIsLoading(true)
-    setMessage('')
+  const handleExcelUpload = async () => {
+    if (!fileInputRef.current) return
 
-    try {
-      const response = await fetch('/api/sync')
-      const result = await response.json()
+    const confirmed = window.confirm(
+      '⚠️ 경고: Excel 파일을 업로드하면 기존 데이터베이스의 모든 데이터가 삭제되고 Excel 데이터로 교체됩니다.\n\n계속하시겠습니까?'
+    )
 
-      if (result.success) {
-        setMessage(
-          result.data.inSync 
-            ? '✅ Excel과 DB가 동기화되어 있습니다.'
-            : '⚠️ Excel과 DB가 동기화되지 않았습니다.'
-        )
-      } else {
-        setMessage(`❌ 상태 확인 실패: ${result.message}`)
-      }
-    } catch (error) {
-      setMessage(`❌ 상태 확인 중 오류: ${error}`)
-    } finally {
-      setIsLoading(false)
-    }
+    if (!confirmed) return
+
+    fileInputRef.current.click()
   }
 
-  // Excel → Database 동기화 실행
-  const syncToDatabase = async () => {
-    setIsLoading(true)
-    setMessage('')
+  const handleFileChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file) return
+
+    const formData = new FormData()
+    formData.append('file', file)
 
     try {
-      const response = await fetch('/api/sync', {
-        method: 'POST'
+      const response = await fetch('/api/upload-excel', {
+        method: 'POST',
+        body: formData,
       })
-      const result = await response.json()
 
-      if (result.success) {
-        setMessage(`✅ ${result.message}`)
-        // 동기화 후 데이터 새로고침
-        setTimeout(() => {
-          onRefresh()
-        }, 1000)
+      if (response.ok) {
+        alert('✅ Excel 데이터가 성공적으로 데이터베이스에 저장되었습니다!')
+        window.location.reload() // 페이지 새로고침
       } else {
-        setMessage(`❌ 동기화 실패: ${result.message}`)
+        const error = await response.text()
+        alert(`❌ 업로드 실패: ${error}`)
       }
     } catch (error) {
-      setMessage(`❌ 동기화 중 오류: ${error}`)
-    } finally {
-      setIsLoading(false)
+      console.error('Upload error:', error)
+      alert('❌ 업로드 중 오류가 발생했습니다.')
+    }
+
+    // 파일 입력 초기화
+    if (fileInputRef.current) {
+      fileInputRef.current.value = ''
     }
   }
 
   return (
-    <header className="bg-white shadow-sm border-b">
-      <div className="max-w-7xl mx-auto px-4 py-6">
-        <div className="flex justify-between items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900">
-              🚀 스노우모바일 MVNO 프로젝트 관리
-            </h1>
-            <p className="text-gray-600 mt-1">
-              총 {taskCount}개 작업 | 
-              {source === 'database' && ' 데이터베이스 연동'}
-              {source === 'excel_fallback' && ' Excel 파일 (DB 연결 실패)'}
-              {!source && ' Excel 파일 기반'}
+    <div className="bg-white border-b border-gray-200 px-6 py-4">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            📊 스노우모바일 MVNO 프로젝트 관리
+          </h1>
+          <div className="flex items-center gap-4 mt-1">
+            <p className="text-sm text-gray-600">
+              전체 작업 수: <span className="font-semibold text-blue-600">{taskCount}</span>
             </p>
-          </div>
-          
-          <div className="flex gap-2">
-            <button
-              onClick={checkSyncStatus}
-              disabled={isLoading}
-              className="px-3 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 text-sm font-medium transition-colors disabled:opacity-50"
-            >
-              {isLoading ? '확인 중...' : '🔍 상태 확인'}
-            </button>
-            <button
-              onClick={syncToDatabase}
-              disabled={isLoading}
-              className="px-3 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 text-sm font-medium transition-colors disabled:opacity-50"
-            >
-              {isLoading ? '동기화 중...' : '🔄 Excel → DB'}
-            </button>
-            <button
-              onClick={onRefresh}
-              disabled={isLoading}
-              className="px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 text-sm font-medium transition-colors disabled:opacity-50"
-            >
-              📄 Excel 새로고침
-            </button>
+            {source && (
+              <div className={`text-xs px-2 py-1 rounded-full ${
+                source === 'database' 
+                  ? 'bg-green-100 text-green-700' 
+                  : 'bg-yellow-100 text-yellow-700'
+              }`}>
+                {source === 'database' ? '🗄️ 데이터베이스' : '📄 Excel 파일'}
+              </div>
+            )}
           </div>
         </div>
         
-        {/* 메시지 표시 */}
-        {message && (
-          <div className="mt-3 p-2 rounded-lg bg-gray-50 border">
-            <p className="text-sm">{message}</p>
-          </div>
-        )}
+        <div className="flex items-center gap-3">
+          <button
+            onClick={handleExcelUpload}
+            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium text-sm"
+          >
+            📁 Excel → DB
+          </button>
+        </div>
       </div>
-    </header>
+
+      {/* 숨겨진 파일 입력 */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".xlsx,.xls"
+        onChange={handleFileChange}
+        className="hidden"
+        aria-label="Excel 파일 선택"
+      />
+    </div>
   )
 }
 

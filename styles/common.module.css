@@ -36,4 +36,5 @@
   background: linear-gradient(90deg, #10b981, #059669);
   border-radius: 9999px;
   transition: width 0.3s ease-in-out;
+  width: var(--progress-width);
 }
