@@ -137,6 +137,18 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
     }
   }, [isDragging, dragOffset])
 
+  // 디버깅을 위한 로깅
+  useEffect(() => {
+    console.log('TaskDetailPopup - Task info:', {
+      id: task.id,
+      name: task.name,
+      isGroup: task.isGroup,
+      hasChildren: task.hasChildren,
+      dbId: task.dbId,
+      level: task.level
+    })
+  }, [task])
+
   // ESC 키로 닫기
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -159,14 +171,32 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
   const handleSave = async () => {
     setIsLoading(true)
     try {
-      // 그룹 노드인지 확인
-      if (task.isGroup || task.hasChildren) {
+      // 편집 가능한 작업인지 확인
+      const isEditableTask = task.level === 2 || (!task.isGroup && !task.hasChildren)
+      
+      if (!isEditableTask) {
         throw new Error('그룹 항목은 편집할 수 없습니다. 개별 작업만 편집 가능합니다.')
       }
 
-      // 실제 서버에 저장
+      // DB ID가 없는 경우 경고하지만 로컬 업데이트는 시도
       if (!task.dbId) {
-        throw new Error('작업의 데이터베이스 ID를 찾을 수 없습니다. 이 작업은 편집할 수 없습니다.')
+        console.warn('DB ID가 없는 작업입니다. 로컬 업데이트만 수행합니다:', task.id)
+        
+        // 로컬 상태만 업데이트
+        if (onTaskUpdate) {
+          const updatedTask = {
+            ...task,
+            start: editData.startDate ? new Date(editData.startDate) : task.start,
+            end: editData.endDate ? new Date(editData.endDate) : task.end,
+            percentComplete: editData.percentComplete,
+            resource: editData.resource,
+            department: editData.department
+          }
+          onTaskUpdate(updatedTask)
+        }
+        
+        setIsEditing(false)
+        return
       }
 
       const updateData = {
@@ -297,13 +327,16 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
             📋 작업 상세 정보 {isEditing && '(편집 모드)'}
           </h3>
           <div className="flex gap-2 pointer-events-auto">
-            {!isEditing && !task.isGroup && !task.hasChildren && task.dbId && (
-              <button
-                onClick={() => setIsEditing(true)}
-                className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-              >
-                ✏️ 편집
-              </button>
+            {!isEditing && (
+              // 편집 가능 조건: 레벨 2(세부업무)이거나, 그룹이 아니고 자식이 없는 작업
+              (task.level === 2 || (!task.isGroup && !task.hasChildren)) && (
+                <button
+                  onClick={() => setIsEditing(true)}
+                  className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                >
+                  ✏️ 편집
+                </button>
+              )
             )}
             <button
               onClick={onClose}
@@ -483,7 +516,7 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
         
         {!isEditing && (
           <div className="mt-6 pt-4 border-t border-gray-200">
-            {!task.isGroup && !task.hasChildren && task.dbId ? (
+            {(task.level === 2 || (!task.isGroup && !task.hasChildren)) ? (
               <p className="text-xs text-gray-500">💡 팁: 편집 버튼을 클릭하여 작업 정보를 수정할 수 있습니다.</p>
             ) : (
               <p className="text-xs text-gray-500">📋 그룹 항목은 편집할 수 없습니다. 개별 작업만 편집 가능합니다.</p>
