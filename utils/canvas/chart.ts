@@ -50,11 +50,9 @@ export const calculateCanvasDimensions = (
   if (dateUnit === 'week') {
     // 주별 표시시 대폭 확대 - 더 넓은 간격 제공
     chartWidth = Math.max(safeContainerWidth * 6, 1800) // 최소 1800px 보장
-    console.log(`📏 [DEBUG] WEEK mode - chartWidth: ${chartWidth}px (from ${safeContainerWidth}px)`)
   } else {
     // 월별 모드에서는 적절한 너비 유지 (스크롤 가능한 고정 너비)
     chartWidth = Math.max(safeContainerWidth, 1000) // 최소 1000px 보장
-    console.log(`📏 [DEBUG] MONTH mode - chartWidth: ${chartWidth}px (from ${safeContainerWidth}px, minimum 1000px)`)
   }
   
   return {

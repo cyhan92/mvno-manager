@@ -105,12 +105,9 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
 
   // 헤더 렌더링 함수
   const renderHeader = () => {
-    console.log(`🎯 [DEBUG] GanttHeader renderHeader called - dateUnit: ${dateUnit}, tasks: ${displayTasks.length}`)
-    
     const canvas = canvasRef.current
     const container = scrollRef.current
     if (!canvas || !container) {
-      console.log('❌ [DEBUG] GanttHeader early return - missing canvas or container')
       return
     }
 
@@ -123,17 +120,14 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
     if (chartWidth && chartWidth > 0) {
       // 메인 차트에서 이미 계산된 최종 너비 사용 (중복 확장 방지)
       finalChartWidth = chartWidth
-      console.log(`🎯 [DEBUG] GanttHeader using provided chartWidth: ${finalChartWidth}, dateUnit: ${dateUnit}`)
     } else {
       // fallback: 자체 계산 - 고정 너비 사용 (메인 차트와 동일한 로직)
       if (dateUnit === 'month') {
         // 월별 모드: 고정된 최소 너비 사용 (1000px)
         finalChartWidth = 1000
-        console.log(`🎯 [DEBUG] GanttHeader MONTH fallback - using fixed width: ${finalChartWidth}px`)
       } else {
         // 주별 모드: 기본 너비를 확장할 예정이므로 1200px 사용
         finalChartWidth = 1200
-        console.log(`🎯 [DEBUG] GanttHeader WEEK fallback - using fixed width: ${finalChartWidth}px`)
       }
     }
 
@@ -150,11 +144,9 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
     if (dateUnit === 'week') {
       canvas.style.minWidth = '1800px'
       canvas.style.maxWidth = 'none'
-      console.log(`🎯 [DEBUG] GanttHeader applying week styles - width: ${finalChartWidth}px`)
     } else {
       canvas.style.minWidth = `${finalChartWidth}px` // 고정 최소 너비 설정
       canvas.style.maxWidth = 'none'
-      console.log(`🎯 [DEBUG] GanttHeader applying month styles - width: ${finalChartWidth}px (fixed width)`)
     }
 
     const validTasks = displayTasks.filter(task => task.start && task.end)

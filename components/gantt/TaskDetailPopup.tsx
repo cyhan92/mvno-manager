@@ -139,18 +139,6 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
     }
   }, [isDragging, dragOffset])
 
-  // 디버깅을 위한 로깅
-  useEffect(() => {
-    console.log('TaskDetailPopup - Task info:', {
-      id: task.id,
-      name: task.name,
-      isGroup: task.isGroup,
-      hasChildren: task.hasChildren,
-      dbId: task.dbId,
-      level: task.level
-    })
-  }, [task])
-
   // ESC 키로 닫기
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -225,15 +213,10 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
       }
 
       const result = await response.json()
-      console.log('Task updated successfully:', result)
       
       // DB 저장 성공 후 전체 데이터 다시 로드
       if (onDataRefresh) {
-        console.log('Calling onDataRefresh to reload all data...')
         await onDataRefresh() // await를 추가하여 완전히 완료될 때까지 대기
-        console.log('Data refresh completed')
-      } else {
-        console.warn('onDataRefresh function not provided')
       }
       
       // 로컬 업데이트도 수행 (즉시 반영용)
@@ -247,7 +230,6 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
           department: result.data.department
         }
         onTaskUpdate(updatedTask)
-        console.log('Local task update completed')
       }
 
       setIsEditing(false)

@@ -37,7 +37,6 @@ export const useCustomGanttChart = ({
 
   // 실제 렌더링할 데이터 계산
   const displayTasks = useMemo(() => {
-    console.log(`📊 [DEBUG] displayTasks calculated - tasks: ${tasks.length}, dateUnit: ${dateUnit}`)
     return tasks
   }, [tasks])
 
@@ -52,14 +51,10 @@ export const useCustomGanttChart = ({
     
     // 스로틀링 (50ms)
     if (now - lastRenderTimeRef.current < 50) {
-      console.log(`⏸️ [DEBUG] renderChart throttled - ${now - lastRenderTimeRef.current}ms ago`)
       return
     }
     
-    console.log(`🔍 [DEBUG] renderChart called - dateUnit: ${dateUnit}, tasks: ${displayTasks.length}, timestamp: ${now}`)
-    
     if (!canvasRef.current || !containerRef.current || displayTasks.length === 0) {
-      console.log('❌ [DEBUG] Early return - missing refs or no tasks')
       return
     }
     
@@ -77,7 +72,6 @@ export const useCustomGanttChart = ({
     if (!dateRange) return
 
     const { startDate, endDate, timeRange } = dateRange
-    console.log(`📅 [DEBUG] Date range: ${startDate.toISOString().split('T')[0]} to ${endDate.toISOString().split('T')[0]}, dateUnit: ${dateUnit}`)
 
     // 캔버스 크기 계산
     const container = containerRef.current
@@ -87,15 +81,12 @@ export const useCustomGanttChart = ({
     if (dateUnit === 'month') {
       // 월별 모드: 고정된 최소 너비 사용 (1000px)
       containerWidth = 1000
-      console.log(`🔧 [DEBUG] MONTH mode - using fixed width: ${containerWidth}px (screen will scroll if needed)`)
     } else {
       // 주별 모드: 더 큰 고정 너비 사용 (1200px)
       containerWidth = 1200
-      console.log(`🔧 [DEBUG] WEEK mode - using fixed width: ${containerWidth}px (will be expanded further)`)
     }
     
     const dimensions = calculateCanvasDimensions(containerWidth, displayTasks.length, dateUnit)
-    console.log(`📐 [DEBUG] Canvas dimensions - dateUnit: ${dateUnit}, input width: ${containerWidth}px, final width: ${dimensions.width}px, chartWidth: ${dimensions.chartWidth}px`)
     
     // 차트 너비 저장
     setCurrentChartWidth(dimensions.chartWidth)
@@ -120,7 +111,6 @@ export const useCustomGanttChart = ({
     }
     
     if (dateUnit === 'week') {
-      console.log(`🔧 [DEBUG] Setting WEEK mode styles - canvas width: ${dimensions.width}px`)
       canvas.style.width = `${dimensions.width}px`
       canvas.style.height = `${dimensions.height}px`
       canvas.style.minWidth = '1800px'
@@ -132,7 +122,6 @@ export const useCustomGanttChart = ({
         canvasParent.style.overflowX = 'auto'
       }
     } else {
-      console.log(`🔧 [DEBUG] Setting MONTH mode styles - canvas width: ${dimensions.containerWidth}px`)
       canvas.style.width = `${dimensions.containerWidth}px`
       canvas.style.height = `${dimensions.height}px`
       canvas.style.minWidth = `${dimensions.containerWidth}px` // 고정 최소 너비 설정
@@ -180,14 +169,11 @@ export const useCustomGanttChart = ({
     // 오늘 날짜 선
     drawTodayLine(ctx, startDate, timeRange, dimensions.chartWidth, dimensions.chartHeight, 0)
 
-    console.log(`✅ [DEBUG] renderChart completed - ${displayTasks.length} tasks rendered`)
     setIsLoading(false)
   }, [tasksKey, displayTasks, dateUnit]) // 안정적인 의존성 배열
 
   // useEffect - 단순화
   useEffect(() => {
-    console.log(`🔄 [DEBUG] useEffect triggered - key: ${tasksKey}`)
-    
     const timer = setTimeout(() => {
       renderChart()
     }, 100) // 50ms에서 100ms로 증가 (더 안정적인 디바운싱)
