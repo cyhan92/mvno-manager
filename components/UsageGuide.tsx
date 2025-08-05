@@ -35,7 +35,8 @@ import {
   Storage as StorageIcon,
   Schedule as ScheduleIcon,
   TrendingUp as TrendingUpIcon,
-  PlayArrow as PlayArrowIcon
+  PlayArrow as PlayArrowIcon,
+  Lightbulb as LightbulbIcon
 } from '@mui/icons-material'
 
 const UsageGuide: React.FC = () => {
@@ -51,31 +52,31 @@ const UsageGuide: React.FC = () => {
     {
       icon: <TableChartIcon color="success" />,
       title: 'Gantt 차트',
-      description: '프로젝트 일정을 시각적으로 표시',
+      description: '월별/주별 보기, 트리 확장/축소 제어',
       color: 'success'
     },
     {
       icon: <AssignmentIcon color="info" />,
       title: 'Action Items',
-      description: '작업 목록을 트리 구조로 관리',
+      description: '작업 목록 트리 구조 및 단계별 확장/축소',
       color: 'info'
     },
     {
       icon: <EditIcon color="warning" />,
       title: '작업 편집',
-      description: '작업 상세 정보를 팝업에서 직접 편집',
+      description: '작업 상세 정보 및 부서 정보 편집',
       color: 'warning'
     },
     {
       icon: <PeopleIcon color="secondary" />,
       title: '담당자별 현황',
-      description: '담당자별 업무 할당 및 진행 상황 확인',
+      description: '담당자별 업무 현황 및 세부 업무 더블클릭',
       color: 'secondary'
     },
     {
       icon: <TrendingUpIcon color="error" />,
       title: '통계 대시보드',
-      description: '프로젝트 전체 진행률 및 리스크 분석',
+      description: '프로젝트 진행률, 진행률 외부 표시 개선',
       color: 'error'
     }
   ]
@@ -131,15 +132,23 @@ const UsageGuide: React.FC = () => {
                   </ListItem>
                   <ListItem>
                     <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
-                    <ListItemText primary="Gantt 차트를 통한 시각적 프로젝트 일정 관리" />
+                    <ListItemText primary="Gantt 차트를 통한 시각적 프로젝트 일정 관리 (월별/주별 전환 가능)" />
                   </ListItem>
                   <ListItem>
                     <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
-                    <ListItemText primary="담당자별 업무 현황 및 진행률 모니터링" />
+                    <ListItemText primary="트리 구조 Action Items의 단계별 확장/축소 제어" />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+                    <ListItemText primary="담당자별 업무 현황 및 세부 업무 상세보기" />
                   </ListItem>
                   <ListItem>
                     <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
                     <ListItemText primary="작업 상세 정보 편집 및 실시간 업데이트" />
+                  </ListItem>
+                  <ListItem>
+                    <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+                    <ListItemText primary="간트 바 진행률 표시 개선 (바 외부 진행률 표시)" />
                   </ListItem>
                 </List>
               </CardContent>
@@ -222,43 +231,42 @@ const UsageGuide: React.FC = () => {
               </CardContent>
             </Card>
 
-            {/* Excel 파일 형식 */}
-            <Card variant="outlined" sx={{ bgcolor: 'warning.50', border: '1px solid', borderColor: 'warning.200' }}>
+            {/* Gantt 차트 활용법 */}
+            <Card variant="outlined" sx={{ bgcolor: 'success.50', border: '1px solid', borderColor: 'success.200' }}>
               <CardContent>
                 <Box display="flex" alignItems="center" gap={2} mb={3}>
-                  <StorageIcon color="warning" />
-                  <Typography variant="h6" color="warning.main" fontWeight={600}>
-                    Excel 파일 형식
+                  <TableChartIcon color="success" />
+                  <Typography variant="h6" color="success.main" fontWeight={600}>
+                    Gantt 차트 활용법
                   </Typography>
                 </Box>
-                <Typography variant="body2" color="text.secondary" component="div" sx={{ mb: 2 }}>
-                  Excel 파일의 첫 번째 행은 헤더이고, 다음 컬럼 순서를 지켜주세요:
-                </Typography>
-                <Box display="flex" flexWrap="wrap" gap={1}>
-                  {[
-                    { col: 'A', field: '작업명 (name)' },
-                    { col: 'B', field: '상세 설명 (detail)' },
-                    { col: 'C', field: '카테고리 (category)' },
-                    { col: 'D', field: '부서 (department)' },
-                    { col: 'E', field: '담당자 (resource)' },
-                    { col: 'F', field: '시작일 (start_date)' },
-                    { col: 'G', field: '종료일 (end_date)' },
-                    { col: 'H', field: '진행률 (percent_complete)' },
-                    { col: 'I', field: '상태 (status)' },
-                    { col: 'J', field: '우선순위 (priority)' }
-                  ].map((item, index) => (
-                    <Box 
-                      key={index} 
-                      display="flex" 
-                      alignItems="center" 
-                      gap={1} 
-                      sx={{ minWidth: '300px', flex: '1 1 300px' }}
-                    >
-                      <Chip label={`${item.col}열`} size="small" color="warning" />
-                      <Typography variant="body2">{item.field}</Typography>
-                    </Box>
-                  ))}
-                </Box>
+                <Stack spacing={2}>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <Chip label="📅" size="small" />
+                    <Typography>월별/주별 보기 전환: 상단 컨트롤 패널에서 날짜 단위 선택</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <Chip label="🎯" size="small" />
+                    <Typography>담당자 정보 표시: 토글 버튼으로 담당자 정보 On/Off 가능</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <Chip label="🌳" size="small" />
+                    <Typography>트리 확장/축소: 전체 축소 → 1단계 확장 → 전체 확장 단계별 제어</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <Chip label="📊" size="small" />
+                    <Typography>진행률 표시: 바가 작을 때 외부에 (진행률%) 형태로 표시</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <Chip label="✅" size="small" />
+                    <Typography>완료 표시: 100% 완료 시 "100% - 완료" 형식 및 진한 녹색 표시</Typography>
+                  </Box>
+                  <Alert severity="info" sx={{ mt: 2 }}>
+                    <Typography variant="body2">
+                      💡 간트 바를 클릭하면 해당 작업의 상세 정보를 확인하고 편집할 수 있습니다.
+                    </Typography>
+                  </Alert>
+                </Stack>
               </CardContent>
             </Card>
 
@@ -286,7 +294,11 @@ const UsageGuide: React.FC = () => {
                   </Box>
                   <Box display="flex" alignItems="center" gap={2}>
                     <PlayArrowIcon color="secondary" fontSize="small" />
-                    <Typography>시작일, 종료일, 진행률, 담당자 수정</Typography>
+                    <Typography>시작일, 종료일, 진행률, 담당자, 부서 정보 수정 가능</Typography>
+                  </Box>
+                  <Box display="flex" alignItems="center" gap={2}>
+                    <PlayArrowIcon color="secondary" fontSize="small" />
+                    <Typography>카테고리는 &quot;대분류 &gt; 중분류 &gt; 소분류&quot; 형태로 계층적 표시</Typography>
                   </Box>
                   <Box display="flex" alignItems="center" gap={2}>
                     <PlayArrowIcon color="secondary" fontSize="small" />
@@ -365,48 +377,48 @@ const UsageGuide: React.FC = () => {
             </Card>
 
             {/* 주의사항 및 팁 */}
-            <Card variant="outlined" sx={{ bgcolor: 'error.50', border: '1px solid', borderColor: 'error.200' }}>
+            <Card variant="outlined" sx={{ bgcolor: 'info.50', border: '1px solid', borderColor: 'info.200' }}>
               <CardContent>
                 <Box display="flex" alignItems="center" gap={2} mb={3}>
-                  <WarningIcon color="error" />
-                  <Typography variant="h6" color="error.main" fontWeight={600}>
-                    주의사항 및 팁
+                  <LightbulbIcon color="info" />
+                  <Typography variant="h6" color="info.main" fontWeight={600}>
+                    사용 팁 & 주의사항
                   </Typography>
                 </Box>
                 <List dense>
                   <ListItem>
-                    <ListItemIcon><WarningIcon color="error" fontSize="small" /></ListItemIcon>
+                    <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
                     <ListItemText 
-                      primary="데이터 백업" 
-                      secondary="Excel 업로드 전 기존 데이터를 백업하세요" 
+                      primary="담당자별 현황 활용" 
+                      secondary="담당자 카드를 더블클릭하여 해당 담당자의 세부 업무 목록 확인" 
                     />
                   </ListItem>
                   <ListItem>
                     <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
                     <ListItemText 
-                      primary="파일 형식" 
-                      secondary=".xlsx 또는 .xls 파일만 업로드 가능" 
+                      primary="세부 업무 접근" 
+                      secondary="담당자별 업무 리스트에서 세부 업무를 더블클릭하면 상세 정보 팝업" 
                     />
                   </ListItem>
                   <ListItem>
-                    <ListItemIcon><ScheduleIcon color="info" fontSize="small" /></ListItemIcon>
+                    <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
                     <ListItemText 
-                      primary="날짜 형식" 
-                      secondary="Excel 날짜 형식 사용 (자동 변환됨)" 
+                      primary="트리 탐색" 
+                      secondary="Action Items에서 그룹 항목 클릭으로 하위 항목 확장/축소" 
                     />
                   </ListItem>
                   <ListItem>
                     <ListItemIcon><TrendingUpIcon color="primary" fontSize="small" /></ListItemIcon>
                     <ListItemText 
-                      primary="진행률" 
-                      secondary="0~1 사이 소수(0.8) 또는 0~100 정수(80) 모두 지원" 
+                      primary="진행률 관리" 
+                      secondary="정기적으로 업무 진행률을 업데이트하여 프로젝트 현황 파악" 
                     />
                   </ListItem>
                   <ListItem>
                     <ListItemIcon><InfoIcon color="action" fontSize="small" /></ListItemIcon>
                     <ListItemText 
-                      primary="빈 셀" 
-                      secondary="필수 필드(작업명)를 제외하고 빈 셀 허용" 
+                      primary="완료 작업 표시" 
+                      secondary="진행률 100% 작업은 녹색으로 표시되어 완료 상태 한눈에 확인" 
                     />
                   </ListItem>
                   <ListItem>
@@ -431,16 +443,16 @@ const UsageGuide: React.FC = () => {
                 </Box>
                 <Stack spacing={2}>
                   <Box>
-                    <Typography variant="subtitle2" fontWeight={600}>업로드 실패</Typography>
+                    <Typography variant="subtitle2" fontWeight={600}>팝업이 열리지 않음</Typography>
                     <Typography variant="body2" color="text.secondary">
-                      Excel 파일 형식과 데이터를 확인하고 다시 시도
+                      항목을 더블클릭하거나 적절한 요소를 클릭했는지 확인
                     </Typography>
                   </Box>
                   <Divider />
                   <Box>
                     <Typography variant="subtitle2" fontWeight={600}>데이터가 표시되지 않음</Typography>
                     <Typography variant="body2" color="text.secondary">
-                      페이지 새로고침 또는 캐시 삭제
+                      페이지 새로고침 또는 브라우저 캐시 삭제 후 재시도
                     </Typography>
                   </Box>
                   <Divider />
@@ -454,7 +466,7 @@ const UsageGuide: React.FC = () => {
                   <Box>
                     <Typography variant="subtitle2" fontWeight={600}>Gantt 차트가 안 보임</Typography>
                     <Typography variant="body2" color="text.secondary">
-                      브라우저 개발자 도구에서 JavaScript 오류 확인
+                      브라우저 호환성 확인 및 JavaScript 활성화 상태 점검
                     </Typography>
                   </Box>
                 </Stack>

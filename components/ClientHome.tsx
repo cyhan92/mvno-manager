@@ -151,7 +151,11 @@ export default function ClientHome() {
           </Paper>
 
           {/* 리소스 통계 */}
-          <ResourceStatsComponent resourceStats={resourceStats} tasks={safeTasks} />
+          <ResourceStatsComponent 
+            resourceStats={resourceStats} 
+            tasks={safeTasks} 
+            onTaskUpdate={updateTask}
+          />
 
           {/* 사용 가이드 */}
           <UsageGuide />

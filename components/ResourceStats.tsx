@@ -7,9 +7,10 @@ import ResourceTasksPopup from './ResourceTasksPopup'
 interface ResourceStatsComponentProps {
   resourceStats: Record<string, ResourceStats>
   tasks: Task[] // 전체 작업 목록 추가
+  onTaskUpdate?: (updatedTask: Task) => void // 작업 업데이트 콜백 추가
 }
 
-const ResourceStatsComponent: React.FC<ResourceStatsComponentProps> = ({ resourceStats, tasks }) => {
+const ResourceStatsComponent: React.FC<ResourceStatsComponentProps> = ({ resourceStats, tasks, onTaskUpdate }) => {
   const [selectedResource, setSelectedResource] = useState<string | null>(null)
   const [isPopupOpen, setIsPopupOpen] = useState(false)
 
@@ -70,6 +71,7 @@ const ResourceStatsComponent: React.FC<ResourceStatsComponentProps> = ({ resourc
           tasks={getResourceTasks(selectedResource)}
           isOpen={isPopupOpen}
           onClose={closePopup}
+          onTaskUpdate={onTaskUpdate}
         />
       )}
     </div>

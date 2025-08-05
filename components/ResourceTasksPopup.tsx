@@ -1,21 +1,47 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Task } from '../types/task'
 import styles from '../styles/task-detail-popup.module.css'
+import TaskDetailPopup from './gantt/TaskDetailPopup'
 
 interface ResourceTasksPopupProps {
   resource: string
   tasks: Task[]
   isOpen: boolean
   onClose: () => void
+  onTaskUpdate?: (updatedTask: Task) => void
 }
 
 const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
   resource,
   tasks,
   isOpen,
-  onClose
+  onClose,
+  onTaskUpdate
 }) => {
+  const [selectedTask, setSelectedTask] = useState<Task | null>(null)
+  const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false)
+
   if (!isOpen) return null
+
+  // 작업 더블클릭 핸들러
+  const handleTaskDoubleClick = (task: Task) => {
+    setSelectedTask(task)
+    setIsTaskDetailOpen(true)
+  }
+
+  // 작업 상세 팝업 닫기
+  const closeTaskDetail = () => {
+    setIsTaskDetailOpen(false)
+    setSelectedTask(null)
+  }
+
+  // 작업 업데이트 핸들러
+  const handleTaskUpdate = (updatedTask: Task) => {
+    if (onTaskUpdate) {
+      onTaskUpdate(updatedTask)
+    }
+    closeTaskDetail()
+  }
 
   // 작업을 완료/미완료로 분류
   const completedTasks = tasks.filter(task => (task.percentComplete || 0) >= 100)
@@ -54,7 +80,11 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
     const progress = task.percentComplete || 0
     
     return (
-      <div className={`p-3 rounded-lg border ${isCompleted ? 'bg-green-50 border-green-200' : 'bg-yellow-50 border-yellow-200'}`}>
+      <div 
+        className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-all ${isCompleted ? 'bg-green-50 border-green-200 hover:bg-green-100' : 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100'}`}
+        onDoubleClick={() => handleTaskDoubleClick(task)}
+        title="더블클릭하여 상세 정보 보기"
+      >
         <div className="flex justify-between items-start mb-2">
           <div className="flex-1">
             {/* 계층 구조 표시 */}
@@ -190,7 +220,7 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
           {/* 푸터 */}
           <div className="p-6 border-t bg-gray-50">
             <div className="flex justify-between items-center text-sm text-gray-600">
-              <span>💡 팁: 업무를 클릭하면 상세 정보를 확인할 수 있습니다.</span>
+              <span>💡 팁: 업무를 더블클릭하면 상세 정보를 확인할 수 있습니다.</span>
               <button
                 onClick={onClose}
                 className="px-4 py-2 bg-gray-500 text-white rounded-md hover:bg-gray-600 transition-colors"
@@ -201,6 +231,16 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
           </div>
         </div>
       </div>
+
+      {/* 작업 상세 팝업 */}
+      {selectedTask && (
+        <TaskDetailPopup
+          task={selectedTask}
+          position={{ x: window.innerWidth / 2 - 300, y: window.innerHeight / 2 - 250 }}
+          onClose={closeTaskDetail}
+          onTaskUpdate={handleTaskUpdate}
+        />
+      )}
     </>
   )
 }
