@@ -18,6 +18,8 @@
   padding: 24px;
   max-width: 500px;
   width: 480px;
+  max-height: 80vh;
+  overflow-y: auto;
   border: 1px solid #e5e7eb;
   z-index: 50;
 }
@@ -26,6 +28,27 @@
   left: var(--popup-x);
   top: var(--popup-y);
   transform: translate(-50%, -10px);
+}
+
+.popupDraggable {
+  left: var(--popup-x);
+  top: var(--popup-y);
+  transform: none;
+}
+
+.dragHandle {
+  cursor: move;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  background: transparent;
+  border-radius: 8px;
+  transition: background-color 0.2s ease;
+}
+
+.dragHandle:hover {
+  background: rgba(0, 0, 0, 0.05);
 }
 
 .taskDetailProgressContainer {

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Task } from '../../types/task'
 import styles from '../../styles/task-detail-popup.module.css'
 
@@ -17,6 +17,10 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [currentPosition, setCurrentPosition] = useState(position)
+  const [isDragging, setIsDragging] = useState(false)
+  const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
+  const popupRef = useRef<HTMLDivElement>(null)
   const [editData, setEditData] = useState({
     startDate: '',
     endDate: '',
@@ -33,6 +37,103 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
       resource: task.resource || ''
     })
   }, [task])
+
+  // 팝업 위치 초기화 및 경계 체크
+  useEffect(() => {
+    const adjustPosition = () => {
+      const popup = popupRef.current
+      if (!popup) return
+
+      const rect = popup.getBoundingClientRect()
+      const viewportWidth = window.innerWidth
+      const viewportHeight = window.innerHeight
+
+      let newX = position.x
+      let newY = position.y
+
+      // 오른쪽 경계 체크
+      if (newX + rect.width > viewportWidth) {
+        newX = viewportWidth - rect.width - 20
+      }
+
+      // 왼쪽 경계 체크
+      if (newX < 20) {
+        newX = 20
+      }
+
+      // 아래쪽 경계 체크 (저장 버튼이 가려지지 않도록)
+      if (newY + rect.height > viewportHeight - 100) {
+        newY = viewportHeight - rect.height - 100
+      }
+
+      // 위쪽 경계 체크
+      if (newY < 20) {
+        newY = 20
+      }
+
+      setCurrentPosition({ x: newX, y: newY })
+    }
+
+    // 초기 위치 조정
+    setTimeout(adjustPosition, 100)
+  }, [position])
+
+  // 드래그 이벤트 핸들러
+  const handleMouseDown = (e: React.MouseEvent<HTMLDivElement>) => {
+    const popup = popupRef.current
+    if (!popup) return
+
+    const rect = popup.getBoundingClientRect()
+    setIsDragging(true)
+    setDragOffset({
+      x: e.clientX - rect.left,
+      y: e.clientY - rect.top
+    })
+    e.preventDefault()
+  }
+
+  const handleMouseMove = (e: MouseEvent) => {
+    if (!isDragging) return
+
+    const viewportWidth = window.innerWidth
+    const viewportHeight = window.innerHeight
+    const popupWidth = 480 // 팝업 너비
+    const popupHeight = 600 // 대략적인 팝업 높이
+
+    let newX = e.clientX - dragOffset.x
+    let newY = e.clientY - dragOffset.y
+
+    // 경계 체크
+    if (newX < 20) newX = 20
+    if (newX + popupWidth > viewportWidth - 20) newX = viewportWidth - popupWidth - 20
+    if (newY < 20) newY = 20
+    if (newY + popupHeight > viewportHeight - 100) newY = viewportHeight - popupHeight - 100
+
+    setCurrentPosition({ x: newX, y: newY })
+  }
+
+  const handleMouseUp = () => {
+    setIsDragging(false)
+  }
+
+  // 드래그 이벤트 리스너 등록
+  useEffect(() => {
+    if (isDragging) {
+      document.addEventListener('mousemove', handleMouseMove)
+      document.addEventListener('mouseup', handleMouseUp)
+      document.body.style.userSelect = 'none'
+    } else {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.body.style.userSelect = ''
+    }
+
+    return () => {
+      document.removeEventListener('mousemove', handleMouseMove)
+      document.removeEventListener('mouseup', handleMouseUp)
+      document.body.style.userSelect = ''
+    }
+  }, [isDragging, dragOffset])
 
   // ESC 키로 닫기
   useEffect(() => {
@@ -113,20 +214,24 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
       
       {/* 팝업 내용 */}
       <div 
-        className={`${styles.taskDetailPopup} ${styles.popupPositioned}`}
-        // eslint-disable-next-line react/forbid-dom-props
+        ref={popupRef}
+        className={`${styles.taskDetailPopup} ${styles.popupDraggable}`}
         style={
           {
-            '--popup-x': `${position.x}px`,
-            '--popup-y': `${position.y}px`,
+            '--popup-x': `${currentPosition.x}px`,
+            '--popup-y': `${currentPosition.y}px`,
           } as React.CSSProperties
         }
       >
-        <div className="flex justify-between items-center mb-4">
-          <h3 className="text-lg font-semibold text-gray-900">
+        {/* 드래그 가능한 헤더 */}
+        <div 
+          className={`${styles.dragHandle} flex justify-between items-center mb-4 p-2 -m-2 rounded-t cursor-move`}
+          onMouseDown={handleMouseDown}
+        >
+          <h3 className="text-lg font-semibold text-gray-900 pointer-events-none">
             📋 작업 상세 정보 {isEditing && '(편집 모드)'}
           </h3>
-          <div className="flex gap-2">
+          <div className="flex gap-2 pointer-events-auto">
             {!isEditing && (
               <button
                 onClick={() => setIsEditing(true)}
