@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from 'react'
 import { DateUnit } from '../../types/task'
 import { styles } from '../../styles'
-import { calculateDateRange } from '../../utils/canvas'
+import { calculateDateRange, calculateCanvasDimensions } from '../../utils/canvas'
 
 // 월별 헤더 생성 함수 (legacy.ts와 동일한 로직)
 const generateMonthHeaders = (startDate: Date, endDate: Date) => {
@@ -49,23 +49,19 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // 헤더 캔버스 크기 설정
+    // 헤더 캔버스 크기 설정 - 메인 차트와 동일한 방식 사용
     const container = scrollRef.current
     if (!container) return
 
     const containerWidth = container.clientWidth
-    canvas.width = containerWidth
+    
+    // 메인 차트와 동일한 크기 계산 방식 사용
+    const dimensions = calculateCanvasDimensions(containerWidth, displayTasks.length, dateUnit)
+    
+    canvas.width = dimensions.chartWidth
     canvas.height = 80
-    canvas.style.width = `${containerWidth}px`
+    canvas.style.width = `${dimensions.chartWidth}px`
     canvas.style.height = '80px'
-
-    // 주별 표시시 캔버스 확장
-    let canvasWidth = containerWidth
-    if (dateUnit === 'week') {
-      canvasWidth = Math.max(containerWidth * 4, 1200)
-      canvas.width = canvasWidth
-      canvas.style.width = `${canvasWidth}px`
-    }
 
     // 날짜 헤더 그리기
     const validTasks = displayTasks.filter(t => t && t.start && t.end)
@@ -73,14 +69,9 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
       // calculateDateRange 함수를 사용하여 일관된 날짜 범위 계산
       const { startDate, endDate, timeRange } = calculateDateRange(validTasks)
       
-      // 간트 바와 동일한 chartWidth 계산 방식 사용
-      const leftMargin = 0  // leftMargin을 0으로 변경
-      let chartWidth = containerWidth
-      
-      // 주별 표시시 확대 (간트 바와 동일한 로직)
-      if (dateUnit === 'week') {
-        chartWidth = Math.max(chartWidth * 4, 1200)
-      }
+      // 간트 바와 동일한 chartWidth 사용
+      const leftMargin = 0
+      const chartWidth = dimensions.chartWidth
       
       // 배경
       ctx.fillStyle = '#f9fafb'
@@ -195,7 +186,9 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
       }
       
       renderTimeoutRef.current = setTimeout(() => {
-        renderHeader()
+        requestAnimationFrame(() => {
+          renderHeader()
+        })
       }, 16) // 60fps로 제한
     }
 
@@ -210,19 +203,39 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
 
   // 초기 렌더링 및 props 변경 시 재렌더링
   useEffect(() => {
-    // 트리 상태 변경 시 메인 차트와 동일한 딜레이 적용
-    const timer = setTimeout(() => {
-      renderHeader()
-    }, 100) // 메인 차트와 동일한 100ms 딜레이
+    // 트리 상태 변경 시 강력한 동기화를 위해 다중 렌더링 사이클 적용
+    const timer1 = setTimeout(() => {
+      requestAnimationFrame(() => {
+        renderHeader()
+      })
+    }, 50) // 첫 번째 렌더링
     
-    return () => clearTimeout(timer)
+    const timer2 = setTimeout(() => {
+      requestAnimationFrame(() => {
+        renderHeader()
+      })
+    }, 120) // 두 번째 렌더링 (메인 차트 후)
+    
+    const timer3 = setTimeout(() => {
+      requestAnimationFrame(() => {
+        renderHeader()
+      })
+    }, 200) // 세 번째 렌더링 (확실한 동기화)
+    
+    return () => {
+      clearTimeout(timer1)
+      clearTimeout(timer2)
+      clearTimeout(timer3)
+    }
   }, [displayTasks, dateUnit, expandedNodesSize, renderTrigger])
 
   // displayTasks 길이가 변경될 때 추가로 강제 재렌더링
   useEffect(() => {
     const timer = setTimeout(() => {
-      renderHeader()
-    }, 150) // 약간 더 긴 딜레이로 확실한 동기화
+      requestAnimationFrame(() => {
+        renderHeader()
+      })
+    }, 250) // 모든 DOM 업데이트 후
     
     return () => clearTimeout(timer)
   }, [displayTasks.length])
