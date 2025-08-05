@@ -89,14 +89,21 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
 
   // 트리 상태가 변경될 때마다 캔버스 다시 그리기
   React.useEffect(() => {
-    // 직접 캔버스를 다시 그리기
+    // 트리 변경 시 부드러운 단일 렌더링
     if (canvasRef.current && displayTasks.length > 0) {
-      // 약간의 딜레이를 두어 DOM 업데이트 후 렌더링
-      const timer = setTimeout(() => {
+      const syncRender = () => {
         if (renderChart) {
-          renderChart()
+          renderChart() // 메인 차트 렌더링
+          
+          // 헤더 렌더링 트리거 (한 번만)
+          setTimeout(() => {
+            setRenderTrigger(prev => prev + 1)
+          }, 80) // 메인 차트 렌더링 완료 후 적절한 지연
         }
-      }, 100)
+      }
+      
+      // DOM 업데이트 완료 후 렌더링
+      const timer = setTimeout(syncRender, 50)
       
       return () => clearTimeout(timer)
     }
@@ -110,18 +117,28 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
     // 트리 상태 토글
     treeState.toggleNode(nodeId)
     
-    // 헤더 재렌더링 트리거
-    setRenderTrigger(prev => prev + 1)
-    
-    // 다음 렌더링 사이클에서 스크롤 위치 복원
-    setTimeout(() => {
-      if (scroll.actionItemScrollRef.current) {
-        scroll.actionItemScrollRef.current.scrollTop = currentScrollTop
+    // 부드러운 단일 동기화 렌더링
+    requestAnimationFrame(() => {
+      // 메인 차트 렌더링
+      if (renderChart) {
+        renderChart()
       }
-      if (scroll.ganttChartScrollRef.current) {
-        scroll.ganttChartScrollRef.current.scrollTop = currentScrollTop
-      }
-    }, 100)
+      
+      // 헤더 렌더링 (한 번만, 적절한 지연으로)
+      setTimeout(() => {
+        setRenderTrigger(prev => prev + 1)
+        
+        // 스크롤 위치 복원
+        setTimeout(() => {
+          if (scroll.actionItemScrollRef.current) {
+            scroll.actionItemScrollRef.current.scrollTop = currentScrollTop
+          }
+          if (scroll.ganttChartScrollRef.current) {
+            scroll.ganttChartScrollRef.current.scrollTop = currentScrollTop
+          }
+        }, 30) // 빠른 스크롤 복원
+      }, 100) // 메인 차트 렌더링 완료 후
+    })
   }
 
   if (!flattenedTasks || flattenedTasks.length === 0) {
@@ -174,6 +191,7 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
             expandedNodesSize={treeState.expandedNodes.size}
             scrollRef={scroll.headerScrollRef}
             renderTrigger={renderTrigger}
+            containerRef={containerRef} // 메인 차트 컨테이너 참조 전달
           />
           
           {/* Gantt Chart 내용 */}

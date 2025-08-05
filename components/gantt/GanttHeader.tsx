@@ -1,22 +1,29 @@
+'use client'
 import React, { useEffect, useRef } from 'react'
-import { DateUnit } from '../../types/task'
+import { Task, DateUnit } from '../../types/task'
 import { styles } from '../../styles'
 import { calculateDateRange, calculateCanvasDimensions } from '../../utils/canvas'
 
-// 월별 헤더 생성 함수 (legacy.ts와 동일한 로직)
+// 월별 헤더 생성 함수
 const generateMonthHeaders = (startDate: Date, endDate: Date) => {
   const months = []
   const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1)
   
   while (current <= endDate) {
     const monthStart = new Date(current)
-    const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0) // 해당 월의 마지막 날
+    const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0)
+    
+    const monthLabel = current.toLocaleDateString('ko-KR', { 
+      year: 'numeric', 
+      month: 'short' 
+    })
     
     months.push({
+      label: monthLabel,
       start: monthStart.getTime(),
-      end: monthEnd.getTime(),
-      label: `${current.getFullYear()}.${String(current.getMonth() + 1).padStart(2, '0')}`
+      end: monthEnd.getTime()
     })
+    
     current.setMonth(current.getMonth() + 1)
   }
   
@@ -24,11 +31,12 @@ const generateMonthHeaders = (startDate: Date, endDate: Date) => {
 }
 
 interface GanttHeaderProps {
-  displayTasks: any[]
+  displayTasks: Task[]
   dateUnit: DateUnit
   expandedNodesSize: number
   scrollRef: React.RefObject<HTMLDivElement | null>
-  renderTrigger?: number // 강제 재렌더링을 위한 트리거
+  renderTrigger: number
+  containerRef?: React.RefObject<HTMLDivElement | null>
 }
 
 const GanttHeader: React.FC<GanttHeaderProps> = ({
@@ -36,209 +44,182 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
   dateUnit,
   expandedNodesSize,
   scrollRef,
-  renderTrigger
+  renderTrigger,
+  containerRef
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
+  const observerRef = useRef<MutationObserver | null>(null)
   const renderTimeoutRef = useRef<NodeJS.Timeout | null>(null)
 
   // 헤더 렌더링 함수
   const renderHeader = () => {
     const canvas = canvasRef.current
-    if (!canvas || displayTasks.length === 0) return
+    const container = scrollRef.current
+    if (!canvas || !container) return
 
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // 헤더 캔버스 크기 설정 - 메인 차트와 동일한 방식 사용
-    const container = scrollRef.current
-    if (!container) return
-
-    const containerWidth = container.clientWidth
+    // 핵심 수정: 메인 차트와 동일한 컨테이너 너비 사용
+    let containerWidth = container.clientWidth
     
-    // 메인 차트와 동일한 크기 계산 방식 사용
+    // containerRef가 있으면 메인 차트 컨테이너 너비를 우선 사용
+    if (containerRef?.current) {
+      containerWidth = containerRef.current.clientWidth
+    }
+    
     const dimensions = calculateCanvasDimensions(containerWidth, displayTasks.length, dateUnit)
-    
+
     canvas.width = dimensions.chartWidth
     canvas.height = 80
+
     canvas.style.width = `${dimensions.chartWidth}px`
     canvas.style.height = '80px'
 
-    // 날짜 헤더 그리기
-    const validTasks = displayTasks.filter(t => t && t.start && t.end)
-    if (validTasks.length > 0) {
-      // calculateDateRange 함수를 사용하여 일관된 날짜 범위 계산
-      const { startDate, endDate, timeRange } = calculateDateRange(validTasks)
-      
-      // 간트 바와 동일한 chartWidth 사용
-      const leftMargin = 0
-      const chartWidth = dimensions.chartWidth
-      
-      // 배경
-      ctx.fillStyle = '#f9fafb'
-      ctx.fillRect(0, 0, canvas.width, canvas.height)
-      
-      // 날짜 헤더 그리기
-      if (dateUnit === 'month') {
-        // 월별 헤더 - legacy.ts와 동일한 generateMonthHeaders 사용
-        const months = generateMonthHeaders(startDate, endDate)
-        
-        ctx.font = 'bold 14px Arial'
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-        ctx.fillStyle = '#1f2937'
-        
-        months.forEach((month, index) => {
-          const x = leftMargin + ((month.start - startDate.getTime()) / timeRange) * chartWidth
-          const width = ((month.end - month.start) / timeRange) * chartWidth
-          ctx.fillText(month.label, x + width / 2, 40)
-          
-          // 월 끝 지점 구분선만 표시 (가독성을 위해 시작 지점 제거)
-          const endX = leftMargin + ((month.end - startDate.getTime()) / timeRange) * chartWidth
-          ctx.strokeStyle = '#d1d5db' // 연한 회색
-          ctx.lineWidth = 1
-          ctx.setLineDash([4, 4]) // 점선 패턴
-          ctx.beginPath()
-          ctx.moveTo(endX, 0)
-          ctx.lineTo(endX, 80)
-          ctx.stroke()
-          
-          // 점선 패턴 리셋
-          ctx.setLineDash([])
-        })
-      } else {
-        // 주별 헤더
-        const weeks = []
-        const currentWeek = new Date(startDate)
-        const dayOfWeek = currentWeek.getDay()
-        
-        // 해당 주의 월요일로 이동
-        currentWeek.setDate(currentWeek.getDate() - dayOfWeek + 1)
-        
-        while (currentWeek <= endDate) {
-          const weekStart = currentWeek.getTime()
-          const nextWeek = new Date(currentWeek)
-          nextWeek.setDate(nextWeek.getDate() + 7)
-          const weekEnd = Math.min(nextWeek.getTime(), endDate.getTime())
-          
-          weeks.push({
-            start: weekStart,
-            end: weekEnd,
-            label: `${currentWeek.getMonth() + 1}/${currentWeek.getDate()}`
-          })
-          
-          currentWeek.setDate(currentWeek.getDate() + 7)
-        }
-        
-        ctx.font = '12px Arial'
-        ctx.textAlign = 'center'
-        ctx.textBaseline = 'middle'
-        ctx.fillStyle = '#1f2937'
-        
-        weeks.forEach((week, index) => {
-          const x = leftMargin + ((week.start - startDate.getTime()) / timeRange) * chartWidth
-          const width = ((week.end - week.start) / timeRange) * chartWidth
-          ctx.fillText(week.label, x + width / 2, 40)
-          
-          // 구분선
-          ctx.strokeStyle = index % 2 === 0 ? '#d1d5db' : '#9ca3af'
-          ctx.lineWidth = index % 2 === 0 ? 2 : 1
-          ctx.beginPath()
-          ctx.moveTo(x, 0)
-          ctx.lineTo(x, 80)
-          ctx.stroke()
-        })
-      }
-      
-      // 오늘 날짜 표시 (월별, 주별 모두)
-      const today = new Date()
-      today.setHours(0, 0, 0, 0) // 시간을 00:00:00으로 설정하여 정확한 비교
-      
-      if (today >= startDate && today <= endDate) {
-        const todayX = leftMargin + ((today.getTime() - startDate.getTime()) / timeRange) * chartWidth
-        
-        // 오늘 날짜 세로선
-        ctx.strokeStyle = '#ef4444' // 빨간색
-        ctx.lineWidth = 2
-        ctx.setLineDash([]) // 실선
+    if (dateUnit === 'week') {
+      canvas.style.minWidth = '1200px'
+      canvas.style.maxWidth = 'none'
+    } else {
+      canvas.style.minWidth = 'auto'
+      canvas.style.maxWidth = '100%'
+    }
+
+    const validTasks = displayTasks.filter(task => task.start && task.end)
+    if (validTasks.length === 0) return
+
+    const dateRange = calculateDateRange(validTasks)
+    if (!dateRange) return
+
+    const { startDate, endDate, timeRange } = dateRange
+
+    if (timeRange <= 0) return
+
+    // 배경 그리기
+    ctx.fillStyle = '#f7f7f7'
+    ctx.fillRect(0, 0, canvas.width, canvas.height)
+
+    const leftMargin = 0
+    const chartWidth = dimensions.chartWidth
+
+    // 월별 구분선과 라벨 그리기
+    const months = generateMonthHeaders(startDate, endDate)
+    
+    ctx.font = '14px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+    ctx.fillStyle = '#374151'
+    ctx.textAlign = 'center'
+
+    months.forEach((month) => {
+        const x = leftMargin + ((month.start - startDate.getTime()) / timeRange) * chartWidth
+        const width = ((month.end - month.start) / timeRange) * chartWidth
+        ctx.fillText(month.label, x + width / 2, 40)
+
+        // 세로선 그리기
+        const endX = leftMargin + ((month.end - startDate.getTime()) / timeRange) * chartWidth
+        ctx.strokeStyle = '#e5e7eb'
+        ctx.lineWidth = 1
         ctx.beginPath()
-        ctx.moveTo(todayX, 0)
-        ctx.lineTo(todayX, 80)
+        ctx.moveTo(endX, 0)
+        ctx.lineTo(endX, canvas.height)
         ctx.stroke()
-        
-        // 오늘 날짜 표시
-        ctx.fillStyle = '#ef4444'
-        ctx.font = 'bold 10px Arial'
-        ctx.textAlign = 'center'
-        ctx.fillText('오늘', todayX, 70)
-      }
+    })
+
+    // 오늘 날짜 세로선
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    if (today >= startDate && today <= endDate) {
+      const todayX = leftMargin + ((today.getTime() - startDate.getTime()) / timeRange) * chartWidth
+      ctx.strokeStyle = '#ef4444'
+      ctx.lineWidth = 2
+      ctx.beginPath()
+      ctx.moveTo(todayX, 0)
+      ctx.lineTo(todayX, canvas.height)
+      ctx.stroke()
     }
   }
 
-  // 스크롤 이벤트 핸들러
+  // 초기 렌더링
+  useEffect(() => {
+    const syncRender = () => {
+      requestAnimationFrame(() => {
+        renderHeader()
+      })
+    }
+    
+    const timer = setTimeout(syncRender, 120)
+    
+    return () => {
+      clearTimeout(timer)
+    }
+  }, [displayTasks, dateUnit, expandedNodesSize, renderTrigger, containerRef])
+
+  // DOM 변경 감지
   useEffect(() => {
     const container = scrollRef.current
     if (!container) return
 
-    const handleScroll = () => {
-      // 스크롤 시 헤더 다시 렌더링
-      if (renderTimeoutRef.current) {
-        clearTimeout(renderTimeoutRef.current)
-      }
+    let renderTimeout: NodeJS.Timeout | null = null
+    
+    observerRef.current = new MutationObserver((mutations) => {
+      let shouldRerender = false
       
-      renderTimeoutRef.current = setTimeout(() => {
-        requestAnimationFrame(() => {
-          renderHeader()
-        })
-      }, 16) // 60fps로 제한
+      mutations.forEach((mutation) => {
+        if (mutation.type === 'childList') {
+          if (mutation.addedNodes.length > 0 || mutation.removedNodes.length > 0) {
+            shouldRerender = true
+          }
+        }
+      })
+      
+      if (shouldRerender) {
+        if (renderTimeout) {
+          clearTimeout(renderTimeout)
+        }
+        
+        renderTimeout = setTimeout(() => {
+          requestAnimationFrame(() => {
+            renderHeader()
+          })
+        }, 150)
+      }
+    })
+
+    const ganttContainer = container.closest('[class*="gantt"]')
+    const actionItemList = ganttContainer?.querySelector('[class*="action-item"]') || 
+                          ganttContainer?.querySelector('[class*="task-list"]') ||
+                          ganttContainer
+    
+    if (actionItemList) {
+      observerRef.current.observe(actionItemList, {
+        childList: true,
+        subtree: true
+      })
     }
 
-    container.addEventListener('scroll', handleScroll)
     return () => {
-      container.removeEventListener('scroll', handleScroll)
+      if (observerRef.current) {
+        observerRef.current.disconnect()
+      }
+      if (renderTimeout) {
+        clearTimeout(renderTimeout)
+      }
       if (renderTimeoutRef.current) {
         clearTimeout(renderTimeoutRef.current)
       }
     }
-  }, [displayTasks, dateUnit, expandedNodesSize])
+  }, [scrollRef])
 
-  // 초기 렌더링 및 props 변경 시 재렌더링
+  // 렌더링 트리거 변경 시
   useEffect(() => {
-    // 트리 상태 변경 시 강력한 동기화를 위해 다중 렌더링 사이클 적용
-    const timer1 = setTimeout(() => {
-      requestAnimationFrame(() => {
-        renderHeader()
-      })
-    }, 50) // 첫 번째 렌더링
-    
-    const timer2 = setTimeout(() => {
-      requestAnimationFrame(() => {
-        renderHeader()
-      })
-    }, 120) // 두 번째 렌더링 (메인 차트 후)
-    
-    const timer3 = setTimeout(() => {
-      requestAnimationFrame(() => {
-        renderHeader()
-      })
-    }, 200) // 세 번째 렌더링 (확실한 동기화)
-    
-    return () => {
-      clearTimeout(timer1)
-      clearTimeout(timer2)
-      clearTimeout(timer3)
+    if (renderTimeoutRef.current) {
+      clearTimeout(renderTimeoutRef.current)
     }
-  }, [displayTasks, dateUnit, expandedNodesSize, renderTrigger])
-
-  // displayTasks 길이가 변경될 때 추가로 강제 재렌더링
-  useEffect(() => {
-    const timer = setTimeout(() => {
+    
+    renderTimeoutRef.current = setTimeout(() => {
       requestAnimationFrame(() => {
         renderHeader()
       })
-    }, 250) // 모든 DOM 업데이트 후
-    
-    return () => clearTimeout(timer)
-  }, [displayTasks.length])
+    }, 100)
+  }, [renderTrigger])
 
   return (
     <div 
