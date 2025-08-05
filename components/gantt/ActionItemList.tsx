@@ -78,19 +78,22 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
               {/* 텍스트 */}
               <div className={styles.treeText}>
                 <span className={task.percentComplete === 100 ? 'text-gray-400' : ''}>
-                  {/* 중분류와 소분류를 분리해서 표시 */}
+                  {/* 소분류는 이미 "[중분류] 소분류" 형식으로 빌드됨 */}
                   {(() => {
                     const taskName = task.name || task.detail || `작업 ${index + 1}`
-                    const middleCategoryMatch = taskName.match(/^\[([^\]]+)\]\s*(.*)/)
                     
-                    if (middleCategoryMatch) {
-                      const [, middleCategory, remainingName] = middleCategoryMatch
-                      return (
-                        <>
-                          <span className="text-xs text-gray-500">[{middleCategory}]</span>
-                          <span className="ml-1">{remainingName}</span>
-                        </>
-                      )
+                    // level 1 (소분류)이고 "[중분류] 소분류" 형식인 경우 스타일링 적용
+                    if (task.level === 1 && taskName.match(/^\[([^\]]+)\]\s*(.*)/)) {
+                      const middleCategoryMatch = taskName.match(/^\[([^\]]+)\]\s*(.*)/)
+                      if (middleCategoryMatch) {
+                        const [, middleCategory, remainingName] = middleCategoryMatch
+                        return (
+                          <>
+                            <span className="text-xs text-gray-500">[{middleCategory}]</span>
+                            <span className="ml-1">{remainingName}</span>
+                          </>
+                        )
+                      }
                     }
                     
                     return taskName

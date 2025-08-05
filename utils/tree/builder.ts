@@ -63,17 +63,16 @@ export const buildTaskTree = (tasks: Task[]): TreeNode[] => {
     const minorGroups = new Map<string, Task[]>()
     majorTasks.forEach(task => {
       const minor = task.minorCategory || '미분류'
-      const minorKey = `${majorCategory}_${minor}`
-      if (!minorGroups.has(minorKey)) {
-        minorGroups.set(minorKey, [])
+      // 중복을 피하기 위해 minorCategory만 사용
+      if (!minorGroups.has(minor)) {
+        minorGroups.set(minor, [])
       }
-      minorGroups.get(minorKey)!.push(task)
+      minorGroups.get(minor)!.push(task)
     })
 
     // 소분류 노드들 생성
-    minorGroups.forEach((minorTasks, minorKey) => {
-      const minorCategory = minorKey.split('_').slice(1).join('_')
-      const minorId = `minor_${minorKey}`
+    minorGroups.forEach((minorTasks, minorCategory) => {
+      const minorId = `minor_${majorCategory}_${minorCategory}`
 
       // 중분류 정보를 가져와서 "[중분류] 소분류" 형태로 표시
       const middleCategory = minorTasks[0]?.middleCategory || ''
