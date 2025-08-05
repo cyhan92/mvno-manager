@@ -42,7 +42,7 @@ export async function PUT(
     const { data, error } = await supabase
       .from('tasks')
       .update(updates)
-      .eq('id', taskId)
+      .eq('task_id', taskId) // task_id로 찾기 (TASK-173 같은 문자열)
       .select()
 
     if (error) {
@@ -54,7 +54,7 @@ export async function PUT(
     }
 
     if (!data || data.length === 0) {
-      console.error('No task found with ID:', taskId)
+      console.error('No task found with task_id:', taskId)
       return NextResponse.json(
         { error: 'Task not found' },
         { status: 404 }
@@ -90,7 +90,7 @@ export async function GET(
     const { data, error } = await supabase
       .from('tasks')
       .select('*')
-      .eq('id', taskId)
+      .eq('task_id', taskId) // task_id로 찾기 (TASK-173 같은 문자열)
       .single()
 
     if (error) {

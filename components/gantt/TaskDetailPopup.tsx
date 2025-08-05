@@ -181,8 +181,8 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
       }
 
       // DB ID가 없는 경우 경고하지만 로컬 업데이트는 시도
-      if (!task.dbId) {
-        console.warn('DB ID가 없는 작업입니다. 로컬 업데이트만 수행합니다:', task.id)
+      if (!task.id) {
+        console.warn('Task ID가 없는 작업입니다. 로컬 업데이트만 수행합니다:', task.id)
         
         // 로컬 상태만 업데이트
         if (onTaskUpdate) {
@@ -209,9 +209,9 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
         department: editData.department
       }
 
-      console.log('Updating task:', task.dbId, 'with data:', updateData)
+      console.log('Updating task:', task.id, 'with data:', updateData)
 
-      const response = await fetch(`/api/tasks/${task.dbId}`, {
+      const response = await fetch(`/api/tasks/${task.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
