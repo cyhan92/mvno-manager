@@ -55,20 +55,28 @@ export async function POST(request: NextRequest) {
     // JSON으로 변환
     const excelData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][]
 
-    if (excelData.length < 2) {
+    // Excel 구조: 1-4행(제목/설명), 5행(컬럼 헤더), 6행부터 실제 데이터
+    if (excelData.length < 6) { // 최소 6행 필요 (1-5행 헤더/제목 + 데이터 1행)
       return NextResponse.json(
-        { success: false, message: 'Excel 파일에 데이터가 없거나 형식이 올바르지 않습니다.' },
+        { success: false, message: 'Excel 파일에 데이터가 없거나 형식이 올바르지 않습니다. 5행은 헤더, 6행부터 데이터가 시작되어야 합니다.' },
         { status: 400 }
       )
     }
 
-    console.log('Excel data rows:', excelData.length)
+    console.log('Total Excel rows:', excelData.length)
 
-    // 헤더 행과 데이터 행 분리
-    const headers = excelData[0] as string[]
-    const dataRows = excelData.slice(1)
+    // 5행 헤더 확인 (디버깅용)
+    if (excelData.length >= 5) {
+      console.log('Row 5 (Header):', excelData[4]) // 5행은 인덱스 4
+    }
 
-    console.log('Headers:', headers)
+    // 실제 데이터 행 추출 (6행부터 시작, 배열 인덱스 5부터)
+    const dataRows = excelData.slice(5) // 6행부터 데이터 시작 (0-based index에서 5)
+
+    console.log('Data rows from row 6:', dataRows.length)
+    if (dataRows.length > 0) {
+      console.log('First data row:', dataRows[0]) // 첫 번째 데이터 행 확인
+    }
 
     // 데이터 변환 및 검증
     const tasks = dataRows
@@ -124,21 +132,27 @@ export async function POST(request: NextRequest) {
             return '미완료'
           }
 
-          const progress = Math.round(parsePercent(row[7]))
-          const status = progress >= 100 ? '완료' : normalizeStatus(row[8])
+          const progress = Math.round(parsePercent(row[14])) // O열 (완료율)
+          const status = progress >= 100 ? '완료' : normalizeStatus(row[8]) // I열 (완료여부)
 
           return {
             task_id: `TASK-${String(index + 1).padStart(3, '0')}`,
-            title: String(row[0] || '').trim(),
-            detail: String(row[1] || '').trim(),
-            category: String(row[2] || '').trim(),
-            department: String(row[3] || '').trim(),
-            assignee: String(row[4] || '').trim(),
-            start_date: parseDate(row[5]),
-            end_date: parseDate(row[6]),
+            title: String(row[7] || '').trim(), // H열 (세부업무)
+            category: String(row[0] || '').trim(), // A열 (대분류)
+            subcategory: String(row[1] || '').trim(), // B열 (중분류)
+            detail: String(row[2] || '').trim(), // C열 (소분류)
+            department: String(row[3] || row[4] || '').trim(), // D열 (주관부서 정) 또는 E열 (주관부서 부)
+            assignee: String(row[5] || row[6] || '').trim(), // F열 (담당자 정) 또는 G열 (담당자 부)
+            start_date: parseDate(row[11]), // L열 (시작일)
+            end_date: parseDate(row[12]), // M열 (종료일)
+            duration: row[13] ? Number(row[13]) : null, // N열 (기간)
             progress: progress,
             status: status,
-            notes: String(row[9] || '').trim()
+            cost: String(row[9] || '').trim(), // J열 (추정 소요 비용)
+            notes: String(row[10] || '').trim(), // K열 (비고)
+            major_category: String(row[0] || '').trim(), // A열 (대분류)
+            middle_category: String(row[1] || '').trim(), // B열 (중분류)
+            minor_category: String(row[2] || '').trim() // C열 (소분류)
           }
         } catch (error) {
           console.error(`Error processing row ${index + 1}:`, error)
