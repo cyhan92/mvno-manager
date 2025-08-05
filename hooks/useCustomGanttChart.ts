@@ -110,17 +110,6 @@ export const useCustomGanttChart = ({
       dimensions.height
     )
 
-    // 그리드 라인 그리기
-    drawGridLines(
-      ctx,
-      dateUnit,
-      startDate,
-      endDate,
-      timeRange,
-      dimensions.chartWidth,
-      dimensions.height
-    )
-
     // 작업별 간트바와 행 배경 그리기
     displayTasks.forEach((task, index) => {
       const y = index * CHART_CONFIG.DIMENSIONS.ROW_HEIGHT
@@ -148,6 +137,18 @@ export const useCustomGanttChart = ({
         dateUnit
       )
     })
+
+    // 그리드 라인 그리기 (간트바 위에 표시)
+    drawGridLines(
+      ctx,
+      dateUnit,
+      startDate,
+      endDate,
+      timeRange,
+      dimensions.chartWidth,
+      dimensions.height,
+      0  // leftMargin을 0으로 설정
+    )
 
     // 차트 테두리 그리기
     drawChartBorder(

@@ -7,8 +7,12 @@ const generateMonthHeaders = (startDate: Date, endDate: Date) => {
   const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1)
   
   while (current <= endDate) {
+    const monthStart = new Date(current)
+    const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0) // 해당 월의 마지막 날
+    
     months.push({
-      start: current.getTime(),
+      start: monthStart.getTime(),
+      end: monthEnd.getTime(),
       label: `${current.getFullYear()}-${String(current.getMonth() + 1).padStart(2, '0')}`
     })
     current.setMonth(current.getMonth() + 1)
@@ -47,15 +51,18 @@ export const drawGridLines = (
     const months = generateMonthHeaders(startDate, endDate)
     
     months.forEach(month => {
-      const x = leftMargin + ((month.start - startDate.getTime()) / timeRange) * chartWidth
-      
-      // 월 구분선
-      ctx.strokeStyle = CANVAS_CONFIG.COLORS.GRID_LINE || '#e5e7eb'
+      // 월 끝 지점 점선만 표시 (가독성을 위해 시작 지점 제거)
+      const endX = leftMargin + ((month.end - startDate.getTime()) / timeRange) * chartWidth
+      ctx.strokeStyle = '#d1d5db' // 연한 회색
       ctx.lineWidth = 1
+      ctx.setLineDash([4, 4]) // 점선 패턴
       ctx.beginPath()
-      ctx.moveTo(x, 0)
-      ctx.lineTo(x, canvasHeight)
+      ctx.moveTo(endX, 0)
+      ctx.lineTo(endX, canvasHeight)
       ctx.stroke()
+      
+      // 점선 패턴 리셋
+      ctx.setLineDash([])
     })
   } else {
     const weeks = generateWeekHeaders(startDate, endDate)
@@ -276,6 +283,7 @@ export const drawTodayLine = (
   leftMargin: number = 0
 ) => {
   const today = new Date()
+  today.setHours(0, 0, 0, 0) // 시간을 00:00:00으로 정규화
   const todayMs = today.getTime()
   const startDateMs = startDate.getTime()
   

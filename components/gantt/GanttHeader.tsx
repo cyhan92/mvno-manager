@@ -1,6 +1,27 @@
 import React from 'react'
 import { DateUnit } from '../../types/task'
 import { styles } from '../../styles'
+import { calculateDateRange } from '../../utils/canvas'
+
+// 월별 헤더 생성 함수 (legacy.ts와 동일한 로직)
+const generateMonthHeaders = (startDate: Date, endDate: Date) => {
+  const months = []
+  const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1)
+  
+  while (current <= endDate) {
+    const monthStart = new Date(current)
+    const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0) // 해당 월의 마지막 날
+    
+    months.push({
+      start: monthStart.getTime(),
+      end: monthEnd.getTime(),
+      label: `${current.getFullYear()}.${String(current.getMonth() + 1).padStart(2, '0')}`
+    })
+    current.setMonth(current.getMonth() + 1)
+  }
+  
+  return months
+}
 
 interface GanttHeaderProps {
   displayTasks: any[]
@@ -53,9 +74,8 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
                 // 날짜 헤더 그리기
                 const validTasks = displayTasks.filter(t => t && t.start && t.end)
                 if (validTasks.length > 0) {
-                  const startDate = new Date(Math.min(...validTasks.map(t => t.start.getTime())))
-                  const endDate = new Date(Math.max(...validTasks.map(t => t.end.getTime())))
-                  const timeRange = endDate.getTime() - startDate.getTime()
+                  // calculateDateRange 함수를 사용하여 일관된 날짜 범위 계산
+                  const { startDate, endDate, timeRange } = calculateDateRange(validTasks)
                   
                   // 간트 바와 동일한 chartWidth 계산 방식 사용
                   const leftMargin = 0  // leftMargin을 0으로 변경
@@ -72,22 +92,8 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
                   
                   // 날짜 헤더 그리기
                   if (dateUnit === 'month') {
-                    const months = []
-                    const currentMonth = new Date(startDate.getFullYear(), startDate.getMonth(), 1)
-                    
-                    while (currentMonth <= endDate) {
-                      const monthStart = currentMonth.getTime()
-                      const nextMonth = new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1, 1)
-                      const monthEnd = Math.min(nextMonth.getTime(), endDate.getTime())
-                      
-                      months.push({
-                        start: monthStart,
-                        end: monthEnd,
-                        label: `${currentMonth.getFullYear()}.${String(currentMonth.getMonth() + 1).padStart(2, '0')}`
-                      })
-                      
-                      currentMonth.setMonth(currentMonth.getMonth() + 1)
-                    }
+                    // 월별 헤더 - legacy.ts와 동일한 generateMonthHeaders 사용
+                    const months = generateMonthHeaders(startDate, endDate)
                     
                     ctx.font = 'bold 14px Arial'
                     ctx.textAlign = 'center'
@@ -99,13 +105,18 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
                       const width = ((month.end - month.start) / timeRange) * chartWidth
                       ctx.fillText(month.label, x + width / 2, 40)
                       
-                      // 구분선
-                      ctx.strokeStyle = index % 2 === 0 ? '#d1d5db' : '#9ca3af'
-                      ctx.lineWidth = index % 2 === 0 ? 2 : 1
+                      // 월 끝 지점 구분선만 표시 (가독성을 위해 시작 지점 제거)
+                      const endX = leftMargin + ((month.end - startDate.getTime()) / timeRange) * chartWidth
+                      ctx.strokeStyle = '#d1d5db' // 연한 회색
+                      ctx.lineWidth = 1
+                      ctx.setLineDash([4, 4]) // 점선 패턴
                       ctx.beginPath()
-                      ctx.moveTo(x, 0)
-                      ctx.lineTo(x, 80)
+                      ctx.moveTo(endX, 0)
+                      ctx.lineTo(endX, 80)
                       ctx.stroke()
+                      
+                      // 점선 패턴 리셋
+                      ctx.setLineDash([])
                     })
                   } else {
                     // 주별 헤더
@@ -149,23 +160,23 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
                     })
                   }
                   
-                  // 오늘 날짜 표시
-                  if (dateUnit === 'week') {
-                    const today = new Date()
-                    const todayX = leftMargin + ((today.getTime() - startDate.getTime()) / timeRange) * chartWidth
+                  // 오늘 날짜 표시 (월별과 주별 모두)
+                  const today = new Date()
+                  today.setHours(0, 0, 0, 0) // 시간을 00:00:00으로 정규화
+                  const todayX = leftMargin + ((today.getTime() - startDate.getTime()) / timeRange) * chartWidth
+                  
+                  if (todayX >= leftMargin && todayX <= leftMargin + chartWidth) {
+                    ctx.strokeStyle = '#ef4444'
+                    ctx.lineWidth = 2
+                    ctx.beginPath()
+                    ctx.moveTo(todayX, 0)
+                    ctx.lineTo(todayX, 80)
+                    ctx.stroke()
                     
-                    if (todayX >= leftMargin && todayX <= leftMargin + chartWidth) {
-                      ctx.strokeStyle = '#ef4444'
-                      ctx.lineWidth = 2
-                      ctx.beginPath()
-                      ctx.moveTo(todayX, 0)
-                      ctx.lineTo(todayX, 80)
-                      ctx.stroke()
-                      
-                      ctx.fillStyle = '#ef4444'
-                      ctx.font = '10px Arial'
-                      ctx.fillText('오늘', todayX + 3, 15)
-                    }
+                    ctx.fillStyle = '#ef4444'
+                    ctx.font = 'bold 10px Arial'
+                    ctx.textAlign = 'left'
+                    ctx.fillText('오늘', todayX + 3, 15)
                   }
                 }
               }
