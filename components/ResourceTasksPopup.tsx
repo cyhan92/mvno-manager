@@ -21,17 +21,25 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
   const completedTasks = tasks.filter(task => (task.percentComplete || 0) >= 100)
   const incompleteTasks = tasks.filter(task => (task.percentComplete || 0) < 100)
 
-  // 작업을 계층 구조로 표시하기 위한 함수
+  // 작업을 계층 구조로 표시하기 위한 함수 (대분류 > 소분류 > 세부업무)
   const getTaskHierarchy = (task: Task) => {
     const hierarchy = []
     
-    // 카테고리/부서 정보를 대분류로 사용
-    if (task.category) hierarchy.push(task.category)
-    if (task.department && task.department !== task.category) {
+    // 대분류
+    if (task.majorCategory) {
+      hierarchy.push(task.majorCategory)
+    } else if (task.category) {
+      hierarchy.push(task.category)
+    }
+    
+    // 소분류 (중분류는 건너뛰고 소분류만 표시)
+    if (task.minorCategory) {
+      hierarchy.push(task.minorCategory)
+    } else if (task.department && task.department !== (task.majorCategory || task.category)) {
       hierarchy.push(task.department)
     }
     
-    // 작업명을 세부업무로 사용
+    // 세부업무 (작업명)
     if (task.name) {
       hierarchy.push(task.name)
     } else if (task.detail) {

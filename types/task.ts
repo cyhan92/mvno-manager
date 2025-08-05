@@ -21,7 +21,7 @@ export interface Task {
   // 그룹 여부 표시
   isGroup?: boolean
   // 트리 구조를 위한 추가 필드
-  level?: number // 0: 대분류, 1: 중분류, 2: 소분류, 3: 실제 작업
+  level?: number // 0: 대분류, 1: 소분류, 2: 세부업무 (중분류는 데이터에만 포함)
   parentId?: string // 부모 항목 ID
   hasChildren?: boolean // 자식 항목 여부
 }

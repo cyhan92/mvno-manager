@@ -19,18 +19,16 @@ export const flattenTree = (tree: TreeNode[], expandedNodes: Set<string>): TreeN
   return result
 }
 
-// 노드의 들여쓰기 레벨에 따른 아이콘 반환
+// 노드의 들여쓰기 레벨에 따른 아이콘 반환 (3단계 구조)
 export const getTreeIcon = (node: TreeNode, isExpanded: boolean): string => {
   if (!node.hasChildren) {
-    return '📄' // 실제 작업
+    return '📄' // 세부업무 (실제 작업)
   }
   
   switch (node.level) {
     case 0: // 대분류
       return isExpanded ? '📂' : '📁'
-    case 1: // 중분류
-      return isExpanded ? '📂' : '📁'
-    case 2: // 소분류
+    case 1: // 소분류
       return isExpanded ? '📋' : '📋'
     default:
       return '📄'

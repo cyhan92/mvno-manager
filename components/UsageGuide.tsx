@@ -108,7 +108,7 @@ const UsageGuide: React.FC = () => {
             <h4 className="font-semibold text-orange-900 mb-2">👥 담당자별 현황</h4>
             <div className="text-sm text-orange-700 space-y-2">
               <p><strong>담당자 카드 더블클릭</strong>: 해당 담당자의 세부 업무 목록 팝업 표시</p>
-              <p><strong>업무 분류</strong>: 대분류 &gt; 중분류 &gt; 소분류 &gt; 세부업무 계층 구조</p>
+              <p><strong>업무 분류</strong>: 대분류 &gt; 소분류 &gt; 세부업무 계층 구조 (중분류는 데이터에만 포함)</p>
               <p><strong>완료 상태</strong>: ✅ 완료 (100%) / ⏳ 진행중 (100% 미만)</p>
               <p><strong>진행률 표시</strong>: 각 업무별 진행률 시각적 표시</p>
             </div>

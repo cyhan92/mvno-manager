@@ -203,7 +203,7 @@ export const useCustomGanttChart = ({
     return () => clearTimeout(timer)
   }, [tasks.length, tasks])
 
-  // 클릭 이벤트 처리
+  // 클릭 이벤트 처리 (단일 클릭 시에는 작업 선택만, 팝업 없음)
   const handleCanvasClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
     if (!canvasRef.current) return
 
@@ -218,13 +218,11 @@ export const useCustomGanttChart = ({
     )
     
     if (clickedRow >= 0 && clickedRow < displayTasks.length) {
-      // 클릭 위치 정보를 포함해서 전달
-      const clickPosition = {
-        x: event.clientX,
-        y: event.clientY
-      }
+      // 단일 클릭 시에는 작업 선택만 하고 팝업은 표시하지 않음
+      // onTaskSelect([{ row: clickedRow }], clickPosition) // 주석 처리
       
-      onTaskSelect([{ row: clickedRow }], clickPosition)
+      // 필요한 경우 작업 선택 상태만 업데이트
+      // console.log('Task selected:', displayTasks[clickedRow])
     }
   }
 

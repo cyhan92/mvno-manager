@@ -2,7 +2,7 @@ import { Task } from '../../types/task'
 import { TreeNode } from './types'
 import { calculateAverageProgress } from './progress'
 
-// 작업 데이터를 트리 구조로 변환
+// 작업 데이터를 트리 구조로 변환 (대분류 > 소분류 > 세부업무)
 export const buildTaskTree = (tasks: Task[]): TreeNode[] => {
   const tree: TreeNode[] = []
   const nodeMap = new Map<string, TreeNode>()
@@ -18,7 +18,7 @@ export const buildTaskTree = (tasks: Task[]): TreeNode[] => {
     majorGroups.get(major)!.push(task)
   })
 
-  // 트리 구조 생성
+  // 트리 구조 생성 (대분류 > 소분류 > 세부업무)
   majorGroups.forEach((majorTasks, majorCategory) => {
     const majorId = `major_${majorCategory}`
     
@@ -39,103 +39,63 @@ export const buildTaskTree = (tasks: Task[]): TreeNode[] => {
       children: []
     }
 
-    // 중분류별 그룹핑
-    const middleGroups = new Map<string, Task[]>()
+    // 소분류별 그룹핑 (중분류는 건너뛰고 바로 소분류로)
+    const minorGroups = new Map<string, Task[]>()
     majorTasks.forEach(task => {
-      const middle = task.middleCategory || '미분류'
-      const middleKey = `${majorCategory}_${middle}`
-      if (!middleGroups.has(middleKey)) {
-        middleGroups.set(middleKey, [])
+      const minor = task.minorCategory || '미분류'
+      const minorKey = `${majorCategory}_${minor}`
+      if (!minorGroups.has(minorKey)) {
+        minorGroups.set(minorKey, [])
       }
-      middleGroups.get(middleKey)!.push(task)
+      minorGroups.get(minorKey)!.push(task)
     })
 
-    // 중분류 노드들 생성
-    middleGroups.forEach((middleTasks, middleKey) => {
-      const middleCategory = middleKey.split('_').slice(1).join('_')
-      const middleId = `middle_${middleKey}`
+    // 소분류 노드들 생성
+    minorGroups.forEach((minorTasks, minorKey) => {
+      const minorCategory = minorKey.split('_').slice(1).join('_')
+      const minorId = `minor_${minorKey}`
 
-      const middleNode: TreeNode = {
-        id: middleId,
-        name: middleCategory,
+      const minorNode: TreeNode = {
+        id: minorId,
+        name: minorCategory,
         resource: '',
-        start: new Date(Math.min(...middleTasks.map(t => t.start.getTime()))),
-        end: new Date(Math.max(...middleTasks.map(t => t.end.getTime()))),
+        start: new Date(Math.min(...minorTasks.map(t => t.start.getTime()))),
+        end: new Date(Math.max(...minorTasks.map(t => t.end.getTime()))),
         duration: null,
         percentComplete: 0, // 하위 항목들 추가 후 계산
         dependencies: null,
         majorCategory,
-        middleCategory,
+        minorCategory,
+        // 중분류 정보는 데이터에만 포함 (트리 구조에는 표시하지 않음)
+        middleCategory: minorTasks[0]?.middleCategory,
         isGroup: true,
-        level: 1,
+        level: 1, // 레벨 조정: 소분류가 레벨 1
         parentId: majorId,
         hasChildren: true,
         children: []
       }
 
-      // 소분류별 그룹핑
-      const minorGroups = new Map<string, Task[]>()
-      middleTasks.forEach(task => {
-        const minor = task.minorCategory || '미분류'
-        const minorKey = `${middleKey}_${minor}`
-        if (!minorGroups.has(minorKey)) {
-          minorGroups.set(minorKey, [])
-        }
-        minorGroups.get(minorKey)!.push(task)
-      })
-
-      // 소분류 노드들 생성
-      minorGroups.forEach((minorTasks, minorKey) => {
-        const minorCategory = minorKey.split('_').slice(2).join('_')
-        const minorId = `minor_${minorKey}`
-
-        const minorNode: TreeNode = {
-          id: minorId,
-          name: minorCategory,
-          resource: '',
-          start: new Date(Math.min(...minorTasks.map(t => t.start.getTime()))),
-          end: new Date(Math.max(...minorTasks.map(t => t.end.getTime()))),
-          duration: null,
-          percentComplete: 0, // 하위 항목들 추가 후 계산
-          dependencies: null,
-          majorCategory,
-          middleCategory,
-          minorCategory,
-          isGroup: true,
-          level: 2,
-          parentId: middleId,
-          hasChildren: true,
+      // 실제 작업들 추가 (세부업무)
+      minorTasks.forEach((task) => {
+        const taskNode: TreeNode = {
+          ...task,
+          level: 2, // 레벨 조정: 세부업무가 레벨 2
+          parentId: minorId,
+          hasChildren: false,
           children: []
         }
-
-        // 실제 작업들 추가
-        minorTasks.forEach((task) => {
-          const taskNode: TreeNode = {
-            ...task,
-            level: 3,
-            parentId: minorId,
-            hasChildren: false,
-            children: []
-          }
-          minorNode.children!.push(taskNode)
-          nodeMap.set(task.id, taskNode)
-        })
-
-        // 소분류 진행율 계산: 하위 작업들의 평균 진행율
-        minorNode.percentComplete = calculateAverageProgress(minorTasks)
-
-        middleNode.children!.push(minorNode)
-        nodeMap.set(minorId, minorNode)
+        minorNode.children!.push(taskNode)
+        nodeMap.set(task.id, taskNode)
       })
 
-      // 중분류 진행율 계산: 하위 소분류들의 평균 진행율
-      middleNode.percentComplete = calculateAverageProgress(middleNode.children!)
+      // 소분류 진행율 계산: 하위 작업들의 평균 진행율
+      minorNode.percentComplete = calculateAverageProgress(minorTasks)
 
-      majorNode.children!.push(middleNode)
-      nodeMap.set(middleId, middleNode)
+      majorNode.children!.push(minorNode)
+      nodeMap.set(minorId, minorNode)
     })
 
-    // 대분류 진행율 계산: 하위 중분류들의 평균 진행율
+    // 대분류 진행율 계산: 하위 소분류들의 평균 진행율
     majorNode.percentComplete = calculateAverageProgress(majorNode.children!)
 
     tree.push(majorNode)
