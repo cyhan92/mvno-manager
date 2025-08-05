@@ -5,6 +5,7 @@ export const useGanttChart = (tasks: Task[], viewMode: ViewMode, groupBy?: Group
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [expandedGroups, setExpandedGroups] = useState<Set<string>>(new Set())
   const [dateUnit, setDateUnit] = useState<DateUnit>('month')
+  const [popupPosition, setPopupPosition] = useState<{ x: number; y: number } | null>(null)
 
   // 그룹별 작업 분류
   const groupedTasks = useMemo(() => {
@@ -33,34 +34,11 @@ export const useGanttChart = (tasks: Task[], viewMode: ViewMode, groupBy?: Group
     return groups
   }, [tasks, groupBy])
 
-  // 실제 표시할 작업들 (세부 보기에서 확장된 그룹만)
+  // 실제 표시할 작업들 (모든 보기에서 전체 작업 표시)
   const filteredTasks = useMemo(() => {
-    if (viewMode === 'overview') {
-      return tasks // 전체 개요는 CustomGanttChart에서 처리
-    }
-    
-    // 세부 보기: 확장된 그룹의 작업들만 표시
-    if (expandedGroups.size === 0) {
-      return [] // 확장된 그룹이 없으면 빈 배열
-    }
-    
-    return tasks.filter(task => {
-      let groupKey = '미분류'
-      
-      switch (groupBy) {
-        case 'resource':
-          groupKey = task.resource || '미지정'
-          break
-        case 'action':
-          groupKey = task.name || task.detail || '미지정 작업'
-          break
-        default:
-          groupKey = task.category || '기타'
-      }
-      
-      return expandedGroups.has(groupKey)
-    })
-  }, [tasks, viewMode, groupBy, expandedGroups])
+    // 담당자별, Action Item별 구분 제거로 항상 모든 작업 표시
+    return tasks
+  }, [tasks])
 
   // 차트 데이터 변환
   const chartData = useMemo(() => {
@@ -164,11 +142,12 @@ export const useGanttChart = (tasks: Task[], viewMode: ViewMode, groupBy?: Group
     setExpandedGroups(new Set())
   }
 
-  const handleTaskSelect = (selection: any) => {
+  const handleTaskSelect = (selection: any, position?: { x: number; y: number }) => {
     if (selection && selection.length > 0) {
       const selectedIndex = selection[0].row
       if (selectedIndex >= 0 && selectedIndex < tasks.length) {
         setSelectedTask(tasks[selectedIndex])
+        setPopupPosition(position || null)
       }
     }
   }
@@ -185,6 +164,8 @@ export const useGanttChart = (tasks: Task[], viewMode: ViewMode, groupBy?: Group
     toggleGroup,
     expandAllGroups,
     collapseAllGroups,
-    handleTaskSelect
+    handleTaskSelect,
+    popupPosition,
+    setPopupPosition
   }
 }

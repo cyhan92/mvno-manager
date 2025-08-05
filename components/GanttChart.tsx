@@ -3,7 +3,6 @@ import React from 'react'
 import { Task, ViewMode, GroupBy } from '../types/task'
 import { useGanttChart } from '../hooks/useGanttChart'
 import GanttControlPanel from './gantt/GanttControlPanel'
-import GanttGroupSelector from './gantt/GanttGroupSelector'
 import CustomGanttChart from './gantt/CustomGanttChart'
 import GanttTaskDetail from './gantt/GanttTaskDetail'
 
@@ -34,28 +33,18 @@ export default function GanttChart({
     toggleGroup,
     expandAllGroups,
     collapseAllGroups,
-    handleTaskSelect
+    handleTaskSelect,
+    popupPosition,
+    setPopupPosition
   } = useGanttChart(tasks, viewMode, groupBy)
 
   return (
     <div className="space-y-4">
       <GanttControlPanel
         viewMode={viewMode}
-        groupBy={groupBy}
         dateUnit={dateUnit}
         onViewModeChange={onViewModeChange}
-        onGroupByChange={onGroupByChange}
         onDateUnitChange={setDateUnit}
-      />
-
-      <GanttGroupSelector
-        viewMode={viewMode}
-        groupBy={groupBy}
-        groupedTasks={groupedTasks}
-        expandedGroups={expandedGroups}
-        onToggleGroup={toggleGroup}
-        onExpandAll={expandAllGroups}
-        onCollapseAll={collapseAllGroups}
       />
 
       <CustomGanttChart
@@ -70,7 +59,12 @@ export default function GanttChart({
 
       <GanttTaskDetail
         selectedTask={selectedTask}
-        onClose={() => setSelectedTask(null)}
+        onClose={() => {
+          setSelectedTask(null)
+          setPopupPosition(null)
+        }}
+        position={popupPosition || undefined}
+        isPopup={!!popupPosition}
       />
     </div>
   )

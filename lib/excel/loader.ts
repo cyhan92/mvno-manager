@@ -50,14 +50,11 @@ export const loadTasksFromExcel = async (): Promise<ExcelParseResult> => {
   }
   
   try {
-    console.log('Reading Excel file:', filePath)
-    
     // 파일을 버퍼로 읽기
     const fileBuffer = fs.readFileSync(filePath)
     
     // 워크북 로드
     const workbook = readExcelWorkbook(fileBuffer)
-    console.log('Workbook loaded, sheet names:', workbook.SheetNames)
     
     // 첫 번째 시트 선택
     const sheetName = workbook.SheetNames[0]
@@ -65,12 +62,9 @@ export const loadTasksFromExcel = async (): Promise<ExcelParseResult> => {
     
     // 2차원 배열로 변환
     const rawData = worksheetToArray(worksheet)
-    console.log('Raw data loaded, total rows:', rawData.length)
     
     // 파싱 실행
     const result = parseExcelData(rawData)
-    
-    console.log(`Parsing completed: ${result.tasks.length} tasks from ${result.filteredRows} filtered rows`)
     
     if (result.errors.length > 0) {
       console.warn('Parsing errors:', result.errors)

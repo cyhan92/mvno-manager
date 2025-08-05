@@ -1,7 +1,7 @@
 import React from 'react'
 import { ResourceStats } from '../types/task'
 import { formatPercent } from '../utils/task'
-import styles from '../styles/components.module.css'
+import styles from '../styles/common.module.css'
 
 interface ResourceStatsComponentProps {
   resourceStats: Record<string, ResourceStats>

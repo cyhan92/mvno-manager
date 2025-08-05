@@ -1,0 +1,72 @@
+/* 트리 구조 관련 스타일 */
+
+.treeNode {
+  display: flex;
+  align-items: center;
+  width: 100%;
+}
+
+.treeToggle {
+  width: 20px;
+  height: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  margin-right: 4px;
+  border-radius: 4px;
+  transition: all 0.2s ease-in-out;
+  font-size: 12px;
+  font-weight: bold;
+  color: #6b7280;
+}
+
+.treeToggleEmpty {
+  width: 20px;
+  margin-right: 4px;
+}
+
+.treeIcon {
+  margin-right: 6px;
+  font-size: 14px;
+  transition: all 0.2s ease-in-out;
+}
+
+.treeText {
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: #111827; /* 더 진한 색상으로 변경 */
+  transition: all 0.2s ease-in-out;
+}
+
+/* 레벨별 들여쓰기 */
+.treeLevel0 { padding-left: 0px; }
+.treeLevel1 { padding-left: 20px; }
+.treeLevel2 { padding-left: 40px; }
+.treeLevel3 { padding-left: 60px; }
+
+/* 레벨별 배경색 및 폰트 두께 구분 */
+.treeLevel0 {
+  background-color: #f8fafc;
+  font-weight: 700; /* 더 진하게 */
+  color: #111827; /* 더 진한 색상 */
+}
+
+.treeLevel1 {
+  background-color: #f1f5f9;
+  font-weight: 600; /* 더 진하게 */
+  color: #1f2937; /* 진한 색상 */
+}
+
+.treeLevel2 {
+  background-color: #f9fafb;
+  font-weight: 500; /* 조금 더 진하게 */
+  color: #374151; /* 기본 색상 */
+}
+
+.treeLevel3 {
+  background-color: white;
+  font-weight: 400;
+}

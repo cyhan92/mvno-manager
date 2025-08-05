@@ -1,20 +1,71 @@
 import React from 'react'
 import { Task } from '../../types/task'
 import { getStatusBadgeClass, formatDate, formatDuration, formatProgress } from '../../utils/gantt'
-import styles from '../../styles/components.module.css'
+import styles from '../../styles'
 
 interface GanttTaskDetailProps {
   selectedTask: Task | null
   onClose?: () => void
+  position?: { x: number; y: number }
+  isPopup?: boolean
 }
 
-const GanttTaskDetail: React.FC<GanttTaskDetailProps> = ({ selectedTask, onClose }) => {
+const GanttTaskDetail: React.FC<GanttTaskDetailProps> = ({ 
+  selectedTask, 
+  onClose, 
+  position,
+  isPopup = false 
+}) => {
   if (!selectedTask) {
     return null
   }
 
+  // 팝업 스타일과 기본 스타일 구분
+  const containerClass = isPopup 
+    ? styles.taskDetailPopup
+    : styles.taskDetailNormal
+  
+  // 팝업 위치 설정을 위한 ref
+  const popupRef = React.useRef<HTMLDivElement>(null)
+  
+  React.useEffect(() => {
+    if (isPopup && position && popupRef.current) {
+      // 화면 경계를 고려한 위치 조정
+      const popup = popupRef.current
+      const rect = popup.getBoundingClientRect()
+      const screenWidth = window.innerWidth
+      const screenHeight = window.innerHeight
+      
+      let adjustedX = position.x
+      let adjustedY = position.y
+      
+      // 오른쪽 경계 체크
+      if (position.x + rect.width > screenWidth) {
+        adjustedX = screenWidth - rect.width - 20
+      }
+      
+      // 하단 경계 체크
+      if (position.y + rect.height > screenHeight) {
+        adjustedY = screenHeight - rect.height - 20
+      }
+      
+      popup.style.left = `${adjustedX}px`
+      popup.style.top = `${adjustedY}px`
+    }
+  }, [isPopup, position])
+
   return (
-    <div className="bg-white rounded-lg shadow-sm border p-6">
+    <>
+      {isPopup && (
+        <div 
+          className={styles.taskDetailOverlay}
+          onClick={onClose}
+        />
+      )}
+      <div 
+        ref={popupRef}
+        className={containerClass}
+      >
       <div className="flex justify-between items-center mb-4">
         <h4 className="text-lg font-semibold text-gray-900">
           📋 작업 상세 정보
@@ -102,9 +153,7 @@ const GanttTaskDetail: React.FC<GanttTaskDetailProps> = ({ selectedTask, onClose
             <div className={styles['task-detail-progress-container']}>
               <div
                 className={styles['task-detail-progress-fill']}
-                style={{
-                  width: `${selectedTask.percentComplete}%`
-                }}
+                style={{ '--progress-width': `${selectedTask.percentComplete}%` } as React.CSSProperties}
               />
             </div>
             <span className="text-sm font-medium text-gray-900">
@@ -132,6 +181,7 @@ const GanttTaskDetail: React.FC<GanttTaskDetailProps> = ({ selectedTask, onClose
         )}
       </div>
     </div>
+    </>
   )
 }
 

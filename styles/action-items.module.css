@@ -1,0 +1,71 @@
+/* Action Item 영역 관련 스타일 - 2024.08.01 업데이트 */
+
+.actionItemArea {
+  width: 350px;
+  border-right: 2px solid #e5e7eb;
+  background: white;
+  flex-shrink: 0; /* 크기 고정 */
+}
+
+.actionItemHeader {
+  height: 80px;
+  padding: 12px;
+  border-bottom: 2px solid #e5e7eb;
+  background: #f9fafb;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+}
+
+.actionItemList {
+  overflow-y: auto;
+  overflow-x: hidden;
+  /* 간트차트와 정확한 정렬을 위한 설정 */
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.actionItemListDynamic {
+  overflow-x: hidden;
+}
+
+.actionItemRow {
+  height: 40px; /* 간트차트 ROW_HEIGHT와 일치시킴 */
+  padding: 10px 12px; /* 패딩도 약간 늘림 */
+  border-bottom: 1px solid #f0f0f0;
+  display: flex;
+  align-items: center;
+  font-size: 14px; /* 폰트 크기 늘림 */
+  font-weight: 500; /* 폰트 굵기 추가 */
+  line-height: 1.2;
+  color: #111827; /* 글자 색을 매우 진하게 */
+  position: relative; /* 들여쓰기를 위한 relative 위치 */
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  /* 정확한 높이 맞춤을 위한 box-sizing */
+  box-sizing: border-box;
+  margin: 0;
+}
+
+.actionItemRowEven {
+  background: #fefefe; /* 약간 더 밝게 */
+}
+
+.actionItemRowOdd {
+  background: #f8fafc; /* 약간 다른 색상 */
+}
+
+.actionItemRowGroup {
+  font-weight: 600;
+  color: #111827; /* 더 진한 색상으로 변경 */
+}
+
+.actionItemText {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: inherit;
+}

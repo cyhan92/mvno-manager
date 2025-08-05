@@ -9,10 +9,15 @@ export const fetchAndTransformTasks = async (): Promise<Task[]> => {
     throw new Error('Failed to fetch tasks')
   }
   
-  const data = await response.json()
+  const result = await response.json()
+  
+  // ExcelParseResult에서 tasks 배열 추출
+  if (!result.tasks || !Array.isArray(result.tasks)) {
+    throw new Error('Invalid response format: tasks array not found')
+  }
   
   // 날짜 문자열을 Date 객체로 변환
-  return data.map((task: any) => ({
+  return result.tasks.map((task: any) => ({
     ...task,
     start: new Date(task.start),
     end: new Date(task.end),

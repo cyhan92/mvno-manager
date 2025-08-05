@@ -6,7 +6,8 @@ import {
   drawBackground,
   drawGridLines,
   drawGanttBar,
-  drawChartBorder
+  drawChartBorder,
+  drawTodayLine
 } from '../utils/canvas'
 
 interface UseCustomGanttChartProps {
@@ -14,7 +15,8 @@ interface UseCustomGanttChartProps {
   viewMode: ViewMode
   dateUnit: DateUnit
   groupedTasks: Record<string, Task[]>
-  onTaskSelect: (selection: any) => void
+  onTaskSelect: (selection: any, position?: { x: number; y: number }) => void
+  onTaskDoubleClick?: (task: Task, position: { x: number; y: number }) => void
   groupBy?: string
 }
 
@@ -24,6 +26,7 @@ export const useCustomGanttChart = ({
   dateUnit,
   groupedTasks,
   onTaskSelect,
+  onTaskDoubleClick,
   groupBy
 }: UseCustomGanttChartProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
@@ -33,13 +36,15 @@ export const useCustomGanttChart = ({
   // 실제 렌더링할 데이터 계산
   const displayTasks = useMemo(() => {
     // 트리 구조에서 전달받은 flattenedTasks를 직접 사용
-    // 더 이상 calculateDisplayTasks를 통해 그룹 요약을 생성하지 않음
-    const tasksWithGroupFlag = tasks.map(task => ({ 
-      ...task, 
-      isGroup: task.hasChildren || false // TreeNode의 hasChildren 속성 사용
+    // TreeNode의 속성들을 Task 인터페이스에 맞게 매핑
+    const tasksWithTreeProps = tasks.map(task => ({ 
+      ...task,
+      isGroup: task.hasChildren || false, // TreeNode의 hasChildren 속성 사용
+      level: task.level || 0, // TreeNode의 level 속성 사용
+      hasChildren: task.hasChildren || false // 트리 토글 버튼용
     }))
     
-    return tasksWithGroupFlag
+    return tasksWithTreeProps
   }, [tasks])
 
   // 차트 렌더링 함수
@@ -153,6 +158,16 @@ export const useCustomGanttChart = ({
       dimensions.chartHeight
     )
 
+    // 오늘 날짜 세로선 그리기
+    drawTodayLine(
+      ctx,
+      startDate,
+      timeRange,
+      dimensions.chartWidth,
+      dimensions.chartHeight,
+      0 // leftMargin 제거
+    )
+
     setIsLoading(false)
   }
 
@@ -195,7 +210,42 @@ export const useCustomGanttChart = ({
     )
     
     if (clickedRow >= 0 && clickedRow < displayTasks.length) {
-      onTaskSelect([{ row: clickedRow }])
+      // 클릭 위치 정보를 포함해서 전달
+      const clickPosition = {
+        x: event.clientX,
+        y: event.clientY
+      }
+      
+      onTaskSelect([{ row: clickedRow }], clickPosition)
+    }
+  }
+
+  // 더블클릭 이벤트 처리
+  const handleCanvasDoubleClick = (event: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!canvasRef.current || !onTaskDoubleClick) return
+
+    const canvas = canvasRef.current
+    const rect = canvas.getBoundingClientRect()
+    
+    const clickedRow = calculateClickedRowIndex(
+      event.clientY,
+      rect,
+      CHART_CONFIG.MARGINS.TOP,
+      CHART_CONFIG.DIMENSIONS.ROW_HEIGHT
+    )
+    
+    if (clickedRow >= 0 && clickedRow < displayTasks.length) {
+      const task = displayTasks[clickedRow]
+      
+      // 세부업무(leaf node)만 더블클릭 처리
+      if (!task.hasChildren) {
+        const clickPosition = {
+          x: event.clientX,
+          y: event.clientY
+        }
+        
+        onTaskDoubleClick(task, clickPosition)
+      }
     }
   }
 
@@ -205,6 +255,7 @@ export const useCustomGanttChart = ({
     isLoading,
     displayTasks,
     handleCanvasClick,
+    handleCanvasDoubleClick,
     renderChart // 외부에서 강제 리렌더링이 필요한 경우
   }
 }

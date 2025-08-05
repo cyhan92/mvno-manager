@@ -11,7 +11,8 @@ export {
   drawActionItemHeader,
   drawTaskRow,
   drawGanttBar,
-  drawChartBorder 
+  drawChartBorder,
+  drawTodayLine
 } from './legacy'
 
 // Legacy drawBackground wrapper for backward compatibility

@@ -1,0 +1,35 @@
+/* 호버 효과 관련 스타일 */
+
+/* 세부업무(리프 노드)에만 적용되는 호버 효과 */
+.actionItemRowLeaf:hover {
+  background-color: #e0f2fe !important; /* 밝은 파란색 배경 */
+  color: #0c4a6e; /* 진한 파란색 텍스트 */
+  border-left: 3px solid #0284c7; /* 왼쪽 강조 테두리 */
+  padding-left: 9px; /* 테두리 때문에 패딩 조정 */
+  transform: translateX(2px); /* 살짝 오른쪽으로 이동 */
+  box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15); /* 부드러운 그림자 */
+  z-index: 1; /* 다른 요소 위에 표시 */
+}
+
+/* 그룹 행에는 호버 효과 제거 - 기본 스타일만 유지 */
+
+/* 트리 토글 버튼 호버 효과 - 유지 (기능성) */
+.treeToggle:hover {
+  background-color: #3b82f6;
+  color: white;
+  transform: scale(1.1);
+  box-shadow: 0 2px 4px rgba(59, 130, 246, 0.3);
+}
+
+/* 세부업무 아이콘 및 텍스트 호버 효과 */
+.actionItemRowLeaf:hover .treeIcon {
+  transform: scale(1.1);
+  filter: brightness(1.2);
+}
+
+.actionItemRowLeaf:hover .treeText {
+  font-weight: 600;
+  letter-spacing: 0.025em;
+}
+
+/* 레벨별 호버 효과 제거 - 그룹/카테고리는 호버 효과 없음 */

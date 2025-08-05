@@ -33,13 +33,15 @@ export const calculateCanvasDimensions = (
   taskCount: number,
   dateUnit: DateUnit
 ) => {
-  const rowHeight = 35
+  const rowHeight = 40 // Action Item과 일치하도록 40px로 변경
   const headerHeight = 80
-  const leftMargin = 350
+  // leftMargin을 0으로 설정 - 캔버스는 간트차트 영역만 차지
+  const leftMargin = 0
   
   const contentHeight = Math.max(taskCount * rowHeight, 500)
   
-  let chartWidth = containerWidth - leftMargin
+  // chartWidth는 전체 컨테이너 너비를 사용
+  let chartWidth = containerWidth
   
   // 주별 표시시 확대
   if (dateUnit === 'week') {
@@ -47,13 +49,13 @@ export const calculateCanvasDimensions = (
   }
   
   return {
-    width: leftMargin + chartWidth,
+    width: chartWidth, // leftMargin 제거
     height: headerHeight + contentHeight,
     chartWidth,
     chartHeight: contentHeight,
     leftMargin,
     topMargin: headerHeight,
-    containerWidth: leftMargin + chartWidth
+    containerWidth: chartWidth // leftMargin 제거
   }
 }
 
@@ -67,7 +69,7 @@ export const CHART_CONFIG = {
     BOTTOM: 50
   },
   DIMENSIONS: {
-    ROW_HEIGHT: 35,
+    ROW_HEIGHT: 40, // Action Item과 일치하도록 40px로 변경
     MIN_HEIGHT: 500,
     BAR_PADDING: 8,
     MIN_BAR_WIDTH: 2,

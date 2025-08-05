@@ -5,12 +5,12 @@ import { TREE_CONFIG } from './config'
 export const flattenTree = (tree: TreeNode[], expandedNodes: Set<string>): TreeNode[] => {
   const result: TreeNode[] = []
 
-  const traverse = (nodes: TreeNode[]) => {
+  const traverse = (nodes: TreeNode[], depth: number = 0) => {
     nodes.forEach(node => {
       result.push(node)
       
       if (node.hasChildren && node.children && expandedNodes.has(node.id)) {
-        traverse(node.children)
+        traverse(node.children, depth + 1)
       }
     })
   }
