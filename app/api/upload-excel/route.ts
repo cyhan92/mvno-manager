@@ -1,86 +1,111 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 import * as XLSX from 'xlsx'
-import { parseExcelData } from '../../../lib/excel/parser'
-import { transformExcelToDatabase } from '../../../lib/database/tasks'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-
-if (!supabaseUrl || !supabaseKey) {
-  console.error('Supabase configuration missing')
-}
-
-const supabase = createClient(supabaseUrl, supabaseKey)
-
-export async function POST(request: NextRequest) {
+export async function POST(request: Request) {
+  console.log('=== EXCEL UPLOAD API STARTED ===')
+  console.log('Timestamp:', new Date().toISOString())
+  
   try {
-    console.log('Excel upload request received')
+    // Supabase 클라이언트 생성
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
 
-    // FormData에서 파일 추출
+    if (!supabaseUrl || !supabaseKey) {
+      console.error('Supabase configuration missing')
+      return NextResponse.json(
+        { success: false, message: 'Supabase 설정이 누락되었습니다.' },
+        { status: 500 }
+      )
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseKey)
+
+    // 1. 폼 데이터에서 파일 추출
     const formData = await request.formData()
     const file = formData.get('file') as File
 
     if (!file) {
       return NextResponse.json(
-        { success: false, message: 'Excel 파일이 제공되지 않았습니다.' },
+        { success: false, message: '파일이 업로드되지 않았습니다.' },
         { status: 400 }
       )
     }
 
-    console.log('Processing file:', file.name, 'Size:', file.size)
+    console.log('File received:', file.name, file.size, 'bytes')
 
-    // 파일 확장자 검증
-    const allowedExtensions = ['.xlsx', '.xls']
-    const fileExtension = file.name.toLowerCase().substring(file.name.lastIndexOf('.'))
-    
-    if (!allowedExtensions.includes(fileExtension)) {
-      return NextResponse.json(
-        { success: false, message: 'Excel 파일(.xlsx, .xls)만 업로드 가능합니다.' },
-        { status: 400 }
-      )
-    }
-
-    // 파일 내용을 Buffer로 읽기
+    // 2. 파일을 ArrayBuffer로 읽기
     const arrayBuffer = await file.arrayBuffer()
-    const buffer = Buffer.from(arrayBuffer)
+    const buffer = new Uint8Array(arrayBuffer)
 
-    console.log('Reading Excel file...')
-
-    // Excel 파일 파싱
-    const workbook = XLSX.read(buffer, { type: 'buffer' })
-    const sheetName = workbook.SheetNames[0] // 첫 번째 시트 사용
+    // 3. XLSX로 워크북 파싱
+    const workbook = XLSX.read(buffer, { type: 'array' })
+    const sheetName = workbook.SheetNames[0]
     const worksheet = workbook.Sheets[sheetName]
 
-    // JSON으로 변환
-    const excelData = XLSX.utils.sheet_to_json(worksheet, { header: 1 }) as any[][]
-
-    // Excel 구조: 1-4행(제목/설명), 5행(컬럼 헤더), 6행부터 실제 데이터
-    if (excelData.length < 6) { // 최소 6행 필요 (1-5행 헤더/제목 + 데이터 1행)
+    if (!worksheet) {
       return NextResponse.json(
-        { success: false, message: 'Excel 파일에 데이터가 없거나 형식이 올바르지 않습니다. 5행은 헤더, 6행부터 데이터가 시작되어야 합니다.' },
+        { success: false, message: '워크시트를 찾을 수 없습니다.' },
         { status: 400 }
       )
     }
+
+    console.log('Worksheet found:', sheetName)
+
+    // 4. 시트를 JSON 배열로 변환 (header: 1은 배열 형태 반환)
+    const excelData = XLSX.utils.sheet_to_json(worksheet, { 
+      header: 1,
+      defval: '', // 빈 셀을 빈 문자열로 처리
+      raw: false // 날짜/숫자를 문자열로 변환
+    }) as any[][]
 
     console.log('Total Excel rows:', excelData.length)
 
-    // 5행 헤더 확인 (디버깅용)
-    if (excelData.length >= 5) {
-      console.log('Row 5 (Header):', excelData[4]) // 5행은 인덱스 4
+    // 헤더와 데이터 행 확인 (디버깅용)
+    if (excelData.length >= 6) {
+      console.log('Row 4 (possible header):', excelData[3]) // 4행 확인
+      console.log('Row 5 (possible data 1):', excelData[4]) // 5행 확인 
+      console.log('Row 6 (possible data 2):', excelData[5]) // 6행 확인
     }
 
-    // 실제 데이터 행 추출 (6행부터 시작, 배열 인덱스 5부터)
-    const dataRows = excelData.slice(5) // 6행부터 데이터 시작 (0-based index에서 5)
+    // 실제 데이터 행 추출 (5행부터 시작할 수도 있음, 배열 인덱스 4부터)
+    const dataRows = excelData.slice(4) // 5행부터 모든 데이터 포함 (0-based index에서 4)
 
-    console.log('Data rows from row 6:', dataRows.length)
+    console.log('Data rows from row 5:', dataRows.length)
     if (dataRows.length > 0) {
-      console.log('First data row:', dataRows[0]) // 첫 번째 데이터 행 확인
+      console.log('First data row (raw):', dataRows[0]) // 첫 번째 데이터 행 확인
+      console.log('First data row B column (B1):', dataRows[0] ? dataRows[0][1] : 'undefined') // B1 데이터 명시적 확인
+      console.log('First data row H column (세부업무):', dataRows[0] ? dataRows[0][7] : 'undefined') // H1 데이터 확인
+      console.log('Second data row (raw):', dataRows[1]) // 두 번째 데이터 행 확인
+      if (dataRows[1]) {
+        console.log('Second data row B column (B2):', dataRows[1][1]) // B2 데이터 확인
+        console.log('Second data row H column (세부업무):', dataRows[1][7]) // H2 데이터 확인
+      }
     }
 
     // 데이터 변환 및 검증
     const tasks = dataRows
-      .filter(row => row && row.length > 0 && row[0]) // 빈 행 제외
+      .filter(row => {
+        // 행이 존재하고 길이가 있으며, 주요 데이터 컬럼 중 하나라도 값이 있는 경우
+        if (!row || row.length === 0) return false
+        
+        // 주요 컬럼들(대분류, 중분류, 소분류, 세부업무) 중 하나라도 값이 있으면 포함
+        const hasMainData = row[0] || row[1] || row[2] || row[7] // A, B, C, H열
+        
+        if (hasMainData) {
+          console.log('Processing row:', {
+            originalIndex: dataRows.indexOf(row),
+            A: row[0],
+            B: row[1],
+            C: row[2],
+            H: row[7],
+            I: row[8],
+            O: row[14]
+          })
+        }
+        
+        return hasMainData
+      })
       .map((row, index) => {
         try {
           // 날짜 파싱 함수
@@ -88,9 +113,13 @@ export async function POST(request: NextRequest) {
             if (!dateValue) return null
             
             if (typeof dateValue === 'number') {
-              // Excel 날짜 시리얼 번호
-              const date = XLSX.SSF.parse_date_code(dateValue)
-              return `${date.y}-${String(date.m).padStart(2, '0')}-${String(date.d).padStart(2, '0')}`
+              try {
+                // Excel 날짜 시리얼 번호
+                const date = XLSX.SSF.parse_date_code(dateValue)
+                return `${date.y}-${String(date.m).padStart(2, '0')}-${String(date.d).padStart(2, '0')}`
+              } catch (e) {
+                return null
+              }
             }
             
             if (typeof dateValue === 'string') {
@@ -138,7 +167,7 @@ export async function POST(request: NextRequest) {
           return {
             task_id: `TASK-${String(index + 1).padStart(3, '0')}`,
             title: String(row[7] || '').trim(), // H열 (세부업무)
-            category: String(row[0] || '').trim(), // A열 (대분류)
+            category: String(row[0] || row[1] || '미분류').trim(), // A열 (대분류) 또는 B열 fallback
             subcategory: String(row[1] || '').trim(), // B열 (중분류)
             detail: String(row[2] || '').trim(), // C열 (소분류)
             department: String(row[3] || row[4] || '').trim(), // D열 (주관부서 정) 또는 E열 (주관부서 부)
@@ -150,7 +179,7 @@ export async function POST(request: NextRequest) {
             status: status,
             cost: String(row[9] || '').trim(), // J열 (추정 소요 비용)
             notes: String(row[10] || '').trim(), // K열 (비고)
-            major_category: String(row[0] || '').trim(), // A열 (대분류)
+            major_category: String(row[0] || row[1] || '미분류').trim(), // A열 (대분류) 또는 B열 fallback
             middle_category: String(row[1] || '').trim(), // B열 (중분류)
             minor_category: String(row[2] || '').trim() // C열 (소분류)
           }
@@ -162,6 +191,20 @@ export async function POST(request: NextRequest) {
       .filter(task => task !== null) // null 값 제거
 
     console.log('Processed tasks:', tasks.length)
+    
+    // 처리된 작업 데이터 상세 로그
+    tasks.forEach((task, index) => {
+      console.log(`Task ${index + 1}:`, {
+        task_id: task.task_id,
+        title: task.title,
+        category: task.category,
+        subcategory: task.subcategory,
+        detail: task.detail,
+        major_category: task.major_category,
+        middle_category: task.middle_category,
+        minor_category: task.minor_category
+      })
+    })
 
     if (tasks.length === 0) {
       return NextResponse.json(
@@ -187,6 +230,8 @@ export async function POST(request: NextRequest) {
 
     // 새 데이터 삽입
     console.log('Inserting new data...')
+    console.log('Tasks to insert:', tasks.map(t => ({ task_id: t.task_id, title: t.title, middle_category: t.middle_category })))
+    
     const { data: insertedData, error: insertError } = await supabase
       .from('tasks')
       .insert(tasks)
@@ -201,6 +246,16 @@ export async function POST(request: NextRequest) {
     }
 
     console.log('Upload completed successfully. Total records:', insertedData?.length || 0)
+    
+    // 삽입된 데이터 확인
+    if (insertedData && insertedData.length > 0) {
+      console.log('First inserted record:', {
+        task_id: insertedData[0].task_id,
+        title: insertedData[0].title,
+        middle_category: insertedData[0].middle_category,
+        major_category: insertedData[0].major_category
+      })
+    }
 
     return NextResponse.json({
       success: true,
@@ -213,7 +268,7 @@ export async function POST(request: NextRequest) {
     })
 
   } catch (error) {
-    console.error('Excel upload error:', error)
+    console.error('Upload error:', error)
     return NextResponse.json(
       { 
         success: false, 
