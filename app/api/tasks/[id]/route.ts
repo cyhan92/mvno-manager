@@ -32,6 +32,9 @@ export async function PUT(
     if (updateData.resource) {
       updates.resource = updateData.resource
     }
+    if (updateData.department) {
+      updates.department = updateData.department
+    }
 
     // Supabase에 업데이트
     const { data, error } = await supabase

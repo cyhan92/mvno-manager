@@ -159,9 +159,29 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
   const handleSave = async () => {
     setIsLoading(true)
     try {
-      const updateData = {
+      // 로컬 데이터 업데이트 (현재 프로젝트에서는 실제 서버 저장 없이 로컬 상태만 업데이트)
+      const updatedTask = {
+        ...task,
         start: editData.startDate ? new Date(editData.startDate) : task.start,
         end: editData.endDate ? new Date(editData.endDate) : task.end,
+        percentComplete: editData.percentComplete,
+        resource: editData.resource,
+        department: editData.department
+      }
+
+      // 부모 컴포넌트에 업데이트 알림
+      if (onTaskUpdate) {
+        onTaskUpdate(updatedTask)
+        console.log('Task updated locally:', updatedTask)
+      }
+
+      setIsEditing(false)
+      
+      // TODO: 실제 서버 저장이 필요한 경우 아래 주석을 해제하고 위의 로컬 업데이트 로직을 제거
+      /*
+      const updateData = {
+        startDate: editData.startDate ? new Date(editData.startDate).toISOString() : task.start.toISOString(),
+        endDate: editData.endDate ? new Date(editData.endDate).toISOString() : task.end.toISOString(),
         percentComplete: editData.percentComplete,
         resource: editData.resource,
         department: editData.department
@@ -176,20 +196,29 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
       })
 
       if (!response.ok) {
-        throw new Error('Failed to update task')
+        const errorData = await response.json()
+        throw new Error(errorData.error || 'Failed to update task')
       }
 
-      const updatedTask = await response.json()
+      const result = await response.json()
       
-      // 부모 컴포넌트에 업데이트 알림
-      if (onTaskUpdate) {
+      if (onTaskUpdate && result.data) {
+        const updatedTask = {
+          ...task,
+          start: new Date(result.data.start_date),
+          end: new Date(result.data.end_date),
+          percentComplete: result.data.percent_complete,
+          resource: result.data.resource,
+          department: result.data.department
+        }
         onTaskUpdate(updatedTask)
       }
 
       setIsEditing(false)
+      */
     } catch (error) {
       console.error('Error updating task:', error)
-      alert('작업 저장 중 오류가 발생했습니다.')
+      alert(`작업 저장 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
     } finally {
       setIsLoading(false)
     }
