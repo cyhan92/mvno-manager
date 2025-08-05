@@ -108,6 +108,25 @@ export async function POST(request: NextRequest) {
             return 0
           }
 
+          // 상태 값 정규화 함수
+          const normalizeStatus = (status: any): '완료' | '진행중' | '미완료' => {
+            if (!status) return '미완료'
+            
+            const statusStr = String(status).trim().toLowerCase()
+            
+            if (statusStr.includes('완료') || statusStr === 'completed' || statusStr === 'done') {
+              return '완료'
+            }
+            if (statusStr.includes('진행') || statusStr === 'in progress' || statusStr === 'ongoing') {
+              return '진행중'
+            }
+            
+            return '미완료'
+          }
+
+          const progress = Math.round(parsePercent(row[7]))
+          const status = progress >= 100 ? '완료' : normalizeStatus(row[8])
+
           return {
             task_id: `TASK-${String(index + 1).padStart(3, '0')}`,
             title: String(row[0] || '').trim(),
@@ -117,8 +136,8 @@ export async function POST(request: NextRequest) {
             assignee: String(row[4] || '').trim(),
             start_date: parseDate(row[5]),
             end_date: parseDate(row[6]),
-            progress: Math.round(parsePercent(row[7])),
-            status: String(row[8] || '').trim() || '미완료',
+            progress: progress,
+            status: status,
             notes: String(row[9] || '').trim()
           }
         } catch (error) {
