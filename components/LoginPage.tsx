@@ -155,12 +155,6 @@ export default function LoginPage({ onLoginSuccess }: LoginPageProps) {
             {isLoading ? '로그인 중...' : '로그인'}
           </Button>
         </Box>
-
-        <Box sx={{ mt: 2, textAlign: 'center' }}>
-          <Typography variant="caption" color="text.secondary">
-            개발용 계정: nable / nable123!
-          </Typography>
-        </Box>
       </Paper>
     </Container>
   )
