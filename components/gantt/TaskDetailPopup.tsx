@@ -34,7 +34,11 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
     endDate: '',
     percentComplete: 0,
     resource: '',
-    department: ''
+    department: '',
+    majorCategory: '',
+    middleCategory: '',
+    minorCategory: '',
+    status: '미완료'
   })
 
   // Initialize edit data
@@ -45,7 +49,11 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
       endDate: task.end ? task.end.toISOString().split('T')[0] : '',
       percentComplete: task.percentComplete || 0,
       resource: task.resource || '',
-      department: task.department || ''
+      department: task.department || '',
+      majorCategory: task.majorCategory || '',
+      middleCategory: task.middleCategory || '',
+      minorCategory: task.minorCategory || '',
+      status: task.status || '미완료'
     })
   }, [task])
 
@@ -188,7 +196,11 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
             end: editData.endDate ? new Date(editData.endDate) : task.end,
             percentComplete: editData.percentComplete,
             resource: editData.resource,
-            department: editData.department
+            department: editData.department,
+            majorCategory: editData.majorCategory,
+            middleCategory: editData.middleCategory,
+            minorCategory: editData.minorCategory,
+            status: editData.status
           }
           onTaskUpdate(updatedTask)
         }
@@ -203,7 +215,11 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
         end: editData.endDate ? new Date(editData.endDate).toISOString() : task.end.toISOString(),
         percent_complete: editData.percentComplete,
         resource: editData.resource,
-        department: editData.department
+        department: editData.department,
+        major_category: editData.majorCategory,
+        middle_category: editData.middleCategory,
+        minor_category: editData.minorCategory,
+        status: editData.status
       }
 
       console.log('Updating task:', task.id, 'with data:', updateData)
@@ -237,7 +253,11 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
           end: new Date(result.data.end_date),
           percentComplete: result.data.progress,
           resource: result.data.assignee,
-          department: result.data.department
+          department: result.data.department,
+          majorCategory: result.data.major_category || editData.majorCategory,
+          middleCategory: result.data.middle_category || editData.middleCategory,
+          minorCategory: result.data.minor_category || editData.minorCategory,
+          status: result.data.status || editData.status
         }
         onTaskUpdate(updatedTask)
       }
@@ -303,7 +323,11 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
       endDate: task.end ? task.end.toISOString().split('T')[0] : '',
       percentComplete: task.percentComplete || 0,
       resource: task.resource || '',
-      department: task.department || ''
+      department: task.department || '',
+      majorCategory: task.majorCategory || '',
+      middleCategory: task.middleCategory || '',
+      minorCategory: task.minorCategory || '',
+      status: task.status || '미완료'
     })
     setIsEditing(false)
   }
@@ -452,14 +476,6 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
             </p>
           </div>
           
-          <div>
-            <label className="text-sm font-medium text-gray-600">상세 설명</label>
-            <p className="text-sm text-gray-700 mt-1">
-              {task.detail || '상세 설명이 없습니다.'}
-            </p>
-          </div>
-          
-          {/* 편집 가능한 필드들 */}
           {/* 세부업무명 */}
           <div>
             <label className="text-sm font-medium text-gray-600">세부업무명</label>
@@ -524,13 +540,32 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
                   min="0"
                   max="100"
                   value={editData.percentComplete}
-                  onChange={(e) => setEditData(prev => ({ ...prev, percentComplete: parseInt(e.target.value) }))}
+                  onChange={(e) => {
+                    const newProgress = parseInt(e.target.value)
+                    let newStatus = '미완료'
+                    
+                    if (newProgress === 100) {
+                      newStatus = '완료'
+                    } else if (newProgress > 0 && newProgress < 100) {
+                      newStatus = '진행중'
+                    } else {
+                      newStatus = '미완료'
+                    }
+                    
+                    setEditData(prev => ({
+                      ...prev,
+                      percentComplete: newProgress,
+                      status: newStatus
+                    }))
+                  }}
                   className="w-full"
                   title="진행률을 조정하세요"
                 />
                 <div className="flex justify-between text-xs text-gray-600 mt-1">
                   <span>0%</span>
-                  <span className="font-medium text-gray-800">{editData.percentComplete}%</span>
+                  <span className="font-medium text-gray-800">
+                    {editData.percentComplete}% ({editData.status})
+                  </span>
                   <span>100%</span>
                 </div>
               </div>
@@ -584,14 +619,48 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
             )}
           </div>
 
-          {(task.majorCategory || task.middleCategory || task.minorCategory) && (
+          {(task.majorCategory || task.middleCategory || task.minorCategory || isEditing) && (
             <div>
               <label className="text-sm font-medium text-gray-600">카테고리</label>
-              <p className="text-sm text-gray-900 mt-1">
-                {[task.majorCategory, task.middleCategory, task.minorCategory]
-                  .filter(Boolean)
-                  .join(' > ')}
-              </p>
+              {isEditing ? (
+                <div className="mt-1 space-y-2">
+                  <div className="flex items-center space-x-2">
+                    <span className="text-sm text-gray-500">[</span>
+                    <input
+                      type="text"
+                      value={editData.majorCategory}
+                      onChange={(e) => setEditData(prev => ({ ...prev, majorCategory: e.target.value }))}
+                      className="px-2 py-1 border border-gray-300 rounded text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0 flex-1"
+                      placeholder="대분류"
+                    />
+                    <span className="text-sm text-gray-500">] &gt;</span>
+                    <span className="text-sm text-gray-500">[</span>
+                    <input
+                      type="text"
+                      value={editData.middleCategory}
+                      onChange={(e) => setEditData(prev => ({ ...prev, middleCategory: e.target.value }))}
+                      className="px-2 py-1 border border-gray-300 rounded text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0 flex-1"
+                      placeholder="중분류"
+                    />
+                    <span className="text-sm text-gray-500">] &gt;</span>
+                    <span className="text-sm text-gray-500">[</span>
+                    <input
+                      type="text"
+                      value={editData.minorCategory}
+                      onChange={(e) => setEditData(prev => ({ ...prev, minorCategory: e.target.value }))}
+                      className="px-2 py-1 border border-gray-300 rounded text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 min-w-0 flex-1"
+                      placeholder="소분류"
+                    />
+                    <span className="text-sm text-gray-500">]</span>
+                  </div>
+                </div>
+              ) : (
+                <p className="text-sm text-gray-900 mt-1">
+                  {[task.majorCategory, task.middleCategory, task.minorCategory]
+                    .filter(Boolean)
+                    .join(' > ')}
+                </p>
+              )}
             </div>
           )}
 
