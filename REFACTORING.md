@@ -202,6 +202,12 @@ hooks/
   - ActionItemsGuideSection: Action Items 사용법 (1.9KB)
   - ResourceStatsGuideSection: 담당자별 현황 및 통계 (3.3KB)
   - TroubleshootingSection: 문제 해결 (2.1KB)
+- **2025-01-07**: useCustomGanttChart 훅 리팩토링 (9.6KB → 5개 훅으로 분리)
+  - useCustomGanttChartRefactored: 메인 훅 (2.3KB)
+  - useGanttCanvas: 캔버스 관련 로직 (676B)
+  - useGanttState: 상태 관리 로직 (1.1KB)
+  - useGanttRenderer: 렌더링 로직 (3.3KB)
+  - useGanttEvents: 이벤트 처리 로직 (2.6KB)
 
 ## 리팩토링 성과 요약
 
@@ -222,6 +228,11 @@ hooks/
 
 ### Hooks 리팩토링 현황
 
-- **useCustomGanttChart.ts**: 9.6KB (264라인) - 리팩토링 예정
+- **useCustomGanttChart.ts**: 9.6KB (264라인) → 5개 훅으로 분리 ✅
+  - useCustomGanttChartRefactored: 2.3KB (88라인)
+  - useGanttCanvas: 676B (21라인)
+  - useGanttState: 1.1KB (37라인)
+  - useGanttRenderer: 3.3KB (102라인)
+  - useGanttEvents: 2.6KB (69라인)
 - **popup/useTaskApi.ts**: 6.3KB (169라인) - 리팩토링 예정
 - **useGanttChart.ts**: 5.4KB (158라인) - 적정 크기
