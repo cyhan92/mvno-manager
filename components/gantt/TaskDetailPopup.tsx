@@ -34,7 +34,10 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
     endDate: '',
     percentComplete: 0,
     resource: '',
-    department: ''
+    department: '',
+    majorCategory: '',
+    middleCategory: '',
+    minorCategory: ''
   })
 
   // Initialize edit data
@@ -45,7 +48,10 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
       endDate: task.end ? task.end.toISOString().split('T')[0] : '',
       percentComplete: task.percentComplete || 0,
       resource: task.resource || '',
-      department: task.department || ''
+      department: task.department || '',
+      majorCategory: task.majorCategory || '',
+      middleCategory: task.middleCategory || '',
+      minorCategory: task.minorCategory || ''
     })
   }, [task])
 
@@ -188,7 +194,10 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
             end: editData.endDate ? new Date(editData.endDate) : task.end,
             percentComplete: editData.percentComplete,
             resource: editData.resource,
-            department: editData.department
+            department: editData.department,
+            majorCategory: editData.majorCategory,
+            middleCategory: editData.middleCategory,
+            minorCategory: editData.minorCategory
           }
           onTaskUpdate(updatedTask)
         }
@@ -203,7 +212,10 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
         end: editData.endDate ? new Date(editData.endDate).toISOString() : task.end.toISOString(),
         percent_complete: editData.percentComplete,
         resource: editData.resource,
-        department: editData.department
+        department: editData.department,
+        major_category: editData.majorCategory,
+        middle_category: editData.middleCategory,
+        minor_category: editData.minorCategory
       }
 
       console.log('Updating task:', task.id, 'with data:', updateData)
@@ -237,7 +249,10 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
           end: new Date(result.data.end_date),
           percentComplete: result.data.progress,
           resource: result.data.assignee,
-          department: result.data.department
+          department: result.data.department,
+          majorCategory: result.data.major_category || editData.majorCategory,
+          middleCategory: result.data.middle_category || editData.middleCategory,
+          minorCategory: result.data.minor_category || editData.minorCategory
         }
         onTaskUpdate(updatedTask)
       }
@@ -303,7 +318,10 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
       endDate: task.end ? task.end.toISOString().split('T')[0] : '',
       percentComplete: task.percentComplete || 0,
       resource: task.resource || '',
-      department: task.department || ''
+      department: task.department || '',
+      majorCategory: task.majorCategory || '',
+      middleCategory: task.middleCategory || '',
+      minorCategory: task.minorCategory || ''
     })
     setIsEditing(false)
   }
@@ -452,14 +470,46 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
             </p>
           </div>
           
-          <div>
-            <label className="text-sm font-medium text-gray-600">상세 설명</label>
-            <p className="text-sm text-gray-700 mt-1">
-              {task.detail || '상세 설명이 없습니다.'}
-            </p>
-          </div>
-          
           {/* 편집 가능한 필드들 */}
+          {/* 카테고리 정보 */}
+          {isEditing && (
+            <div className="space-y-3 p-3 bg-gray-50 rounded-md">
+              <label className="text-sm font-medium text-gray-600">카테고리 정보</label>
+              <div className="grid grid-cols-1 gap-3">
+                <div>
+                  <label className="text-xs font-medium text-gray-500">대분류</label>
+                  <input
+                    type="text"
+                    value={editData.majorCategory}
+                    onChange={(e) => setEditData(prev => ({ ...prev, majorCategory: e.target.value }))}
+                    className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="대분류를 입력하세요"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-500">중분류</label>
+                  <input
+                    type="text"
+                    value={editData.middleCategory}
+                    onChange={(e) => setEditData(prev => ({ ...prev, middleCategory: e.target.value }))}
+                    className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="중분류를 입력하세요"
+                  />
+                </div>
+                <div>
+                  <label className="text-xs font-medium text-gray-500">소분류</label>
+                  <input
+                    type="text"
+                    value={editData.minorCategory}
+                    onChange={(e) => setEditData(prev => ({ ...prev, minorCategory: e.target.value }))}
+                    className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                    placeholder="소분류를 입력하세요"
+                  />
+                </div>
+              </div>
+            </div>
+          )}
+          
           {/* 세부업무명 */}
           <div>
             <label className="text-sm font-medium text-gray-600">세부업무명</label>
