@@ -79,17 +79,21 @@ export const buildTaskTree = (tasks: Task[]): TreeNode[] => {
       minorGroups.get(minor)!.push(task)
     })
 
-    // 소분류 노드들 생성 - 소분류명으로 오름차순 정렬
-    const sortedMinorCategories = Array.from(minorGroups.keys()).sort((a, b) => a.localeCompare(b))
+    // 소분류 노드들 생성 - "[중분류] 소분류" 전체 문자열로 정렬
+    const sortedMinorCategories = Array.from(minorGroups.keys())
+      .map(minorCategory => {
+        const minorTasks = minorGroups.get(minorCategory)!
+        const middleCategory = minorTasks[0]?.middleCategory || ''
+        const displayName = middleCategory ? `[${middleCategory}] ${minorCategory}` : minorCategory
+        return { minorCategory, displayName }
+      })
+      .sort((a, b) => a.displayName.localeCompare(b.displayName))
     
-    sortedMinorCategories.forEach((minorCategory) => {
+    sortedMinorCategories.forEach(({ minorCategory, displayName }) => {
       const minorTasks = minorGroups.get(minorCategory)!
       const minorId = `minor_${majorCategory}_${minorCategory}`
 
-      // 중분류 정보를 가져와서 "[중분류] 소분류" 형태로 표시
-      const middleCategory = minorTasks[0]?.middleCategory || ''
-      const displayName = middleCategory ? `[${middleCategory}] ${minorCategory}` : minorCategory
-
+      // displayName은 이미 정렬 시에 계산되었으므로 재사용
       const minorNode: TreeNode = {
         id: minorId,
         name: displayName,
