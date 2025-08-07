@@ -190,5 +190,38 @@ hooks/
 ```
 
 ## 변경 이력
+
 - **2025-01-07**: TaskDetailPopup, UsageGuide 컴포넌트 리팩토링 완료
 - **2025-01-07**: 인덱스 파일 정리 및 문서화 완료
+- **2025-01-07**: UsageGuide 컴포넌트 대형 리팩토링 (23KB → 1.6KB + 8개 섹션 분리)
+  - GuideHeader: 헤더 UI 분리 (1.4KB)
+  - SystemOverviewSection: 시스템 개요 (2.5KB)
+  - ExcelUploadGuideSection: Excel 업로드 가이드 (2.2KB)
+  - GanttChartGuideSection: Gantt 차트 활용법 (2.2KB)
+  - TaskEditGuideSection: 작업 편집 가이드 (2.2KB)
+  - ActionItemsGuideSection: Action Items 사용법 (1.9KB)
+  - ResourceStatsGuideSection: 담당자별 현황 및 통계 (3.3KB)
+  - TroubleshootingSection: 문제 해결 (2.1KB)
+
+## 리팩토링 성과 요약
+
+### 대형 컴포넌트 리팩토링 현황
+
+- **TaskDetailPopup**: 27KB (671라인) - 이미 리팩토링됨
+- **UsageGuide**: 23KB (469라인) → 1.6KB (47라인) + 8개 섹션 컴포넌트로 분리 ✅
+- **AddActionItemPopup**: 11KB (296라인) - 리팩토링 예정
+- **GanttHeader**: 9.7KB (289라인) - 리팩토링 예정  
+- **CustomGanttChart**: 9.5KB (268라인) - 리팩토링 예정
+- **ClientHome**: 9.3KB (252라인) - 이미 리팩토링됨
+
+### Utils 리팩토링 현황
+
+- **canvas/legacy.ts**: 12KB (354라인) - 리팩토링 예정
+- **canvas/gantt.ts**: 9.8KB (302라인) - 리팩토링 예정
+- **tree/builder.ts**: 5.3KB (133라인) - 적정 크기
+
+### Hooks 리팩토링 현황
+
+- **useCustomGanttChart.ts**: 9.6KB (264라인) - 리팩토링 예정
+- **popup/useTaskApi.ts**: 6.3KB (169라인) - 리팩토링 예정
+- **useGanttChart.ts**: 5.4KB (158라인) - 적정 크기
