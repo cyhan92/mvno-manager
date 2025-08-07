@@ -2,43 +2,21 @@
 export * from './types'
 export * from './config'
 export * from './drawing'
-export * from './gantt'
 export * from './chart'
 
-// Legacy functions - fully migrated to new modules
+// 리팩토링된 모듈들에서 함수 import
 export { 
   drawGridLines,
   drawActionItemHeader,
   drawTaskRow,
-  drawGanttBar,
+  drawLegacyGanttBar as drawGanttBar,
   drawChartBorder,
-  drawTodayLine
-} from './legacy'
-
-// Legacy drawBackground wrapper for backward compatibility
-export const drawBackground = (
-  ctx: CanvasRenderingContext2D,
-  width: number,
-  height: number
-) => {
-  const context = { ctx, width, height }
-  const { drawBackground: newDrawBackground } = require('./drawing')
-  newDrawBackground(context)
-}
-
-// 주요 함수들의 단축 export
-export {
-  drawTextWithShadow,
-  applyTextStyle,
-  truncateText
-} from './drawing'
-
-export {
+  drawTodayLine,
   calculateBarPosition,
   drawGroupBar,
   drawTaskBar,
   drawProgressText
-} from './gantt'
+} from './refactored'
 
 export {
   CANVAS_CONFIG,

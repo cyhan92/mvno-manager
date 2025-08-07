@@ -3,7 +3,7 @@ import React from 'react'
 import { Task, ViewMode, GroupBy } from '../types/task'
 import { useGanttChart } from '../hooks/useGanttChart'
 import GanttControlPanel from './gantt/GanttControlPanel'
-import CustomGanttChart from './gantt/CustomGanttChart'
+import CustomGanttChartModular from './gantt/CustomGanttChartModular'
 import GanttTaskDetail from './gantt/GanttTaskDetail'
 
 interface GanttChartProps {
@@ -16,6 +16,8 @@ interface GanttChartProps {
   onTaskAdd?: (newTask: Partial<Task>) => void // 새로운 Task 추가 콜백
   onTaskDelete?: (taskId: string) => void // 작업 삭제 콜백
   onDataRefresh?: () => void // 전체 데이터 다시 로드 함수
+  onMajorCategoryUpdate?: (oldCategory: string, newCategory: string) => Promise<void> // 대분류 수정 콜백
+  onSubCategoryUpdate?: (taskId: string, middleCategory: string, subCategory: string) => Promise<void> // 중분류,소분류 수정 콜백
 }
 
 export default function GanttChart({ 
@@ -27,7 +29,9 @@ export default function GanttChart({
   onTaskUpdate,
   onTaskAdd,
   onTaskDelete,
-  onDataRefresh
+  onDataRefresh,
+  onMajorCategoryUpdate,
+  onSubCategoryUpdate
 }: GanttChartProps) {
   const {
     selectedTask,
@@ -88,7 +92,7 @@ export default function GanttChart({
         onExpandToLevel={treeControls ? handleExpandToLevel : undefined}
       />
 
-      <CustomGanttChart
+      <CustomGanttChartModular
         tasks={viewMode === 'overview' ? tasks : filteredTasks}
         viewMode={viewMode}
         dateUnit={dateUnit}
@@ -100,6 +104,8 @@ export default function GanttChart({
         onTaskAdd={onTaskAdd}
         onTaskDelete={onTaskDelete}
         onDataRefresh={onDataRefresh}
+        onMajorCategoryUpdate={onMajorCategoryUpdate}
+        onSubCategoryUpdate={onSubCategoryUpdate}
         groupBy={groupBy}
         showAssigneeInfo={showAssigneeInfo}
         onTreeStateChange={setTreeControls}

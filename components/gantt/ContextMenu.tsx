@@ -1,17 +1,26 @@
 import React, { useEffect, useRef } from 'react'
+import { Task } from '../../types/task'
 
 interface ContextMenuProps {
   isOpen: boolean
   position: { x: number; y: number }
+  task: Task | null
   onClose: () => void
   onAddActionItem: () => void
+  onEditMajorCategory?: () => void
+  onEditSubCategory?: () => void
+  onAddSubCategory?: () => void
 }
 
 const ContextMenu: React.FC<ContextMenuProps> = ({
   isOpen,
   position,
+  task,
   onClose,
-  onAddActionItem
+  onAddActionItem,
+  onEditMajorCategory,
+  onEditSubCategory,
+  onAddSubCategory
 }) => {
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -50,6 +59,32 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     onClose()
   }
 
+  const handleEditMajorCategoryClick = () => {
+    if (onEditMajorCategory) {
+      onEditMajorCategory()
+    }
+    onClose()
+  }
+
+  const handleEditSubCategoryClick = () => {
+    if (onEditSubCategory) {
+      onEditSubCategory()
+    }
+    onClose()
+  }
+
+  const handleAddSubCategoryClick = () => {
+    if (onAddSubCategory) {
+      onAddSubCategory()
+    }
+    onClose()
+  }
+
+  // 대분류인지 확인 (level 0)
+  const isMajorCategory = task?.level === 0
+  // 소분류인지 확인 (level 1)
+  const isSubCategory = task?.level === 1
+
   return (
     <div 
       ref={menuRef}
@@ -59,13 +94,49 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
         top: `${position.y}px`,
       } as React.CSSProperties}
     >
-      <button
-        onClick={handleAddClick}
-        className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors flex items-center gap-2"
-      >
-        <span className="text-blue-500">➕</span>
-        Action Item 추가
-      </button>
+      {/* 대분류 수정 메뉴 (대분류에서만 표시) */}
+      {isMajorCategory && onEditMajorCategory && (
+        <button
+          onClick={handleEditMajorCategoryClick}
+          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-orange-50 hover:text-orange-700 transition-colors flex items-center gap-2"
+        >
+          <span className="text-orange-500">✏️</span>
+          대분류 수정
+        </button>
+      )}
+
+      {/* 중분류,소분류 수정 메뉴 (소분류에서만 표시) */}
+      {isSubCategory && onEditSubCategory && (
+        <button
+          onClick={handleEditSubCategoryClick}
+          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-green-50 hover:text-green-700 transition-colors flex items-center gap-2"
+        >
+          <span className="text-green-500">✏️</span>
+          중분류,소분류 수정
+        </button>
+      )}
+
+      {/* 중분류,소분류 추가 메뉴 (소분류에서만 표시) */}
+      {isSubCategory && onAddSubCategory && (
+        <button
+          onClick={handleAddSubCategoryClick}
+          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors flex items-center gap-2"
+        >
+          <span className="text-purple-500">➕</span>
+          중분류,소분류 추가
+        </button>
+      )}
+      
+      {/* 상세 업무 추가 메뉴 (소분류에서만 표시) */}
+      {isSubCategory && (
+        <button
+          onClick={handleAddClick}
+          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors flex items-center gap-2"
+        >
+          <span className="text-blue-500">➕</span>
+          상세 업무 추가
+        </button>
+      )}
     </div>
   )
 }
