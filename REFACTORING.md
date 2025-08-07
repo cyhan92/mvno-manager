@@ -110,6 +110,39 @@ components/gantt/
 - **테스트 용이성**: 각 로직을 독립적으로 테스트 가능
 - **가독성 향상**: 복잡한 렌더링 로직을 단순화하여 이해하기 쉬워짐
 
+### 4. CustomGanttChart 컴포넌트 분해 (283줄 → 모듈화)
+
+#### 분해 전
+
+- `CustomGanttChart.tsx` (283줄, 9.5KB) - 트리 상태 관리, 렌더링 트리거, 팝업 관리, 스크롤 동기화 등이 모두 한 파일에 집중
+
+#### 분해 후 구조
+
+```typescript
+hooks/gantt/
+├── useGanttTreeManager.ts      # 트리 상태 관리
+├── useRenderTrigger.ts         # 렌더링 트리거 관리
+├── useSynchronizedRendering.ts # 동기화 렌더링
+├── useTreeToggleHandler.ts     # 트리 토글 핸들러
+└── useGanttChartManager.ts     # 통합 관리 훅
+
+components/gantt/sections/
+├── GanttChartHeader.tsx        # 차트 헤더 UI
+└── GanttChartArea.tsx          # 간트 차트 영역
+
+components/gantt/
+├── CustomGanttChart.tsx        # 원본 컴포넌트
+└── CustomGanttChartModular.tsx # 모듈화된 버전
+```
+
+#### 개선 효과
+
+- **상태 관리 분리**: 트리, 렌더링, 팝업, 스크롤 상태를 독립적 훅으로 분리
+- **통합 관리 훅**: useGanttChartManager로 모든 하위 훅들을 조합하여 단순화
+- **렌더링 최적화**: 디바운싱과 동기화 로직을 별도 훅으로 분리하여 성능 향상
+- **컴포넌트 분리**: UI 섹션을 논리적으로 분리하여 재사용성 향상
+- **복잡도 감소**: 283줄의 복잡한 로직을 여러 모듈로 분산하여 이해하기 쉬워짐
+
 ### 3. UsageGuide 컴포넌트 분해 (483줄 → 모듈화)
 
 #### 분해 전 (UsageGuide)
@@ -289,7 +322,7 @@ hooks/
 - **UsageGuide**: 23KB (469라인) → 1.6KB (47라인) + 8개 섹션 컴포넌트로 분리 ✅
 - **AddActionItemPopup**: 11KB (296라인) → 모듈화 완료 ✅
 - **GanttHeader**: 9.7KB (318라인) → 모듈화 완료 ✅
-- **CustomGanttChart**: 9.5KB (268라인) - 리팩토링 예정
+- **CustomGanttChart**: 9.5KB (283라인) → 모듈화 완료 ✅
 - **ClientHome**: 9.3KB (252라인) - 이미 리팩토링됨
 
 ### Utils 리팩토링 현황
