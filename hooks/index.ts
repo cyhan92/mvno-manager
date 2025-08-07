@@ -21,3 +21,12 @@ export { useTaskApi } from './popup/useTaskApi'
 // Legacy re-exports (for backward compatibility)
 export { useGanttChart } from './useGanttChart'
 export { useCustomGanttChart } from './useCustomGanttChart'
+
+// Form hooks
+export { useActionItemForm } from './forms/useActionItemForm'
+
+// Gantt-specific hooks
+export { useGanttTreeState } from './gantt/useGanttTreeState'
+export { useGanttRenderTrigger } from './gantt/useGanttRenderTrigger'
+export { useGanttSyncRendering } from './gantt/useGanttSyncRendering'
+export { useGanttTreeToggle } from './gantt/useGanttTreeToggle'

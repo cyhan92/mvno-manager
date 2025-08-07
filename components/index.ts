@@ -11,10 +11,13 @@ export { default as UsageGuideModular } from './UsageGuideModular'
 // Gantt components
 export { default as GanttChart } from './GanttChart'
 export { default as CustomGanttChart } from './gantt/CustomGanttChart'
+export { default as CustomGanttChartRefactored } from './gantt/CustomGanttChartRefactored'
 export { default as TaskDetailPopup } from './gantt/TaskDetailPopup'
 export { default as TaskDetailPopupRefactored } from './gantt/TaskDetailPopupRefactored'
 export { default as AddActionItemPopupRefactored } from './gantt/AddActionItemPopupRefactored'
 export { default as GanttHeaderRefactored } from './gantt/GanttHeaderRefactored'
+export { default as GanttChartHeader } from './gantt/chart/GanttChartHeader'
+export { default as GanttChartArea } from './gantt/chart/GanttChartArea'
 
 // Dashboard components
 export { default as StatsDashboard } from './StatsDashboard'
