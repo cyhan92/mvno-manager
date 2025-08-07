@@ -33,9 +33,18 @@ export const buildTaskTree = (tasks: Task[]): TreeNode[] => {
   })
 
   // 트리 구조 생성 (대분류 > 소분류 > 세부업무)
-  // 대분류를 B, A, S, D, C, O 순서로 정렬
+  // 대분류를 B, A, S, D, C, O 순서로 정렬한 후, 2차로 알파벳 순 정렬
   const sortedMajorCategories = Array.from(majorGroups.keys()).sort((a, b) => {
-    return getMajorCategoryOrder(a) - getMajorCategoryOrder(b)
+    const orderA = getMajorCategoryOrder(a)
+    const orderB = getMajorCategoryOrder(b)
+    
+    // 1차 정렬: 기존 정의된 순서 (B->A->S->D->C->O)
+    if (orderA !== orderB) {
+      return orderA - orderB
+    }
+    
+    // 2차 정렬: 같은 순서 그룹 내에서 알파벳 순 (ascending)
+    return a.localeCompare(b)
   })
 
   sortedMajorCategories.forEach((majorCategory) => {

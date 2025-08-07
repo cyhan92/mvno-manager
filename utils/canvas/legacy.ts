@@ -197,16 +197,12 @@ export const drawGanttBar = (
   const progress = task.percentComplete || 0
   
   if (isGroup) {
-    // 그룹 바 - 단순한 색상 사용
-    ctx.fillStyle = '#e5e7eb' // 밝은 회색 배경
-    ctx.fillRect(x, barY, width, height)
-    
-    // 그룹 진행률 표시 - 단순한 색상 사용
-    if (progress > 0) {
-      const progressWidth = (width * progress) / 100
-      ctx.fillStyle = '#6b7280' // 단순한 회색 진행률
-      ctx.fillRect(x, barY, progressWidth, height)
-    }
+    // 그룹 바 - 새로운 drawGroupBar 함수 사용
+    const { drawGroupBar, calculateBarPosition } = require('./gantt')
+    const style = calculateBarPosition(task, startDate, new Date(startDate.getTime() + timeRange), timeRange, chartWidth, y, 40)
+    // leftMargin 보정
+    style.x += leftMargin
+    drawGroupBar(ctx, task, style, task.level || 0)
   } else {
     // 작업 바
     const progressWidth = (width * progress) / 100
