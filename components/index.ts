@@ -13,6 +13,8 @@ export { default as GanttChart } from './GanttChart'
 export { default as CustomGanttChart } from './gantt/CustomGanttChart'
 export { default as TaskDetailPopup } from './gantt/TaskDetailPopup'
 export { default as TaskDetailPopupRefactored } from './gantt/TaskDetailPopupRefactored'
+export { default as AddActionItemPopupRefactored } from './gantt/AddActionItemPopupRefactored'
+export { default as GanttHeaderRefactored } from './gantt/GanttHeaderRefactored'
 
 // Dashboard components
 export { default as StatsDashboard } from './StatsDashboard'
