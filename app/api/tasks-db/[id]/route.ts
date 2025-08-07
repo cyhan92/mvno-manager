@@ -20,7 +20,18 @@ export async function PATCH(
     }
 
     const body = await request.json()
-    const { name, start, end, percent_complete, resource, department } = body
+    const { 
+      name, 
+      start, 
+      end, 
+      percent_complete, 
+      resource, 
+      department,
+      major_category,
+      middle_category,
+      minor_category,
+      status
+    } = body
 
     // 데이터베이스에서 작업 업데이트
     const updatedTask = await updateTask(taskId, {
@@ -29,7 +40,11 @@ export async function PATCH(
       end: end ? new Date(end) : undefined,
       percentComplete: percent_complete,
       resource,
-      department
+      department,
+      majorCategory: major_category,
+      middleCategory: middle_category,
+      minorCategory: minor_category,
+      status
     })
     
     return NextResponse.json({
