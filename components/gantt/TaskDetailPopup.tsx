@@ -29,6 +29,7 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
   const popupRef = useRef<HTMLDivElement>(null)
   const [editData, setEditData] = useState({
+    name: '',
     startDate: '',
     endDate: '',
     percentComplete: 0,
@@ -39,6 +40,7 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
   // Initialize edit data
   useEffect(() => {
     setEditData({
+      name: task.name || '',
       startDate: task.start ? task.start.toISOString().split('T')[0] : '',
       endDate: task.end ? task.end.toISOString().split('T')[0] : '',
       percentComplete: task.percentComplete || 0,
@@ -181,6 +183,7 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
         if (onTaskUpdate) {
           const updatedTask = {
             ...task,
+            name: editData.name,
             start: editData.startDate ? new Date(editData.startDate) : task.start,
             end: editData.endDate ? new Date(editData.endDate) : task.end,
             percentComplete: editData.percentComplete,
@@ -195,6 +198,7 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
       }
 
       const updateData = {
+        name: editData.name,
         startDate: editData.startDate ? new Date(editData.startDate).toISOString() : task.start.toISOString(),
         endDate: editData.endDate ? new Date(editData.endDate).toISOString() : task.end.toISOString(),
         percentComplete: editData.percentComplete,
@@ -293,6 +297,7 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
   const handleCancel = () => {
     // 원래 값으로 되돌리기
     setEditData({
+      name: task.name || '',
       startDate: task.start ? task.start.toISOString().split('T')[0] : '',
       endDate: task.end ? task.end.toISOString().split('T')[0] : '',
       percentComplete: task.percentComplete || 0,
@@ -454,6 +459,26 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
           </div>
           
           {/* 편집 가능한 필드들 */}
+          {/* 세부업무명 */}
+          <div>
+            <label className="text-sm font-medium text-gray-600">세부업무명</label>
+            {isEditing ? (
+              <input
+                type="text"
+                value={editData.name}
+                onChange={(e) => setEditData(prev => ({ ...prev, name: e.target.value }))}
+                className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                placeholder="세부업무명을 입력하세요"
+                title="세부업무명을 입력하세요"
+              />
+            ) : (
+              <p className="text-sm text-gray-900 mt-1">
+                {task.name}
+              </p>
+            )}
+          </div>
+          
+          {/* 날짜 필드들 */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="text-sm font-medium text-gray-600">시작일</label>
