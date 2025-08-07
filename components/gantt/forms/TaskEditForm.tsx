@@ -3,6 +3,7 @@ import { Task } from '../../../types/task'
 
 interface TaskEditFormProps {
   editData: {
+    name: string
     startDate: string
     endDate: string
     percentComplete: number
@@ -25,6 +26,16 @@ export const TaskEditForm: React.FC<TaskEditFormProps> = ({
   return (
     <div>
       <div className="space-y-3">
+        <div>
+          <label className="text-sm font-medium text-gray-700 block mb-1">세부업무명</label>
+          <input
+            type="text"
+            value={editData.name}
+            onChange={(e) => onEditDataChange('name', e.target.value)}
+            className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            placeholder="세부업무명을 입력하세요"
+          />
+        </div>
         <div>
           <label className="text-sm font-medium text-gray-700 block mb-1">시작일</label>
           <input

@@ -85,6 +85,7 @@ export const usePopupPosition = (initialPosition: Position) => {
 export const useTaskEdit = (initialTask: any) => {
   const [isEditing, setIsEditing] = useState(false)
   const [editData, setEditData] = useState({
+    name: '',
     startDate: '',
     endDate: '',
     percentComplete: 0,
@@ -94,6 +95,7 @@ export const useTaskEdit = (initialTask: any) => {
 
   useEffect(() => {
     setEditData({
+      name: initialTask.name || '',
       startDate: initialTask.start ? initialTask.start.toISOString().split('T')[0] : '',
       endDate: initialTask.end ? initialTask.end.toISOString().split('T')[0] : '',
       percentComplete: initialTask.percentComplete || 0,
@@ -111,6 +113,7 @@ export const useTaskEdit = (initialTask: any) => {
 
   const resetEditData = () => {
     setEditData({
+      name: initialTask.name || '',
       startDate: initialTask.start ? initialTask.start.toISOString().split('T')[0] : '',
       endDate: initialTask.end ? initialTask.end.toISOString().split('T')[0] : '',
       percentComplete: initialTask.percentComplete || 0,

@@ -1,6 +1,7 @@
 import { Task } from '../types/task'
 
 export interface TaskUpdateData {
+  name: string
   startDate: string
   endDate: string
   percentComplete: number
@@ -17,6 +18,7 @@ export class TaskApiService {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
+          name: updateData.name,
           start: updateData.startDate,
           end: updateData.endDate,
           percent_complete: updateData.percentComplete,
