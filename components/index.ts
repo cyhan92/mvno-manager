@@ -1,0 +1,22 @@
+// Main components
+export { default as ClientHome } from './ClientHome'
+export { default as Header } from './Header'
+export { default as Loading } from './Loading'
+
+// Guide components
+export { default as UsageGuide } from './UsageGuide'
+export { default as UsageGuideModular } from './UsageGuideModular'
+
+// Gantt components
+export { default as GanttChart } from './GanttChart'
+export { default as CustomGanttChart } from './gantt/CustomGanttChart'
+export { default as TaskDetailPopup } from './gantt/TaskDetailPopup'
+export { default as TaskDetailPopupRefactored } from './gantt/TaskDetailPopupRefactored'
+
+// Dashboard components
+export { default as StatsDashboard } from './StatsDashboard'
+export { default as RiskAnalysis } from './RiskAnalysis'
+export { default as ResourceStats } from './ResourceStats'
+
+// Utility components
+export { default as DatabaseSync } from './DatabaseSync'
