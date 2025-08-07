@@ -79,8 +79,11 @@ export const buildTaskTree = (tasks: Task[]): TreeNode[] => {
       minorGroups.get(minor)!.push(task)
     })
 
-    // 소분류 노드들 생성
-    minorGroups.forEach((minorTasks, minorCategory) => {
+    // 소분류 노드들 생성 - 소분류명으로 오름차순 정렬
+    const sortedMinorCategories = Array.from(minorGroups.keys()).sort((a, b) => a.localeCompare(b))
+    
+    sortedMinorCategories.forEach((minorCategory) => {
+      const minorTasks = minorGroups.get(minorCategory)!
       const minorId = `minor_${majorCategory}_${minorCategory}`
 
       // 중분류 정보를 가져와서 "[중분류] 소분류" 형태로 표시
@@ -107,8 +110,10 @@ export const buildTaskTree = (tasks: Task[]): TreeNode[] => {
         children: []
       }
 
-      // 실제 작업들 추가 (세부업무)
-      minorTasks.forEach((task) => {
+      // 실제 작업들 추가 (세부업무) - 작업명으로 오름차순 정렬
+      const sortedMinorTasks = minorTasks.sort((a, b) => a.name.localeCompare(b.name))
+      
+      sortedMinorTasks.forEach((task) => {
         const taskNode: TreeNode = {
           ...task,
           level: 2, // 레벨 조정: 세부업무가 레벨 2
