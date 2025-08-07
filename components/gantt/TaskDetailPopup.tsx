@@ -199,17 +199,17 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
 
       const updateData = {
         name: editData.name,
-        startDate: editData.startDate ? new Date(editData.startDate).toISOString() : task.start.toISOString(),
-        endDate: editData.endDate ? new Date(editData.endDate).toISOString() : task.end.toISOString(),
-        percentComplete: editData.percentComplete,
+        start: editData.startDate ? new Date(editData.startDate).toISOString() : task.start.toISOString(),
+        end: editData.endDate ? new Date(editData.endDate).toISOString() : task.end.toISOString(),
+        percent_complete: editData.percentComplete,
         resource: editData.resource,
         department: editData.department
       }
 
       console.log('Updating task:', task.id, 'with data:', updateData)
 
-      const response = await fetch(`/api/tasks/${task.id}`, {
-        method: 'PUT',
+      const response = await fetch(`/api/tasks-db/${task.id}`, {
+        method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
         },
@@ -232,6 +232,7 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
       if (onTaskUpdate && result.data) {
         const updatedTask = {
           ...task,
+          name: result.data.title || result.data.name || editData.name,
           start: new Date(result.data.start_date),
           end: new Date(result.data.end_date),
           percentComplete: result.data.progress,
