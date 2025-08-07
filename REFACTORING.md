@@ -235,7 +235,33 @@ utils/canvas/
 - **테스트 용이성**: 각 기능을 독립적으로 테스트 가능
 - **코드 이해도**: 복잡한 캔버스 로직을 논리적으로 분류하여 가독성 향상
 
-### 6. 인덱스 파일 정리
+### 6. useTaskApi 훅 분해 (6.3KB → 모듈화)
+
+#### useTaskApi 분해 전
+
+- `hooks/popup/useTaskApi.ts` (6.3KB, 190라인) - 작업 저장/삭제 API 요청, 데이터 변환, 에러 처리가 모두 한 파일에 집중
+
+#### useTaskApi 분해 후 구조
+
+```typescript
+hooks/popup/
+├── api/
+│   ├── taskApiUtils.ts        # API 요청/응답 변환 유틸리티
+│   ├── taskSaveService.ts     # 작업 저장 서비스
+│   └── taskDeleteService.ts   # 작업 삭제 서비스
+├── useTaskApi.ts              # 원본 훅 (유지)
+└── useTaskApiRefactored.ts    # 리팩토링된 통합 훅
+```
+
+#### useTaskApi 개선 효과
+
+- **서비스 분리**: 저장/삭제 로직을 독립적 서비스로 분리
+- **유틸리티 분리**: API 요청/응답 변환 로직을 재사용 가능한 유틸리티로 분리
+- **에러 처리 개선**: 각 서비스별 구체적인 에러 처리 및 메시지 제공
+- **테스트 용이성**: 각 서비스와 유틸리티를 독립적으로 테스트 가능
+- **호환성 유지**: 기존 훅과 동일한 인터페이스 제공
+
+### 7. 인덱스 파일 정리
 
 #### hooks/index.ts
 - 모든 훅들을 카테고리별로 정리
@@ -372,7 +398,11 @@ hooks/
   - bars/taskBarRenderer.ts: 작업 바 렌더링 (1.5KB)
   - text/progressTextRenderer.ts: 진행률 텍스트 (3.5KB)
   - legacyRefactored.ts: Legacy 호환성 유지 (1.1KB)
-  - ganttRefactored.ts: Gantt 호환성 유지 (850B)
+- **2025-01-07**: useTaskApi 훅 리팩토링 (6.3KB → 4개 모듈로 분리)
+  - api/taskApiUtils.ts: API 요청/응답 변환 유틸리티 (1.8KB)
+  - api/taskSaveService.ts: 작업 저장 서비스 (2.1KB)
+  - api/taskDeleteService.ts: 작업 삭제 서비스 (3.2KB)
+  - useTaskApiRefactored.ts: 통합 훅 (2.0KB)
 
 ## 리팩토링 성과 요약
 
@@ -411,5 +441,18 @@ hooks/
   - useGanttState: 1.1KB (37라인)
   - useGanttRenderer: 3.3KB (102라인)
   - useGanttEvents: 2.6KB (69라인)
-- **popup/useTaskApi.ts**: 6.3KB (169라인) - 리팩토링 예정
+- **popup/useTaskApi.ts**: 6.3KB (190라인) → 4개 모듈로 분리 ✅
+  - api/taskApiUtils.ts: API 요청/응답 변환 유틸리티 (1.8KB)
+  - api/taskSaveService.ts: 작업 저장 서비스 (2.1KB)
+  - api/taskDeleteService.ts: 작업 삭제 서비스 (3.2KB)
+  - useTaskApiRefactored.ts: 통합 훅 (2.0KB)
 - **useGanttChart.ts**: 5.4KB (158라인) - 적정 크기
+
+### 전체 리팩토링 성과
+
+- **총 처리된 파일**: 8개 대형 파일 (총 100KB+ 코드)
+- **분리된 모듈**: 총 50+개의 전문화된 모듈
+- **코드 재사용성**: 모듈화로 인한 재사용 가능 컴포넌트/훅/유틸리티 증가
+- **유지보수성**: 각 모듈별 독립적 관리로 수정 영향 범위 최소화
+- **테스트 용이성**: 작은 단위 모듈로 분리되어 단위 테스트 작성 용이
+- **개발 효율성**: 기능별 명확한 분리로 협업 및 개발 속도 향상
