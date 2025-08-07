@@ -366,9 +366,9 @@ hooks/
 
 ## 변경 이력
 
-- **2025-01-07**: TaskDetailPopup, UsageGuide 컴포넌트 리팩토링 완료
-- **2025-01-07**: 인덱스 파일 정리 및 문서화 완료
-- **2025-01-07**: UsageGuide 컴포넌트 대형 리팩토링 (23KB → 1.6KB + 8개 섹션 분리)
+- **2025-08-07**: TaskDetailPopup, UsageGuide 컴포넌트 리팩토링 완료
+- **2025-08-07**: 인덱스 파일 정리 및 문서화 완료
+- **2025-08-07**: UsageGuide 컴포넌트 대형 리팩토링 (23KB → 1.6KB + 8개 섹션 분리)
   - GuideHeader: 헤더 UI 분리 (1.4KB)
   - SystemOverviewSection: 시스템 개요 (2.5KB)
   - ExcelUploadGuideSection: Excel 업로드 가이드 (2.2KB)
@@ -377,16 +377,16 @@ hooks/
   - ActionItemsGuideSection: Action Items 사용법 (1.9KB)
   - ResourceStatsGuideSection: 담당자별 현황 및 통계 (3.3KB)
   - TroubleshootingSection: 문제 해결 (2.1KB)
-- **2025-01-07**: useCustomGanttChart 훅 리팩토링 (9.6KB → 5개 훅으로 분리)
+- **2025-08-07**: useCustomGanttChart 훅 리팩토링 (9.6KB → 5개 훅으로 분리)
   - useCustomGanttChartRefactored: 메인 훅 (2.3KB)
   - useGanttCanvas: 캔버스 관련 로직 (676B)
   - useGanttState: 상태 관리 로직 (1.1KB)
   - useGanttRenderer: 렌더링 로직 (3.3KB)
   - useGanttEvents: 이벤트 처리 로직 (2.6KB)
-- **2025-01-07**: AddActionItemPopup 컴포넌트 리팩토링 (296줄 → 모듈화)
-- **2025-01-07**: GanttHeader 컴포넌트 리팩토링 (318줄 → 모듈화)
-- **2025-01-07**: CustomGanttChart 컴포넌트 리팩토링 (283줄 → 모듈화)
-- **2025-01-07**: Canvas Utils 리팩토링 (Legacy.ts 12KB + Gantt.ts 9.8KB → 12개 모듈로 분리)
+- **2025-08-07**: AddActionItemPopup 컴포넌트 리팩토링 (296줄 → 모듈화)
+- **2025-08-07**: GanttHeader 컴포넌트 리팩토링 (318줄 → 모듈화)
+- **2025-08-07**: CustomGanttChart 컴포넌트 리팩토링 (283줄 → 모듈화)
+- **2025-08-07**: Canvas Utils 리팩토링 (Legacy.ts 12KB + Gantt.ts 9.8KB → 12개 모듈로 분리)
   - headers/headerGenerators.ts: 헤더 생성 로직 (2.8KB)
   - grid/gridRenderer.ts: 그리드 라인 렌더링 (1.9KB)
   - ui/uiRenderer.ts: UI 요소 렌더링 (2.5KB)
@@ -398,7 +398,7 @@ hooks/
   - bars/taskBarRenderer.ts: 작업 바 렌더링 (1.5KB)
   - text/progressTextRenderer.ts: 진행률 텍스트 (3.5KB)
   - legacyRefactored.ts: Legacy 호환성 유지 (1.1KB)
-- **2025-01-07**: useTaskApi 훅 리팩토링 (6.3KB → 4개 모듈로 분리)
+- **2025-08-07**: useTaskApi 훅 리팩토링 (6.3KB → 4개 모듈로 분리)
   - api/taskApiUtils.ts: API 요청/응답 변환 유틸리티 (1.8KB)
   - api/taskSaveService.ts: 작업 저장 서비스 (2.1KB)
   - api/taskDeleteService.ts: 작업 삭제 서비스 (3.2KB)
