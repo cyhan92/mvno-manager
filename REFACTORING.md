@@ -47,7 +47,39 @@ components/gantt/
 - **접근성 개선**: 각 필드별 레이블과 접근성 속성 표준화
 - **타입 안전성**: TypeScript로 각 필드의 타입 보장
 
-### 2. UsageGuide 컴포넌트 분해 (483줄 → 모듈화)
+### 2. AddActionItemPopup 컴포넌트 분해 (296줄 → 모듈화)
+
+#### 분해 전
+
+- `AddActionItemPopup.tsx` (296줄, 11.4KB) - 모든 폼 로직이 하나의 파일에 집중
+
+#### 분해 후 구조
+
+```typescript
+components/gantt/popup/fields/
+├── CategoryFields.tsx        # 카테고리 필드 그룹
+├── DateRangeFields.tsx       # 날짜 범위 필드 그룹
+├── ResourceFields.tsx        # 담당자/부서 필드 그룹
+└── (기존 필드 컴포넌트들 재사용)
+
+hooks/popup/
+├── useAddActionForm.ts       # 추가 폼 상태 관리
+└── (기존 훅들 재사용)
+
+components/gantt/
+├── AddActionItemPopup.tsx    # 원본 컴포넌트
+└── AddActionItemPopupModular.tsx  # 모듈화된 버전
+```
+
+#### 개선 효과
+
+- **필드 그룹화**: 관련 필드들을 논리적으로 그룹화
+- **기존 모듈 재사용**: TaskDetailPopup에서 분리한 컴포넌트/훅 활용
+- **상태 관리 분리**: useAddActionForm으로 폼 로직 캡슐화
+- **코드 중복 제거**: 팝업 위치 관리, 필드 컴포넌트 재사용
+- **유지보수성 향상**: 각 필드 그룹별 독립적 관리
+
+### 3. UsageGuide 컴포넌트 분해 (483줄 → 모듈화)
 
 #### 분해 전 (UsageGuide)
 - `UsageGuide.tsx` (483줄) - 모든 가이드 내용이 하나의 파일에 집중
@@ -222,9 +254,9 @@ hooks/
 
 ### 대형 컴포넌트 리팩토링 현황
 
-- **TaskDetailPopup**: 27KB (671라인) - 이미 리팩토링됨
+- **TaskDetailPopup**: 27KB (671라인) - 고도화 모듈화 완료 ✅
 - **UsageGuide**: 23KB (469라인) → 1.6KB (47라인) + 8개 섹션 컴포넌트로 분리 ✅
-- **AddActionItemPopup**: 11KB (296라인) - 리팩토링 예정
+- **AddActionItemPopup**: 11KB (296라인) → 모듈화 완료 ✅
 - **GanttHeader**: 9.7KB (289라인) - 리팩토링 예정  
 - **CustomGanttChart**: 9.5KB (268라인) - 리팩토링 예정
 - **ClientHome**: 9.3KB (252라인) - 이미 리팩토링됨
