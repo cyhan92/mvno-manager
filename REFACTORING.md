@@ -79,6 +79,37 @@ components/gantt/
 - **코드 중복 제거**: 팝업 위치 관리, 필드 컴포넌트 재사용
 - **유지보수성 향상**: 각 필드 그룹별 독립적 관리
 
+### 3. GanttHeader 컴포넌트 분해 (318줄 → 모듈화)
+
+#### 분해 전
+
+- `GanttHeader.tsx` (318줄, 9.7KB) - 헤더 생성, 렌더링, DOM 관찰 로직이 모두 한 파일에 집중
+
+#### 분해 후 구조
+
+```typescript
+utils/gantt/header/
+├── headerGenerators.ts       # 월별/주별 헤더 생성 로직
+└── headerRenderer.ts         # 캔버스 렌더링 로직
+
+hooks/gantt/
+├── useHeaderChartWidth.ts    # 차트 너비 계산
+├── useHeaderRendering.ts     # 렌더링 효과 관리
+└── useDOMObserver.ts         # DOM 변경 감지
+
+components/gantt/
+├── GanttHeader.tsx           # 원본 컴포넌트
+└── GanttHeaderModular.tsx    # 모듈화된 버전
+```
+
+#### 개선 효과
+
+- **로직 분리**: 헤더 생성, 렌더링, 관찰 로직을 독립적 모듈로 분리
+- **유틸리티 재사용**: 헤더 생성 로직을 다른 컴포넌트에서도 활용 가능
+- **효과 최적화**: 각 useEffect의 목적을 명확히 분리하여 성능 향상
+- **테스트 용이성**: 각 로직을 독립적으로 테스트 가능
+- **가독성 향상**: 복잡한 렌더링 로직을 단순화하여 이해하기 쉬워짐
+
 ### 3. UsageGuide 컴포넌트 분해 (483줄 → 모듈화)
 
 #### 분해 전 (UsageGuide)
@@ -257,7 +288,7 @@ hooks/
 - **TaskDetailPopup**: 27KB (671라인) - 고도화 모듈화 완료 ✅
 - **UsageGuide**: 23KB (469라인) → 1.6KB (47라인) + 8개 섹션 컴포넌트로 분리 ✅
 - **AddActionItemPopup**: 11KB (296라인) → 모듈화 완료 ✅
-- **GanttHeader**: 9.7KB (289라인) - 리팩토링 예정  
+- **GanttHeader**: 9.7KB (318라인) → 모듈화 완료 ✅
 - **CustomGanttChart**: 9.5KB (268라인) - 리팩토링 예정
 - **ClientHome**: 9.3KB (252라인) - 이미 리팩토링됨
 
