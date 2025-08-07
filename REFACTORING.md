@@ -10,33 +10,42 @@
 
 ## 완료된 리팩토링
 
-### 1. TaskDetailPopup 컴포넌트 분해 (657줄 → 모듈화)
+### 1. TaskDetailPopup 컴포넌트 분해 (657줄 → 고도화 모듈화)
 
-#### 분해 전
-- `TaskDetailPopup.tsx` (657줄) - 모든 기능이 하나의 파일에 집중
+#### 1차 분해 (TaskDetailPopupRefactored)
 
-#### 분해 후
+- `TaskDetailPopup.tsx` (657줄) → `TaskDetailPopupRefactored.tsx` (196줄)
 
-```
-components/gantt/popup/
-├── PopupHeader.tsx           # 팝업 헤더 (편집/삭제 버튼)
-├── TaskInfoDisplay.tsx       # 작업 정보 표시
-└── TaskEditForm.tsx          # 편집 폼
+#### 2차 고도화 분해 (TaskDetailPopupAdvanced)
+
+분해 후 구조:
+
+```typescript
+components/gantt/popup/fields/
+├── TextInputField.tsx        # 텍스트 입력 필드
+├── DateInputField.tsx        # 날짜 입력 필드
+├── ProgressSliderField.tsx   # 진행률 슬라이더
+├── CategoryEditor.tsx        # 카테고리 편집
+└── DisplayField.tsx          # 읽기전용 표시 필드
 
 hooks/popup/
 ├── usePopupPosition.ts       # 팝업 위치 관리
 ├── useDragHandler.ts         # 드래그 기능
-└── useTaskApi.ts            # API 호출 로직
+├── useTaskApi.ts            # API 호출 로직
+└── useTaskEditForm.ts       # 폼 상태 관리
 
 components/gantt/
-└── TaskDetailPopupRefactored.tsx  # 리팩토링된 메인 컴포넌트
+├── TaskDetailPopupRefactored.tsx  # 1차 리팩토링 버전
+└── TaskDetailPopupAdvanced.tsx    # 2차 고도화 버전
 ```
 
-#### 개선 효과
-- **책임 분리**: 각 파일이 하나의 명확한 책임만 담당
-- **재사용성**: 팝업 관련 훅들을 다른 팝업에서도 활용 가능
-- **테스트 용이성**: 각 모듈을 독립적으로 테스트 가능
-- **유지보수성**: 특정 기능 수정시 해당 파일만 수정하면 됨
+#### 고도화 개선 효과
+
+- **폼 필드 모듈화**: 각 입력 필드가 독립적인 컴포넌트
+- **상태 관리 분리**: useTaskEditForm 훅으로 폼 로직 캡슐화
+- **재사용성 극대화**: 필드 컴포넌트들을 다른 폼에서도 활용 가능
+- **접근성 개선**: 각 필드별 레이블과 접근성 속성 표준화
+- **타입 안전성**: TypeScript로 각 필드의 타입 보장
 
 ### 2. UsageGuide 컴포넌트 분해 (483줄 → 모듈화)
 
