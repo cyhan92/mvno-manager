@@ -50,6 +50,7 @@ export {
 // Chart utilities
 export {
   calculateDateRange,
+  calculateInitialViewport,
   calculateCanvasDimensions,
   CHART_CONFIG
 } from './chart'

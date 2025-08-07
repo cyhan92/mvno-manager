@@ -1,7 +1,7 @@
 import { useRef, useEffect, useState, useMemo, useCallback } from 'react'
 import { Task, ViewMode, DateUnit } from '../types/task'
 import { calculateDisplayTasks, calculateClickedRowIndex, validateTasks } from '../utils/gantt'
-import { calculateDateRange, calculateCanvasDimensions, CHART_CONFIG } from '../utils/canvas'
+import { calculateDateRange, calculateInitialViewport, calculateCanvasDimensions, CHART_CONFIG } from '../utils/canvas'
 import {
   drawBackground,
   drawGridLines,
@@ -18,6 +18,7 @@ interface UseCustomGanttChartProps {
   onTaskSelect: (selection: any, position?: { x: number; y: number }) => void
   onTaskDoubleClick?: (task: Task, position: { x: number; y: number }) => void
   groupBy?: string
+  setInitialScrollPosition?: (scrollLeft: number) => void
 }
 
 export const useCustomGanttChart = ({
@@ -27,7 +28,8 @@ export const useCustomGanttChart = ({
   groupedTasks,
   onTaskSelect,
   onTaskDoubleClick,
-  groupBy
+  groupBy,
+  setInitialScrollPosition
 }: UseCustomGanttChartProps) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -68,10 +70,12 @@ export const useCustomGanttChart = ({
     const validTasks = validateTasks(displayTasks)
     if (validTasks.length === 0) return
     
-    const dateRange = calculateDateRange(validTasks)
-    if (!dateRange) return
+    const fullDateRange = calculateDateRange(validTasks)
+    if (!fullDateRange) return
 
-    const { startDate, endDate, timeRange } = dateRange
+    // 초기 뷰포트 계산 (오늘 날짜 기준 왼쪽 1달까지만 표시)
+    const initialViewport = calculateInitialViewport(fullDateRange)
+    const { startDate, endDate, timeRange } = fullDateRange
 
     // 캔버스 크기 계산
     const container = containerRef.current
@@ -86,7 +90,7 @@ export const useCustomGanttChart = ({
       containerWidth = 1200
     }
     
-    const dimensions = calculateCanvasDimensions(containerWidth, displayTasks.length, dateUnit)
+    const dimensions = calculateCanvasDimensions(containerWidth, displayTasks.length, dateUnit, fullDateRange)
     
     // 차트 너비 저장
     setCurrentChartWidth(dimensions.chartWidth)
@@ -171,6 +175,40 @@ export const useCustomGanttChart = ({
 
     setIsLoading(false)
   }, [tasksKey, displayTasks, dateUnit]) // 안정적인 의존성 배열
+
+  // 초기 스크롤 위치 설정을 위한 별도 useEffect
+  useEffect(() => {
+    if (!setInitialScrollPosition || displayTasks.length === 0) return
+    
+    const validTasks = validateTasks(displayTasks)
+    if (validTasks.length === 0) return
+    
+    const fullDateRange = calculateDateRange(validTasks)
+    const initialViewport = calculateInitialViewport(fullDateRange)
+    
+    if (initialViewport.scrollOffset && initialViewport.scrollOffset > 0) {
+      const container = containerRef.current
+      if (!container) return
+      
+      let containerWidth = container.clientWidth
+      if (dateUnit === 'month') {
+        containerWidth = 1000
+      } else {
+        containerWidth = 1200
+      }
+      
+      const dimensions = calculateCanvasDimensions(containerWidth, displayTasks.length, dateUnit, fullDateRange)
+      const pixelsPerMs = dimensions.chartWidth / fullDateRange.timeRange
+      const scrollLeft = (initialViewport.scrollOffset / (24 * 60 * 60 * 1000)) * pixelsPerMs
+      
+      // 렌더링 후 스크롤 위치 설정
+      const timer = setTimeout(() => {
+        setInitialScrollPosition(Math.max(0, scrollLeft))
+      }, 200) // 렌더링 완료 후 설정
+      
+      return () => clearTimeout(timer)
+    }
+  }, [displayTasks, dateUnit, setInitialScrollPosition])
 
   // useEffect - 단순화
   useEffect(() => {

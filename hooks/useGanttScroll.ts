@@ -61,12 +61,21 @@ export const useGanttScroll = () => {
     }
   }, [])
 
+  // 초기 스크롤 위치 설정 함수
+  const setInitialScrollPosition = useCallback((scrollLeft: number) => {
+    if (ganttChartScrollRef.current && headerScrollRef.current) {
+      ganttChartScrollRef.current.scrollLeft = scrollLeft
+      headerScrollRef.current.scrollLeft = scrollLeft
+    }
+  }, [])
+
   return {
     actionItemScrollRef,
     ganttChartScrollRef,
     headerScrollRef,
     handleActionItemScroll,
     handleGanttChartScroll,
-    handleHeaderScroll // 새로 추가된 헤더 스크롤 핸들러
+    handleHeaderScroll, // 새로 추가된 헤더 스크롤 핸들러
+    setInitialScrollPosition // 초기 스크롤 위치 설정 함수
   }
 }

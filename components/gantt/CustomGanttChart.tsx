@@ -23,6 +23,8 @@ interface CustomGanttChartProps {
   groupedTasks: Record<string, Task[]>
   onTaskSelect: (selection: any) => void
   onTaskUpdate?: (updatedTask: Task) => void
+  onTaskAdd?: (newTask: Partial<Task>) => void // 새로운 Task 추가 콜백
+  onTaskDelete?: (taskId: string) => void // 작업 삭제 콜백
   onDataRefresh?: () => void // 전체 데이터 다시 로드 함수
   groupBy?: string
   showAssigneeInfo: boolean
@@ -42,6 +44,8 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
   groupedTasks,
   onTaskSelect,
   onTaskUpdate,
+  onTaskAdd,
+  onTaskDelete,
   onDataRefresh,
   groupBy,
   showAssigneeInfo,
@@ -124,7 +128,8 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
     groupedTasks,
     onTaskSelect,
     onTaskDoubleClick: popup.openPopup,
-    groupBy
+    groupBy,
+    setInitialScrollPosition: scroll.setInitialScrollPosition
   })
 
   // Action Item과 Gantt Chart에서 동일한 데이터 사용 보장
@@ -224,6 +229,7 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
           scrollRef={scroll.actionItemScrollRef}
           onScroll={scroll.handleActionItemScroll}
           showAssigneeInfo={showAssigneeInfo}
+          onTaskAdd={onTaskAdd}
         />
         
         {/* Gantt Chart 영역 - 동적 크기 */}
@@ -265,6 +271,7 @@ const CustomGanttChart: React.FC<CustomGanttChartProps> = ({
             }
             popup.closePopup()
           }}
+          onTaskDelete={onTaskDelete}
           onDataRefresh={onDataRefresh}
         />
       )}

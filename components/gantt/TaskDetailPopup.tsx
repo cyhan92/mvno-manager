@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Task } from '../../types/task'
 import styles from '../../styles/task-detail-popup.module.css'
+import DeleteConfirmationPopup from './DeleteConfirmationPopup'
 
 interface TaskDetailPopupProps {
   task: Task
@@ -8,6 +9,7 @@ interface TaskDetailPopupProps {
   onClose: () => void
   onTaskUpdate?: (updatedTask: Task) => void
   onDataRefresh?: () => void // 전체 데이터 다시 로드 함수
+  onTaskDelete?: (taskId: string) => void // 작업 삭제 콜백
 }
 
 const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
@@ -15,10 +17,13 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
   position,
   onClose,
   onTaskUpdate,
-  onDataRefresh
+  onDataRefresh,
+  onTaskDelete
 }) => {
   const [isEditing, setIsEditing] = useState(false)
   const [isLoading, setIsLoading] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
   const [currentPosition, setCurrentPosition] = useState(position)
   const [isDragging, setIsDragging] = useState(false)
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 })
@@ -297,6 +302,85 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
     setIsEditing(false)
   }
 
+  // 삭제 함수
+  const handleDelete = async (password: string) => {
+    setIsDeleting(true)
+    try {
+      // 서버 연결 확인을 위한 간단한 헬스체크
+      try {
+        const healthCheck = await fetch('/api/tasks-db', { 
+          method: 'HEAD',
+          cache: 'no-cache'
+        })
+        if (!healthCheck.ok) {
+          throw new Error('서버에 연결할 수 없습니다.')
+        }
+      } catch (networkError) {
+        throw new Error('서버에 연결할 수 없습니다. 네트워크 연결을 확인해주세요.')
+      }
+
+      // 패스워드 검증 API 호출
+      let authResponse: Response
+      try {
+        authResponse = await fetch('/api/auth/verify-password', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ password }),
+        })
+      } catch (networkError) {
+        throw new Error('비밀번호 검증 중 네트워크 오류가 발생했습니다.')
+      }
+
+      if (!authResponse.ok) {
+        const authError = await authResponse.json()
+        throw new Error(authError.error || '비밀번호가 일치하지 않습니다.')
+      }
+
+      // 작업 삭제 API 호출 (dbId 우선 사용)
+      let deleteResponse: Response
+      try {
+        const apiUrl = task.dbId ? `/api/tasks-db/${task.dbId}` : `/api/tasks-db/${task.id}`
+        deleteResponse = await fetch(apiUrl, {
+          method: 'DELETE',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        })
+      } catch (networkError) {
+        throw new Error('작업 삭제 중 네트워크 오류가 발생했습니다.')
+      }
+
+      if (!deleteResponse.ok) {
+        const deleteError = await deleteResponse.json()
+        throw new Error(deleteError.error || '작업 삭제에 실패했습니다.')
+      }
+
+      // 성공 시 콜백 호출
+      if (onTaskDelete) {
+        onTaskDelete(task.id)
+      }
+
+      // 전체 데이터 새로고침
+      if (onDataRefresh) {
+        await onDataRefresh()
+      }
+
+      // 팝업 닫기
+      setShowDeleteConfirmation(false)
+      onClose()
+
+      alert('작업이 성공적으로 삭제되었습니다.')
+      
+    } catch (error) {
+      console.error('Error deleting task:', error)
+      alert(`작업 삭제 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
+    } finally {
+      setIsDeleting(false)
+    }
+  }
+
   return (
     <>
       {/* 배경 오버레이 */}
@@ -328,12 +412,20 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
             {!isEditing && (
               // 편집 가능 조건: 레벨 2(세부업무)이거나, 그룹이 아니고 자식이 없는 작업
               (task.level === 2 || (!task.isGroup && !task.hasChildren)) && (
-                <button
-                  onClick={() => setIsEditing(true)}
-                  className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
-                >
-                  ✏️ 편집
-                </button>
+                <>
+                  <button
+                    onClick={() => setIsEditing(true)}
+                    className="px-3 py-1 text-sm bg-blue-500 text-white rounded hover:bg-blue-600 transition-colors"
+                  >
+                    ✏️ 편집
+                  </button>
+                  <button
+                    onClick={() => setShowDeleteConfirmation(true)}
+                    className="px-3 py-1 text-sm bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+                  >
+                    🗑️ 삭제
+                  </button>
+                </>
               )
             )}
             <button
@@ -515,13 +607,22 @@ const TaskDetailPopup: React.FC<TaskDetailPopupProps> = ({
         {!isEditing && (
           <div className="mt-6 pt-4 border-t border-gray-200">
             {(task.level === 2 || (!task.isGroup && !task.hasChildren)) ? (
-              <p className="text-xs text-gray-500">💡 팁: 편집 버튼을 클릭하여 작업 정보를 수정할 수 있습니다.</p>
+              <p className="text-xs text-gray-500">💡 팁: 편집 또는 삭제 버튼을 클릭하여 작업을 관리할 수 있습니다.</p>
             ) : (
               <p className="text-xs text-gray-500">📋 그룹 항목은 편집할 수 없습니다. 개별 작업만 편집 가능합니다.</p>
             )}
           </div>
         )}
       </div>
+
+      {/* 삭제 확인 팝업 */}
+      <DeleteConfirmationPopup
+        task={task}
+        isOpen={showDeleteConfirmation}
+        onClose={() => setShowDeleteConfirmation(false)}
+        onConfirm={handleDelete}
+        isLoading={isDeleting}
+      />
     </>
   )
 }

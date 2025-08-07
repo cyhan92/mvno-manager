@@ -6,6 +6,24 @@ import { ExcelTask } from '../excel/types'
  * Excel Task를 Database Task로 변환
  */
 export const transformExcelToDatabase = (excelTask: ExcelTask): Database['public']['Tables']['tasks']['Insert'] => {
+  // 안전한 날짜 변환 함수
+  const formatDate = (date: any): string | undefined => {
+    if (!date) return undefined
+    
+    if (date instanceof Date) {
+      return date.toISOString().split('T')[0]
+    }
+    
+    if (typeof date === 'string') {
+      const parsedDate = new Date(date)
+      if (!isNaN(parsedDate.getTime())) {
+        return parsedDate.toISOString().split('T')[0]
+      }
+    }
+    
+    return undefined
+  }
+
   return {
     task_id: excelTask.id,
     title: excelTask.name,
@@ -14,11 +32,13 @@ export const transformExcelToDatabase = (excelTask: ExcelTask): Database['public
     detail: excelTask.detail,
     department: excelTask.department,
     assignee: excelTask.resource,
-    start_date: excelTask.start?.toISOString().split('T')[0],
-    end_date: excelTask.end?.toISOString().split('T')[0],
+    start_date: formatDate(excelTask.start),
+    end_date: formatDate(excelTask.end),
     duration: excelTask.duration || undefined,
     progress: Math.round(excelTask.percentComplete || 0),
-    status: excelTask.status as '완료' | '진행중' | '미완료',
+    status: (excelTask.status === '완료' || excelTask.status === '진행중' || excelTask.status === '미완료') 
+      ? excelTask.status 
+      : '미완료', // 기본값을 '미완료'로 설정
     cost: typeof excelTask.cost === 'string' ? excelTask.cost : String(excelTask.cost || ''),
     notes: excelTask.notes,
     major_category: excelTask.majorCategory,

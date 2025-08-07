@@ -1,8 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react'
 import { Task } from '../../types/task'
 import { getTreeIcon, TreeNode } from '../../utils/tree'
 import { TreeState } from '../../types/task'
 import { styles } from '../../styles'
+import ContextMenu from './ContextMenu'
+import AddActionItemPopup from './AddActionItemPopup'
 
 interface ActionItemListProps {
   displayTasks: Task[]
@@ -13,6 +15,7 @@ interface ActionItemListProps {
   scrollRef: React.RefObject<HTMLDivElement | null>
   onScroll: (e: React.UIEvent<HTMLDivElement>) => void
   showAssigneeInfo: boolean // 담당자 정보 표시 여부
+  onTaskAdd?: (newTask: Partial<Task>) => void // 새로운 Task 추가 콜백
 }
 
 const ActionItemList: React.FC<ActionItemListProps> = ({
@@ -23,8 +26,80 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
   onTreeToggle,
   scrollRef,
   onScroll,
-  showAssigneeInfo
+  showAssigneeInfo,
+  onTaskAdd
 }) => {
+  // 컨텍스트 메뉴 상태
+  const [contextMenu, setContextMenu] = useState<{
+    isOpen: boolean
+    position: { x: number; y: number }
+    task: Task | null
+  }>({
+    isOpen: false,
+    position: { x: 0, y: 0 },
+    task: null
+  })
+
+  // Add Action Item 팝업 상태
+  const [addPopup, setAddPopup] = useState<{
+    isOpen: boolean
+    position: { x: number; y: number }
+    parentTask: Task | null
+  }>({
+    isOpen: false,
+    position: { x: 0, y: 0 },
+    parentTask: null
+  })
+
+  // 우클릭 이벤트 핸들러
+  const handleContextMenu = (e: React.MouseEvent, task: Task) => {
+    e.preventDefault()
+    
+    // 소분류(level 1)에서만 컨텍스트 메뉴 표시
+    if (task.level === 1 && task.hasChildren) {
+      setContextMenu({
+        isOpen: true,
+        position: { x: e.clientX, y: e.clientY },
+        task
+      })
+    }
+  }
+
+  // 컨텍스트 메뉴 닫기
+  const handleCloseContextMenu = () => {
+    setContextMenu({
+      isOpen: false,
+      position: { x: 0, y: 0 },
+      task: null
+    })
+  }
+
+  // Add Action Item 팝업 열기
+  const handleOpenAddPopup = () => {
+    if (contextMenu.task) {
+      setAddPopup({
+        isOpen: true,
+        position: { x: window.innerWidth / 2 - 300, y: window.innerHeight / 2 - 300 },
+        parentTask: contextMenu.task
+      })
+    }
+  }
+
+  // Add Action Item 팝업 닫기
+  const handleCloseAddPopup = () => {
+    setAddPopup({
+      isOpen: false,
+      position: { x: 0, y: 0 },
+      parentTask: null
+    })
+  }
+
+  // 새로운 Task 추가 핸들러
+  const handleAddTask = (newTask: Partial<Task>) => {
+    if (onTaskAdd) {
+      onTaskAdd(newTask)
+    }
+  }
   return (
     <div className={`${styles.actionItemArea} flex-shrink-0`}>
       <div className={styles.actionItemHeader}>
@@ -53,6 +128,7 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
               }
             }}
             onDoubleClick={(e) => onTaskDoubleClick(task, e)}
+            onContextMenu={(e) => handleContextMenu(e, task)}
           >
             <div className={styles.treeNode}>
               {/* 토글 버튼 또는 빈 공간 */}
@@ -110,6 +186,25 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
           </div>
         ))}
       </div>
+
+      {/* 컨텍스트 메뉴 */}
+      <ContextMenu
+        isOpen={contextMenu.isOpen}
+        position={contextMenu.position}
+        onClose={handleCloseContextMenu}
+        onAddActionItem={handleOpenAddPopup}
+      />
+
+      {/* Add Action Item 팝업 */}
+      {addPopup.parentTask && (
+        <AddActionItemPopup
+          isOpen={addPopup.isOpen}
+          position={addPopup.position}
+          parentTask={addPopup.parentTask}
+          onClose={handleCloseAddPopup}
+          onAdd={handleAddTask}
+        />
+      )}
     </div>
   )
 }

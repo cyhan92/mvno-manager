@@ -27,11 +27,28 @@ export const calculateDateRange = (tasks: Task[]) => {
   }
 }
 
+// 초기 뷰포트 위치 계산 (오늘 날짜 기준 왼쪽 1달까지만 표시)
+export const calculateInitialViewport = (fullDateRange: { startDate: Date; endDate: Date; timeRange: number }) => {
+  const today = new Date()
+  const viewportStart = new Date(today.getFullYear(), today.getMonth() - 1, 1)
+  
+  // 실제 데이터 시작일과 뷰포트 시작일 중 늦은 날짜 사용
+  const effectiveStart = new Date(Math.max(viewportStart.getTime(), fullDateRange.startDate.getTime()))
+  
+  return {
+    startDate: effectiveStart,
+    endDate: fullDateRange.endDate,
+    timeRange: fullDateRange.endDate.getTime() - effectiveStart.getTime(),
+    scrollOffset: effectiveStart.getTime() - fullDateRange.startDate.getTime()
+  }
+}
+
 // 캔버스 차원 계산
 export const calculateCanvasDimensions = (
   containerWidth: number,
   taskCount: number,
-  dateUnit: DateUnit
+  dateUnit: DateUnit,
+  dateRange?: { startDate: Date; endDate: Date; timeRange: number }
 ) => {
   const rowHeight = 40 // Action Item과 일치하도록 40px로 변경
   const headerHeight = 80
@@ -51,8 +68,14 @@ export const calculateCanvasDimensions = (
     // 주별 표시시 대폭 확대 - 더 넓은 간격 제공
     chartWidth = Math.max(safeContainerWidth * 6, 1800) // 최소 1800px 보장
   } else {
-    // 월별 모드에서는 적절한 너비 유지 (스크롤 가능한 고정 너비)
-    chartWidth = Math.max(safeContainerWidth, 1000) // 최소 1000px 보장
+    // 월별 모드에서는 현재 월 폭을 기본으로 유지하여 고정된 월별 폭 제공
+    if (dateRange) {
+      const monthCount = Math.ceil(dateRange.timeRange / (30 * 24 * 60 * 60 * 1000))
+      const monthWidth = CHART_CONFIG.SCALING.MONTH_WIDTH // 차트 설정에서 가져오기
+      chartWidth = Math.max(monthCount * monthWidth, safeContainerWidth)
+    } else {
+      chartWidth = Math.max(safeContainerWidth, 1000) // 최소 1000px 보장
+    }
   }
   
   return {
@@ -85,7 +108,8 @@ export const CHART_CONFIG = {
   },
   SCALING: {
     WEEK_SCALE_MULTIPLIER: 6, // 4에서 6으로 증가
-    MIN_WEEK_CHART_WIDTH: 1800 // 1200에서 1800으로 증가
+    MIN_WEEK_CHART_WIDTH: 1800, // 1200에서 1800으로 증가
+    MONTH_WIDTH: 120 // 월별 기본 폭 120px로 고정
   },
   COLORS: {
     BACKGROUND: '#ffffff',

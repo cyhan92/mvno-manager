@@ -13,6 +13,8 @@ interface GanttChartProps {
   onViewModeChange: (mode: ViewMode) => void
   onGroupByChange: (groupBy: GroupBy) => void
   onTaskUpdate?: (updatedTask: Task) => void
+  onTaskAdd?: (newTask: Partial<Task>) => void // 새로운 Task 추가 콜백
+  onTaskDelete?: (taskId: string) => void // 작업 삭제 콜백
   onDataRefresh?: () => void // 전체 데이터 다시 로드 함수
 }
 
@@ -23,6 +25,8 @@ export default function GanttChart({
   onViewModeChange, 
   onGroupByChange,
   onTaskUpdate,
+  onTaskAdd,
+  onTaskDelete,
   onDataRefresh
 }: GanttChartProps) {
   const {
@@ -93,6 +97,8 @@ export default function GanttChart({
         groupedTasks={groupedTasks}
         onTaskSelect={handleTaskSelect}
         onTaskUpdate={onTaskUpdate}
+        onTaskAdd={onTaskAdd}
+        onTaskDelete={onTaskDelete}
         onDataRefresh={onDataRefresh}
         groupBy={groupBy}
         showAssigneeInfo={showAssigneeInfo}
