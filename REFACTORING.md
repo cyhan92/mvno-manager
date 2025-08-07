@@ -191,7 +191,51 @@ components/home/
 - **상태 관리 최적화**: 각 섹션별 상태를 독립적으로 관리
 - **재사용성**: 섹션 컴포넌트들을 다른 페이지에서도 활용 가능
 
-### 4. 인덱스 파일 정리
+### 5. Canvas Utils 모듈 분해 (Legacy.ts 12KB + Gantt.ts 9.8KB → 모듈화)
+
+#### Canvas Utils 분해 전
+
+- `canvas/legacy.ts` (12KB, 354라인) - 헤더 생성, 그리드, UI, 간트 바, 오늘 날짜 표시 로직이 모두 한 파일에 집중
+- `canvas/gantt.ts` (9.8KB, 302라인) - 바 위치 계산, 그룹/작업 바 렌더링, 텍스트 렌더링이 모두 한 파일에 집중
+
+#### Canvas Utils 분해 후 구조
+
+```typescript
+utils/canvas/
+├── headers/
+│   └── headerGenerators.ts        # 월별/주별 헤더 생성 로직
+├── grid/
+│   └── gridRenderer.ts            # 그리드 라인 렌더링
+├── ui/
+│   └── uiRenderer.ts              # UI 요소 렌더링 (헤더, 행, 테두리)
+├── indicators/
+│   └── todayIndicator.ts          # 오늘 날짜 표시
+├── bars/
+│   ├── legacyBarRenderer.ts       # 레거시 간트 바 렌더링
+│   ├── groupBarRenderer.ts        # 그룹 바 렌더링
+│   └── taskBarRenderer.ts         # 작업 바 렌더링
+├── positioning/
+│   └── barPositioning.ts          # 바 위치 계산
+├── shapes/
+│   └── roundedRect.ts             # 둥근 모서리 그리기
+├── text/
+│   └── progressTextRenderer.ts    # 진행률 텍스트 렌더링
+├── refactored/
+│   └── index.ts                   # 통합 모듈 내보내기
+├── legacyRefactored.ts            # Legacy 호환성 유지 모듈
+└── ganttRefactored.ts             # Gantt 호환성 유지 모듈
+```
+
+#### Canvas Utils 개선 효과
+
+- **기능별 분리**: 헤더, 그리드, UI, 바 렌더링, 텍스트 등을 독립적 모듈로 분리
+- **재사용성 향상**: 각 렌더링 함수를 다른 컴포넌트에서도 활용 가능
+- **유지보수성**: 특정 기능 수정 시 해당 모듈만 수정하면 되어 영향 범위 최소화
+- **호환성 유지**: 기존 코드와의 호환성을 위한 래퍼 모듈 제공
+- **테스트 용이성**: 각 기능을 독립적으로 테스트 가능
+- **코드 이해도**: 복잡한 캔버스 로직을 논리적으로 분류하여 가독성 향상
+
+### 6. 인덱스 파일 정리
 
 #### hooks/index.ts
 - 모든 훅들을 카테고리별로 정리
@@ -313,6 +357,22 @@ hooks/
   - useGanttState: 상태 관리 로직 (1.1KB)
   - useGanttRenderer: 렌더링 로직 (3.3KB)
   - useGanttEvents: 이벤트 처리 로직 (2.6KB)
+- **2025-01-07**: AddActionItemPopup 컴포넌트 리팩토링 (296줄 → 모듈화)
+- **2025-01-07**: GanttHeader 컴포넌트 리팩토링 (318줄 → 모듈화)
+- **2025-01-07**: CustomGanttChart 컴포넌트 리팩토링 (283줄 → 모듈화)
+- **2025-01-07**: Canvas Utils 리팩토링 (Legacy.ts 12KB + Gantt.ts 9.8KB → 12개 모듈로 분리)
+  - headers/headerGenerators.ts: 헤더 생성 로직 (2.8KB)
+  - grid/gridRenderer.ts: 그리드 라인 렌더링 (1.9KB)
+  - ui/uiRenderer.ts: UI 요소 렌더링 (2.5KB)
+  - indicators/todayIndicator.ts: 오늘 날짜 표시 (1.8KB)
+  - bars/legacyBarRenderer.ts: 레거시 간트 바 렌더링 (5.2KB)
+  - positioning/barPositioning.ts: 바 위치 계산 (930B)
+  - shapes/roundedRect.ts: 둥근 모서리 그리기 (680B)
+  - bars/groupBarRenderer.ts: 그룹 바 렌더링 (3.1KB)
+  - bars/taskBarRenderer.ts: 작업 바 렌더링 (1.5KB)
+  - text/progressTextRenderer.ts: 진행률 텍스트 (3.5KB)
+  - legacyRefactored.ts: Legacy 호환성 유지 (1.1KB)
+  - ganttRefactored.ts: Gantt 호환성 유지 (850B)
 
 ## 리팩토링 성과 요약
 
@@ -327,8 +387,20 @@ hooks/
 
 ### Utils 리팩토링 현황
 
-- **canvas/legacy.ts**: 12KB (354라인) - 리팩토링 예정
-- **canvas/gantt.ts**: 9.8KB (302라인) - 리팩토링 예정
+- **canvas/legacy.ts**: 12KB (354라인) → 7개 모듈로 분리 ✅
+  - headers/headerGenerators.ts: 헤더 생성 로직 (2.8KB)
+  - grid/gridRenderer.ts: 그리드 라인 렌더링 (1.9KB)
+  - ui/uiRenderer.ts: UI 요소 렌더링 (2.5KB)
+  - indicators/todayIndicator.ts: 오늘 날짜 표시 (1.8KB)
+  - bars/legacyBarRenderer.ts: 레거시 간트 바 렌더링 (5.2KB)
+  - legacyRefactored.ts: 호환성 유지 통합 모듈 (1.1KB)
+- **canvas/gantt.ts**: 9.8KB (302라인) → 5개 모듈로 분리 ✅
+  - positioning/barPositioning.ts: 바 위치 계산 (930B)
+  - shapes/roundedRect.ts: 둥근 모서리 그리기 (680B)
+  - bars/groupBarRenderer.ts: 그룹 바 렌더링 (3.1KB)
+  - bars/taskBarRenderer.ts: 작업 바 렌더링 (1.5KB)
+  - text/progressTextRenderer.ts: 진행률 텍스트 (3.5KB)
+  - ganttRefactored.ts: 호환성 유지 통합 모듈 (850B)
 - **tree/builder.ts**: 5.3KB (133라인) - 적정 크기
 
 ### Hooks 리팩토링 현황
