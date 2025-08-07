@@ -2,6 +2,7 @@
 export { useTasks } from './data/useTasks'
 export { useTasksFromDatabase } from './data/useTasksFromDatabase'
 export { useTaskAnalytics } from './data/useTaskAnalytics'
+export { useTaskManager } from './data/useTaskManager'
 
 // State hooks
 export { useViewState } from './state/useViewState'

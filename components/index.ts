@@ -1,5 +1,6 @@
 // Main components
 export { default as ClientHome } from './ClientHome'
+export { default as ClientHomeRefactored } from './home/ClientHomeRefactored'
 export { default as Header } from './Header'
 export { default as Loading } from './Loading'
 
@@ -17,6 +18,10 @@ export { default as TaskDetailPopupRefactored } from './gantt/TaskDetailPopupRef
 export { default as StatsDashboard } from './StatsDashboard'
 export { default as RiskAnalysis } from './RiskAnalysis'
 export { default as ResourceStats } from './ResourceStats'
+
+// Home sections
+export { default as DashboardSection } from './home/sections/DashboardSection'
+export { default as GanttChartSection } from './home/sections/GanttChartSection'
 
 // Utility components
 export { default as DatabaseSync } from './DatabaseSync'
