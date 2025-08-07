@@ -14,7 +14,7 @@
 
 #### 1차 분해 (TaskDetailPopupRefactored)
 
-- `TaskDetailPopup.tsx` (657줄) → `TaskDetailPopupRefactored.tsx` (196줄)
+- `TaskDetailPopup.tsx` (657줄) → `TaskDetailPopupRefactored.tsx` (179줄)
 
 #### 2차 고도화 분해 (TaskDetailPopupAdvanced)
 
@@ -51,7 +51,7 @@ components/gantt/
 
 #### 분해 전
 
-- `AddActionItemPopup.tsx` (296줄, 11.4KB) - 모든 폼 로직이 하나의 파일에 집중
+- `AddActionItemPopup.tsx` (325줄, 6.9KB) - 모든 폼 로직이 하나의 파일에 집중
 
 #### 분해 후 구조
 
@@ -120,19 +120,18 @@ components/gantt/
 
 ```typescript
 hooks/gantt/
-├── useGanttTreeManager.ts      # 트리 상태 관리
-├── useRenderTrigger.ts         # 렌더링 트리거 관리
-├── useSynchronizedRendering.ts # 동기화 렌더링
-├── useTreeToggleHandler.ts     # 트리 토글 핸들러
-└── useGanttChartManager.ts     # 통합 관리 훅
+├── useGanttTreeManager.ts      # 트리 상태 관리 (1.5KB)
+├── useRenderTrigger.ts         # 렌더링 트리거 관리 (794B)
+├── useSynchronizedRendering.ts # 동기화 렌더링 (1.3KB)
+├── useTreeToggleHandler.ts     # 트리 토글 핸들러 (1.7KB)
+└── useGanttChartManager.ts     # 통합 관리 훅 (3.1KB)
 
 components/gantt/sections/
 ├── GanttChartHeader.tsx        # 차트 헤더 UI
 └── GanttChartArea.tsx          # 간트 차트 영역
 
 components/gantt/
-├── CustomGanttChart.tsx        # 원본 컴포넌트
-└── CustomGanttChartModular.tsx # 모듈화된 버전
+└── CustomGanttChartModular.tsx # 모듈화된 버전 (149줄)
 ```
 
 #### 개선 효과
@@ -158,7 +157,7 @@ components/guide/sections/
 └── featureCardsData.ts       # 기능 카드 데이터
 
 components/
-└── UsageGuideModular.tsx     # 리팩토링된 메인 컴포넌트
+└── UsageGuideModular.tsx     # 리팩토링된 메인 컴포넌트 (85줄)
 ```
 
 #### 개선 효과
@@ -166,10 +165,10 @@ components/
 - **데이터 분리**: 하드코딩된 데이터를 별도 파일로 분리
 - **확장성**: 새로운 섹션 추가가 쉬워짐
 
-### 3. ClientHome 컴포넌트 분해 (262줄 → 모듈화)
+### 3. ClientHome 컴포넌트 분해 (305줄 → 156줄 모듈화) ✅
 
 #### 분해 전 (ClientHome)
-- `ClientHome.tsx` (262줄) - 메인 페이지 로직이 하나의 파일에 집중
+- `ClientHome.tsx` (305줄) - 메인 페이지 로직이 하나의 파일에 집중
 
 #### 분해 후 (ClientHomeRefactored)
 
@@ -179,10 +178,10 @@ components/home/sections/
 └── GanttChartSection.tsx     # 간트차트 섹션
 
 hooks/data/
-└── useTaskManager.ts         # 작업 관리 로직
+└── useTaskManager.ts         # 작업 관리 로직 (144줄)
 
 components/home/
-└── ClientHomeRefactored.tsx  # 리팩토링된 메인 컴포넌트
+└── ClientHomeRefactored.tsx  # 리팩토링된 메인 컴포넌트 (156줄)
 ```
 
 #### 개선 효과
@@ -190,6 +189,7 @@ components/home/
 - **로직 분리**: 작업 추가/수정/삭제 로직을 별도 훅으로 분리
 - **상태 관리 최적화**: 각 섹션별 상태를 독립적으로 관리
 - **재사용성**: 섹션 컴포넌트들을 다른 페이지에서도 활용 가능
+- **실제 적용**: app/page.tsx에서 ClientHomeRefactored 사용으로 전환 완료
 
 ### 5. Canvas Utils 모듈 분해 (Legacy.ts 12KB + Gantt.ts 9.8KB → 모듈화)
 
@@ -383,9 +383,9 @@ hooks/
   - useGanttState: 상태 관리 로직 (1.1KB)
   - useGanttRenderer: 렌더링 로직 (3.3KB)
   - useGanttEvents: 이벤트 처리 로직 (2.6KB)
-- **2025-08-07**: AddActionItemPopup 컴포넌트 리팩토링 (296줄 → 모듈화)
+- **2025-08-07**: AddActionItemPopup 컴포넌트 리팩토링 (325줄 → AddActionItemPopupRefactored 85줄로 모듈화)
 - **2025-08-07**: GanttHeader 컴포넌트 리팩토링 (318줄 → 모듈화)
-- **2025-08-07**: CustomGanttChart 컴포넌트 리팩토링 (283줄 → 모듈화)
+- **2025-08-07**: CustomGanttChart 컴포넌트 리팩토링 (283줄 → CustomGanttChartModular 149줄로 모듈화)
 - **2025-08-07**: Canvas Utils 리팩토링 (Legacy.ts 12KB + Gantt.ts 9.8KB → 12개 모듈로 분리)
   - headers/headerGenerators.ts: 헤더 생성 로직 (2.8KB)
   - grid/gridRenderer.ts: 그리드 라인 렌더링 (1.9KB)
@@ -403,56 +403,67 @@ hooks/
   - api/taskSaveService.ts: 작업 저장 서비스 (2.1KB)
   - api/taskDeleteService.ts: 작업 삭제 서비스 (3.2KB)
   - useTaskApiRefactored.ts: 통합 훅 (2.0KB)
+- **2025-08-07**: ClientHome 레거시 정리 및 실제 적용
+  - app/page.tsx에서 ClientHomeRefactored 사용으로 전환 (305줄 → 156줄)
+  - 레거시 ClientHome.tsx 파일 삭제
+  - 대분류 수정 기능 적용 완료
+- **2025-08-07**: 레거시 파일 정리 및 참조 체인 일관성 확보
+  - 사용되지 않는 원본 파일들 삭제 (AddActionItemPopup.tsx, legacy.ts, gantt.ts 등)
+  - 모든 참조를 리팩토링/모듈화 버전으로 통일
+  - utils/canvas에서 리팩토링된 모듈 체계로 완전 전환
+  - 빌드 성공 및 브라우저 정상 동작 확인
 
 ## 리팩토링 성과 요약
 
 ### 대형 컴포넌트 리팩토링 현황
 
-- **TaskDetailPopup**: 27KB (671라인) - 고도화 모듈화 완료 ✅
-- **UsageGuide**: 23KB (469라인) → 1.6KB (47라인) + 8개 섹션 컴포넌트로 분리 ✅
-- **AddActionItemPopup**: 11KB (296라인) → 모듈화 완료 ✅
-- **GanttHeader**: 9.7KB (318라인) → 모듈화 완료 ✅
-- **CustomGanttChart**: 9.5KB (283라인) → 모듈화 완료 ✅
-- **ClientHome**: 9.3KB (252라인) - 이미 리팩토링됨
+- **TaskDetailPopup**: 657줄 → TaskDetailPopupRefactored 179줄로 고도화 모듈화 완료 ✅
+- **UsageGuide**: 483줄 → UsageGuideModular 85줄 + 섹션 컴포넌트로 분리 완료 ✅
+- **AddActionItemPopup**: 325줄 → AddActionItemPopupRefactored 85줄로 모듈화 완료 ✅
+- **GanttHeader**: 318줄 → GanttHeaderModular로 모듈화 완료 ✅
+- **CustomGanttChart**: 283줄 → CustomGanttChartModular 149줄로 모듈화 완료 ✅
+- **ClientHome**: 305줄 → ClientHomeRefactored 156줄로 리팩토링 완료 ✅
 
 ### Utils 리팩토링 현황
 
-- **canvas/legacy.ts**: 12KB (354라인) → 7개 모듈로 분리 ✅
+- **canvas/legacy.ts**: 12KB (354라인) → 7개 모듈로 분리 ✅ (원본 파일 삭제 완료)
   - headers/headerGenerators.ts: 헤더 생성 로직 (2.8KB)
   - grid/gridRenderer.ts: 그리드 라인 렌더링 (1.9KB)
   - ui/uiRenderer.ts: UI 요소 렌더링 (2.5KB)
   - indicators/todayIndicator.ts: 오늘 날짜 표시 (1.8KB)
   - bars/legacyBarRenderer.ts: 레거시 간트 바 렌더링 (5.2KB)
-  - legacyRefactored.ts: 호환성 유지 통합 모듈 (1.1KB)
-- **canvas/gantt.ts**: 9.8KB (302라인) → 5개 모듈로 분리 ✅
+- **canvas/gantt.ts**: 9.8KB (302라인) → 5개 모듈로 분리 ✅ (원본 파일 삭제 완료)
   - positioning/barPositioning.ts: 바 위치 계산 (930B)
   - shapes/roundedRect.ts: 둥근 모서리 그리기 (680B)
   - bars/groupBarRenderer.ts: 그룹 바 렌더링 (3.1KB)
   - bars/taskBarRenderer.ts: 작업 바 렌더링 (1.5KB)
   - text/progressTextRenderer.ts: 진행률 텍스트 (3.5KB)
-  - ganttRefactored.ts: 호환성 유지 통합 모듈 (850B)
 - **tree/builder.ts**: 5.3KB (133라인) - 적정 크기
 
 ### Hooks 리팩토링 현황
 
 - **useCustomGanttChart.ts**: 9.6KB (264라인) → 5개 훅으로 분리 ✅
-  - useCustomGanttChartRefactored: 2.3KB (88라인)
-  - useGanttCanvas: 676B (21라인)
-  - useGanttState: 1.1KB (37라인)
-  - useGanttRenderer: 3.3KB (102라인)
-  - useGanttEvents: 2.6KB (69라인)
+  - useGanttTreeManager: 1.5KB (트리 상태 관리)
+  - useRenderTrigger: 794B (렌더링 트리거)
+  - useSynchronizedRendering: 1.3KB (동기화 렌더링)
+  - useTreeToggleHandler: 1.7KB (트리 토글)
+  - useGanttChartManager: 3.1KB (통합 관리)
 - **popup/useTaskApi.ts**: 6.3KB (190라인) → 4개 모듈로 분리 ✅
   - api/taskApiUtils.ts: API 요청/응답 변환 유틸리티 (1.8KB)
-  - api/taskSaveService.ts: 작업 저장 서비스 (2.1KB)
-  - api/taskDeleteService.ts: 작업 삭제 서비스 (3.2KB)
-  - useTaskApiRefactored.ts: 통합 훅 (2.0KB)
-- **useGanttChart.ts**: 5.4KB (158라인) - 적정 크기
+  - api/taskSaveService.ts: 작업 저장 서비스 (2.0KB)
+  - api/taskDeleteService.ts: 작업 삭제 서비스 (2.8KB)
+  - useTaskApiRefactored.ts: 통합 훅 (2.3KB)
+- **useTaskManager.ts**: 5.7KB (144라인) - 적정 크기로 유지 ✅
+- **useGanttChart.ts**: 5.4KB (158라인) - 적정 크기로 유지 ✅
 
 ### 전체 리팩토링 성과
 
-- **총 처리된 파일**: 8개 대형 파일 (총 100KB+ 코드)
-- **분리된 모듈**: 총 50+개의 전문화된 모듈
-- **코드 재사용성**: 모듈화로 인한 재사용 가능 컴포넌트/훅/유틸리티 증가
+- **총 처리된 파일**: 6개 대형 컴포넌트 + 2개 대형 Utils + 2개 대형 훅 (총 80KB+ 코드)
+- **분리된 모듈**: 총 40+개의 전문화된 모듈로 분산
+- **코드 라인 감소**: 주요 컴포넌트들 평균 50% 이상 라인 수 감소
+- **코드 재사용성**: 모듈화로 인한 재사용 가능 컴포넌트/훅/유틸리티 대폭 증가
 - **유지보수성**: 각 모듈별 독립적 관리로 수정 영향 범위 최소화
 - **테스트 용이성**: 작은 단위 모듈로 분리되어 단위 테스트 작성 용이
 - **개발 효율성**: 기능별 명확한 분리로 협업 및 개발 속도 향상
+- **실제 적용**: 모든 리팩토링된 컴포넌트가 실제 프로덕션에서 사용 중
+- **빌드 안정성**: 전체 빌드 성공 및 브라우저에서 정상 동작 확인

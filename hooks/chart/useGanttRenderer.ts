@@ -80,7 +80,7 @@ export const useGanttRenderer = ({
     canvas.style.height = dimensions.height + 'px'
 
     // 배경 그리기
-    drawBackground(ctx, canvas.width, canvas.height)
+    drawBackground({ ctx, canvas, width: canvas.width, height: canvas.height })
 
     // 그리드 라인 그리기
     drawGridLines(ctx, dateUnit, startDate, endDate, timeRange, dimensions.chartWidth, canvas.height)

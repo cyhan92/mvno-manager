@@ -1,7 +1,7 @@
 import React, { useState } from 'react'
 import { Task } from '../types/task'
 import styles from '../styles/task-detail-popup.module.css'
-import TaskDetailPopup from './gantt/TaskDetailPopup'
+import TaskDetailPopupRefactored from './gantt/TaskDetailPopupRefactored'
 
 interface ResourceTasksPopupProps {
   resource: string
@@ -234,7 +234,7 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
 
       {/* 작업 상세 팝업 */}
       {selectedTask && (
-        <TaskDetailPopup
+        <TaskDetailPopupRefactored
           task={selectedTask}
           position={{ x: window.innerWidth / 2 - 300, y: window.innerHeight / 2 - 250 }}
           onClose={closeTaskDetail}

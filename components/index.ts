@@ -1,20 +1,16 @@
 // Main components
-export { default as ClientHome } from './ClientHome'
 export { default as ClientHomeRefactored } from './home/ClientHomeRefactored'
 export { default as Header } from './Header'
 export { default as Loading } from './Loading'
 
 // Guide components
-export { default as UsageGuide } from './UsageGuide'
 export { default as UsageGuideModular } from './UsageGuideModular'
 
 // Gantt components
-export { default as GanttChart } from './GanttChart'
-export { default as CustomGanttChart } from './gantt/CustomGanttChart'
-export { default as CustomGanttChartRefactored } from './gantt/CustomGanttChartRefactored'
-export { default as TaskDetailPopup } from './gantt/TaskDetailPopup'
+export { default as CustomGanttChartModular } from './gantt/CustomGanttChartModular'
 export { default as TaskDetailPopupRefactored } from './gantt/TaskDetailPopupRefactored'
 export { default as AddActionItemPopupRefactored } from './gantt/AddActionItemPopupRefactored'
+export { default as EditMajorCategoryPopup } from './gantt/EditMajorCategoryPopup'
 export { default as GanttHeaderRefactored } from './gantt/GanttHeaderRefactored'
 export { default as GanttChartHeader } from './gantt/chart/GanttChartHeader'
 export { default as GanttChartArea } from './gantt/chart/GanttChartArea'

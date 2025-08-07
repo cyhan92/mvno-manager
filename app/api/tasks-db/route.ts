@@ -52,8 +52,11 @@ export async function POST(request: Request) {
   try {
     const taskData: Task = await request.json()
     
+    console.log('🔍 받은 Task 데이터:', JSON.stringify(taskData, null, 2))
+    
     // 입력 데이터 검증
     if (!taskData.id || !taskData.name) {
+      console.error('❌ 필수 필드 누락:', { id: taskData.id, name: taskData.name })
       return NextResponse.json({
         success: false,
         error: '필수 필드가 누락되었습니다. (id, name)'
@@ -99,6 +102,8 @@ export async function POST(request: Request) {
       hasChildren: taskData.hasChildren || false,
       isGroup: taskData.isGroup || false
     }
+    
+    console.log('🔍 변환된 ExcelTask 데이터:', JSON.stringify(excelTask, null, 2))
     
     // 데이터베이스에 Task 생성
     const createdDbTask = await createTask(excelTask)

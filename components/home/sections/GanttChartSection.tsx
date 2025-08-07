@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Box, Typography } from '@mui/material'
+import { Box, Typography, Paper } from '@mui/material'
 import { Task, ViewMode, GroupBy } from '../../../types/task'
 import GanttChart from '../../GanttChart'
 
@@ -9,6 +9,8 @@ interface GanttChartSectionProps {
   onTaskAdd?: (newTask: Partial<Task>) => void
   onTaskDelete?: (taskId: string) => void
   onDataRefresh?: () => void
+  onMajorCategoryUpdate?: (oldCategory: string, newCategory: string) => Promise<void>
+  onSubCategoryUpdate?: (taskId: string, middleCategory: string, subCategory: string) => Promise<void>
 }
 
 const GanttChartSection: React.FC<GanttChartSectionProps> = ({ 
@@ -16,7 +18,9 @@ const GanttChartSection: React.FC<GanttChartSectionProps> = ({
   onTaskUpdate, 
   onTaskAdd,
   onTaskDelete, 
-  onDataRefresh 
+  onDataRefresh,
+  onMajorCategoryUpdate,
+  onSubCategoryUpdate
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('overview')
   const [groupBy, setGroupBy] = useState<GroupBy>('resource')
@@ -27,17 +31,21 @@ const GanttChartSection: React.FC<GanttChartSectionProps> = ({
         📈 간트 차트
       </Typography>
       
-      <GanttChart 
-        tasks={tasks}
-        viewMode={viewMode}
-        groupBy={groupBy}
-        onViewModeChange={setViewMode}
-        onGroupByChange={setGroupBy}
-        onTaskUpdate={onTaskUpdate}
-        onTaskAdd={onTaskAdd}
-        onTaskDelete={onTaskDelete}
-        onDataRefresh={onDataRefresh}
-      />
+      <Paper elevation={2} sx={{ p: 2 }}>
+        <GanttChart 
+          tasks={tasks}
+          viewMode={viewMode}
+          groupBy={groupBy}
+          onViewModeChange={setViewMode}
+          onGroupByChange={setGroupBy}
+          onTaskUpdate={onTaskUpdate}
+          onTaskAdd={onTaskAdd}
+          onTaskDelete={onTaskDelete}
+          onDataRefresh={onDataRefresh}
+          onMajorCategoryUpdate={onMajorCategoryUpdate}
+          onSubCategoryUpdate={onSubCategoryUpdate}
+        />
+      </Paper>
     </Box>
   )
 }

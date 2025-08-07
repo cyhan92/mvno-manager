@@ -1,4 +1,5 @@
 import React from 'react'
+import CategoryEditor from './fields/CategoryEditor'
 
 interface TaskEditData {
   name: string
@@ -7,6 +8,9 @@ interface TaskEditData {
   percentComplete: number
   resource: string
   department: string
+  majorCategory: string
+  middleCategory: string
+  minorCategory: string
 }
 
 interface TaskEditFormProps {
@@ -45,6 +49,16 @@ const TaskEditForm: React.FC<TaskEditFormProps> = ({
           title="세부업무명을 입력하세요"
         />
       </div>
+      
+      {/* 카테고리 편집 */}
+      <CategoryEditor
+        majorCategory={editData.majorCategory}
+        middleCategory={editData.middleCategory}
+        minorCategory={editData.minorCategory}
+        onMajorChange={(value) => handleFieldChange('majorCategory', value)}
+        onMiddleChange={(value) => handleFieldChange('middleCategory', value)}
+        onMinorChange={(value) => handleFieldChange('minorCategory', value)}
+      />
       
       {/* 날짜 필드들 */}
       <div className="grid grid-cols-2 gap-4">

@@ -25,6 +25,9 @@ interface TaskEditData {
   percentComplete: number
   resource: string
   department: string
+  majorCategory: string
+  middleCategory: string
+  minorCategory: string
 }
 
 const TaskDetailPopupRefactored: React.FC<TaskDetailPopupProps> = ({
@@ -45,7 +48,10 @@ const TaskDetailPopupRefactored: React.FC<TaskDetailPopupProps> = ({
     endDate: '',
     percentComplete: 0,
     resource: '',
-    department: ''
+    department: '',
+    majorCategory: '',
+    middleCategory: '',
+    minorCategory: ''
   })
 
   // 커스텀 훅들 사용
@@ -71,7 +77,10 @@ const TaskDetailPopupRefactored: React.FC<TaskDetailPopupProps> = ({
       endDate: task.end ? task.end.toISOString().split('T')[0] : '',
       percentComplete: task.percentComplete || 0,
       resource: task.resource || '',
-      department: task.department || ''
+      department: task.department || '',
+      majorCategory: task.majorCategory || '',
+      middleCategory: task.middleCategory || '',
+      minorCategory: task.minorCategory || ''
     })
   }, [task])
 
@@ -106,7 +115,10 @@ const TaskDetailPopupRefactored: React.FC<TaskDetailPopupProps> = ({
       endDate: task.end ? task.end.toISOString().split('T')[0] : '',
       percentComplete: task.percentComplete || 0,
       resource: task.resource || '',
-      department: task.department || ''
+      department: task.department || '',
+      majorCategory: task.majorCategory || '',
+      middleCategory: task.middleCategory || '',
+      minorCategory: task.minorCategory || ''
     })
     setIsEditing(false)
   }

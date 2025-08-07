@@ -6,7 +6,7 @@ import { styles } from '../../styles'
 
 // 컴포넌트들 import
 import ActionItemList from './ActionItemList'
-import TaskDetailPopup from './TaskDetailPopup'
+import TaskDetailPopupRefactored from './TaskDetailPopupRefactored'
 import EmptyState from './EmptyState'
 import GanttChartHeader from './sections/GanttChartHeader'
 import GanttChartArea from './sections/GanttChartArea'
@@ -23,6 +23,8 @@ interface CustomGanttChartProps {
   onTaskAdd?: (newTask: Partial<Task>) => void
   onTaskDelete?: (taskId: string) => void
   onDataRefresh?: () => void
+  onMajorCategoryUpdate?: (oldCategory: string, newCategory: string) => Promise<void>
+  onSubCategoryUpdate?: (taskId: string, middleCategory: string, subCategory: string) => Promise<void>
   groupBy?: string
   showAssigneeInfo: boolean
   onTreeStateChange?: (state: {
@@ -44,6 +46,8 @@ const CustomGanttChartModular: React.FC<CustomGanttChartProps> = ({
   onTaskAdd,
   onTaskDelete,
   onDataRefresh,
+  onMajorCategoryUpdate,
+  onSubCategoryUpdate,
   groupBy,
   showAssigneeInfo,
   onTreeStateChange
@@ -107,6 +111,8 @@ const CustomGanttChartModular: React.FC<CustomGanttChartProps> = ({
           onScroll={scroll.handleActionItemScroll}
           showAssigneeInfo={showAssigneeInfo}
           onTaskAdd={onTaskAdd}
+          onMajorCategoryUpdate={onMajorCategoryUpdate}
+          onSubCategoryUpdate={onSubCategoryUpdate}
         />
         
         {/* Gantt Chart 영역 - 동적 크기 */}
@@ -132,7 +138,7 @@ const CustomGanttChartModular: React.FC<CustomGanttChartProps> = ({
 
       {/* 세부업무 상세 팝업 */}
       {popup.isOpen && (
-        <TaskDetailPopup 
+        <TaskDetailPopupRefactored 
           task={popup.selectedTaskDetail!}
           position={popup.popupPosition!}
           onClose={popup.closePopup}

@@ -29,7 +29,7 @@ import StatsDashboard from '../components/StatsDashboard'
 import RiskAnalysisComponent from '../components/RiskAnalysis'
 import ResourceStatsComponent from '../components/ResourceStats'
 import GanttChart from '../components/GanttChart'
-import UsageGuide from '../components/UsageGuide'
+// import UsageGuide from '../components/UsageGuide'
 import Loading from '../components/Loading'
 
 export default function ClientHome() {
@@ -40,13 +40,16 @@ export default function ClientHome() {
   // Task 추가 핸들러
   const handleTaskAdd = useCallback(async (newTask: Partial<Task>) => {
     try {
-      // 새로운 Task ID 생성 (기존 Task 중 가장 큰 번호 + 1)
-      const existingIds = tasks.map(task => {
-        const match = task.id.match(/TASK-(\d+)/)
-        return match ? parseInt(match[1], 10) : 0
-      })
-      const nextId = Math.max(...existingIds, 0) + 1
-      const taskId = `TASK-${String(nextId).padStart(3, '0')}`
+      // Task ID가 전달되지 않은 경우에만 새로 생성
+      let taskId = newTask.id
+      if (!taskId) {
+        const existingIds = tasks.map(task => {
+          const match = task.id.match(/TASK-(\d+)/)
+          return match ? parseInt(match[1], 10) : 0
+        })
+        const nextId = Math.max(...existingIds, 0) + 1
+        taskId = `TASK-${String(nextId).padStart(3, '0')}`
+      }
       
       // 새로운 Task 객체 생성
       const taskToAdd: Task = {
@@ -117,6 +120,49 @@ export default function ClientHome() {
       console.error('Task 삭제 중 오류 발생:', error)
       // 에러 시 데이터 다시 로드
       await refetch()
+    }
+  }, [refetch])
+
+  // 대분류 수정 핸들러
+  const handleMajorCategoryUpdate = useCallback(async (oldCategory: string, newCategory: string) => {
+    try {
+      console.log(`🔄 대분류 수정 요청: "${oldCategory}" → "${newCategory}"`)
+
+      // API 호출하여 대분류 일괄 수정
+      const response = await fetch('/api/major-category', {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          oldCategory,
+          newCategory
+        }),
+      })
+
+      console.log('📡 API 응답 상태:', response.status, response.statusText)
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.error('❌ API 오류 응답:', errorData)
+        throw new Error(errorData.error || `서버 오류: ${response.status}`)
+      }
+
+      const result = await response.json()
+      console.log('✅ 대분류 수정 API 성공:', result)
+
+      // 전체 데이터 다시 로드
+      if (refetch) {
+        console.log('🔄 데이터 재로드 시작...')
+        await refetch()
+        console.log('✅ 데이터 재로드 완료')
+      } else {
+        console.warn('⚠️ refetch 함수가 없습니다')
+      }
+
+    } catch (error) {
+      console.error('❌ 대분류 수정 중 오류:', error)
+      throw error // 에러를 상위로 전달하여 팝업에서 처리하도록 함
     }
   }, [refetch])
   
@@ -242,6 +288,7 @@ export default function ClientHome() {
               onDataRefresh={refetch}
               onTaskAdd={handleTaskAdd}
               onTaskDelete={handleTaskDelete}
+              onMajorCategoryUpdate={handleMajorCategoryUpdate}
             />
           </Paper>
 
@@ -253,7 +300,7 @@ export default function ClientHome() {
           />
 
           {/* 사용 가이드 */}
-          <UsageGuide />
+          {/* <UsageGuide /> */}
         </Stack>
       </Container>
     </Box>

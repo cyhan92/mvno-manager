@@ -5,6 +5,8 @@
 
 import { DateUnit } from '../../../types/task'
 import { CANVAS_CONFIG } from '../config'
+import { drawGroupBar } from './groupBarRenderer'
+import { calculateBarPosition } from '../positioning/barPositioning'
 
 /**
  * 레거시 간트 바 그리기 (기존 구현 유지)
@@ -36,8 +38,7 @@ export const drawLegacyGanttBar = (
   const progress = task.percentComplete || 0
   
   if (isGroup) {
-    // 그룹 바 - 새로운 drawGroupBar 함수 사용
-    const { drawGroupBar, calculateBarPosition } = require('../gantt')
+    // 그룹 바 - 리팩토링된 함수 사용
     const style = calculateBarPosition(task, startDate, new Date(startDate.getTime() + timeRange), timeRange, chartWidth, y, 40)
     // leftMargin 보정
     style.x += leftMargin

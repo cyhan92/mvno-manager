@@ -7,7 +7,8 @@ import {
   Alert, 
   AlertTitle,
   CircularProgress,
-  Backdrop
+  Backdrop,
+  Paper
 } from '@mui/material'
 import { 
   Error as ErrorIcon, 
@@ -15,28 +16,33 @@ import {
 } from '@mui/icons-material'
 import { useTasksFromDatabase } from '../../hooks'
 import { useTaskManager } from '../../hooks/data/useTaskManager'
+import { useTaskAnalytics } from '../../hooks'
 import { Task } from '../../types/task'
 import Header from '../Header'
 import DashboardSection from './sections/DashboardSection'
 import GanttChartSection from './sections/GanttChartSection'
+import ResourceStatsComponent from '../ResourceStats'
 import UsageGuideModular from '../UsageGuideModular'
 import Loading from '../Loading'
 
 const ClientHomeRefactored: React.FC = () => {
   const { tasks: dbTasks, loading, error, source, refetch, updateTask } = useTasksFromDatabase()
-  const [mounted, setMounted] = useState(false)
   const [tasks, setTasks] = useState<Task[]>([])
   
   const { 
     isLoading: isTaskLoading, 
     handleTaskAdd, 
     handleTaskUpdate, 
-    handleTaskDelete 
+    handleTaskDelete,
+    handleMajorCategoryUpdate,
+    handleSubCategoryUpdate
   } = useTaskManager({ 
     tasks, 
     setTasks, 
     refetch 
   })
+
+  const { resourceStats } = useTaskAnalytics(tasks)
 
   // 데이터 동기화
   useEffect(() => {
@@ -44,11 +50,6 @@ const ClientHomeRefactored: React.FC = () => {
       setTasks(dbTasks)
     }
   }, [dbTasks])
-
-  // 클라이언트 마운트 처리
-  useEffect(() => {
-    setMounted(true)
-  }, [])
 
   // 전체 데이터 새로고침 핸들러
   const handleDataRefresh = async () => {
@@ -63,10 +64,6 @@ const ClientHomeRefactored: React.FC = () => {
     if (updateTask) {
       updateTask(updatedTask)
     }
-  }
-
-  if (!mounted) {
-    return <Loading />
   }
 
   if (loading) {
@@ -109,17 +106,10 @@ const ClientHomeRefactored: React.FC = () => {
         </Backdrop>
       )}
       
-      <Container maxWidth="xl" sx={{ py: 4 }}>
-        {/* 사용 가이드 */}
-        <Box mb={4}>
-          <UsageGuideModular />
-        </Box>
-
+      <Container maxWidth="xl" sx={{ py: 3 }}>
         {/* 대시보드 섹션 */}
         <DashboardSection 
           tasks={tasks}
-          source={source}
-          onTaskUpdate={handleTaskUpdateIntegrated}
         />
 
         {/* 간트 차트 섹션 */}
@@ -129,14 +119,34 @@ const ClientHomeRefactored: React.FC = () => {
           onTaskAdd={handleTaskAdd}
           onTaskDelete={handleTaskDelete}
           onDataRefresh={handleDataRefresh}
+          onMajorCategoryUpdate={handleMajorCategoryUpdate}
+          onSubCategoryUpdate={handleSubCategoryUpdate}
         />
+
+        {/* 담당자 현황 - Gantt 차트 아래에 위치 (기존과 동일) */}
+        <Box mb={4}>
+          <Typography variant="h5" gutterBottom fontWeight={600}>
+            👥 담당자 현황
+          </Typography>
+          <Paper elevation={2} sx={{ p: 2 }}>
+            <ResourceStatsComponent 
+              resourceStats={resourceStats} 
+              tasks={tasks}
+              onTaskUpdate={handleTaskUpdateIntegrated}
+            />
+          </Paper>
+        </Box>
+
+        {/* 사용 가이드 - 기존과 동일하게 가장 아래 위치 */}
+        <Box mb={4}>
+          <UsageGuideModular />
+        </Box>
 
         {/* 데이터 정보 */}
         {tasks.length > 0 && (
           <Box mt={4} textAlign="center">
             <Typography variant="body2" color="text.secondary">
               총 {tasks.length}개의 작업이 로드되었습니다.
-              {source && ` (데이터 소스: ${source})`}
             </Typography>
           </Box>
         )}

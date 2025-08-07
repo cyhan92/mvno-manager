@@ -142,7 +142,8 @@ export const useCustomGanttChart = ({
     ctx.clearRect(0, 0, canvas.width, canvas.height)
     
     // 배경 그리기
-    drawBackground(ctx, dimensions.width, dimensions.height)
+    const context = { ctx, canvas, width: dimensions.width, height: dimensions.height }
+    drawBackground(context)
 
     // 간트바 그리기
     displayTasks.forEach((task, index) => {

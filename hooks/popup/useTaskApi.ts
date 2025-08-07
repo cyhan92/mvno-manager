@@ -8,6 +8,9 @@ interface TaskEditData {
   percentComplete: number
   resource: string
   department: string
+  majorCategory: string
+  middleCategory: string
+  minorCategory: string
 }
 
 interface UseTaskApiProps {
@@ -41,7 +44,10 @@ export const useTaskApi = ({ onTaskUpdate, onDataRefresh }: UseTaskApiProps) => 
             end: editData.endDate ? new Date(editData.endDate) : task.end,
             percentComplete: editData.percentComplete,
             resource: editData.resource,
-            department: editData.department
+            department: editData.department,
+            majorCategory: editData.majorCategory,
+            middleCategory: editData.middleCategory,
+            minorCategory: editData.minorCategory
           }
           onTaskUpdate(updatedTask)
         }
@@ -55,7 +61,10 @@ export const useTaskApi = ({ onTaskUpdate, onDataRefresh }: UseTaskApiProps) => 
         end: editData.endDate ? new Date(editData.endDate).toISOString() : task.end.toISOString(),
         percent_complete: editData.percentComplete,
         resource: editData.resource,
-        department: editData.department
+        department: editData.department,
+        major_category: editData.majorCategory,
+        middle_category: editData.middleCategory,
+        minor_category: editData.minorCategory
       }
 
       console.log('Updating task:', task.id, 'with data:', updateData)
@@ -89,7 +98,10 @@ export const useTaskApi = ({ onTaskUpdate, onDataRefresh }: UseTaskApiProps) => 
           end: new Date(result.data.end_date),
           percentComplete: result.data.progress,
           resource: result.data.assignee,
-          department: result.data.department
+          department: result.data.department,
+          majorCategory: result.data.major_category || editData.majorCategory,
+          middleCategory: result.data.middle_category || editData.middleCategory,
+          minorCategory: result.data.minor_category || editData.minorCategory
         }
         onTaskUpdate(updatedTask)
       }
