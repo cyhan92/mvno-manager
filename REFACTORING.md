@@ -16,6 +16,7 @@
 - `TaskDetailPopup.tsx` (657줄) - 모든 기능이 하나의 파일에 집중
 
 #### 분해 후
+
 ```
 components/gantt/popup/
 ├── PopupHeader.tsx           # 팝업 헤더 (편집/삭제 버튼)
@@ -39,10 +40,11 @@ components/gantt/
 
 ### 2. UsageGuide 컴포넌트 분해 (483줄 → 모듈화)
 
-#### 분해 전
+#### 분해 전 (UsageGuide)
 - `UsageGuide.tsx` (483줄) - 모든 가이드 내용이 하나의 파일에 집중
 
-#### 분해 후
+#### 분해 후 (UsageGuideModular)
+
 ```
 components/guide/sections/
 ├── FeatureCardComponent.tsx  # 기능 카드 컴포넌트
@@ -59,15 +61,42 @@ components/
 - **데이터 분리**: 하드코딩된 데이터를 별도 파일로 분리
 - **확장성**: 새로운 섹션 추가가 쉬워짐
 
-### 3. 인덱스 파일 정리
+### 3. ClientHome 컴포넌트 분해 (262줄 → 모듈화)
+
+#### 분해 전 (ClientHome)
+- `ClientHome.tsx` (262줄) - 메인 페이지 로직이 하나의 파일에 집중
+
+#### 분해 후 (ClientHomeRefactored)
+
+```
+components/home/sections/
+├── DashboardSection.tsx      # 대시보드 섹션
+└── GanttChartSection.tsx     # 간트차트 섹션
+
+hooks/data/
+└── useTaskManager.ts         # 작업 관리 로직
+
+components/home/
+└── ClientHomeRefactored.tsx  # 리팩토링된 메인 컴포넌트
+```
+
+#### 개선 효과
+- **섹션별 분리**: 대시보드와 간트차트 영역을 독립적으로 관리
+- **로직 분리**: 작업 추가/수정/삭제 로직을 별도 훅으로 분리
+- **상태 관리 최적화**: 각 섹션별 상태를 독립적으로 관리
+- **재사용성**: 섹션 컴포넌트들을 다른 페이지에서도 활용 가능
+
+### 4. 인덱스 파일 정리
 
 #### hooks/index.ts
 - 모든 훅들을 카테고리별로 정리
 - 새로운 popup 관련 훅들 추가
+- useTaskManager 훅 추가
 
 #### components/index.ts
 - 주요 컴포넌트들을 카테고리별로 정리
 - 리팩토링된 컴포넌트들 추가
+- 홈 섹션 컴포넌트들 추가
 
 ## 사용법
 
