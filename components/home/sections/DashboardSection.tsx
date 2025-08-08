@@ -7,10 +7,12 @@ import { useTaskAnalytics } from '../../../hooks'
 
 interface DashboardSectionProps {
   tasks: Task[]
+  onTaskUpdate?: (updatedTask: Task) => void
 }
 
 const DashboardSection: React.FC<DashboardSectionProps> = ({ 
-  tasks
+  tasks,
+  onTaskUpdate
 }) => {
   const { stats, riskAnalysis } = useTaskAnalytics(tasks)
 
@@ -21,7 +23,11 @@ const DashboardSection: React.FC<DashboardSectionProps> = ({
       </Typography>
       
       <Paper elevation={1} sx={{ p: 3, mb: 3 }}>
-        <StatsDashboard stats={stats} />
+        <StatsDashboard 
+          stats={stats} 
+          tasks={tasks}
+          onTaskUpdate={onTaskUpdate}
+        />
       </Paper>
 
       <Box flex={1}>

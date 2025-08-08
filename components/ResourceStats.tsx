@@ -35,7 +35,9 @@ const ResourceStatsComponent: React.FC<ResourceStatsComponentProps> = ({ resourc
     <div className="bg-white rounded-lg shadow-sm border p-6 mb-8">
       <h3 className="text-lg font-semibold text-gray-900 mb-4">👥 담당자별 현황</h3>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {Object.entries(resourceStats).map(([resource, stats]) => (
+        {Object.entries(resourceStats)
+          .sort(([a], [b]) => a.localeCompare(b, 'ko', { numeric: true })) // 담당자 이름 오름차순 정렬
+          .map(([resource, stats]) => (
           <div 
             key={resource} 
             className="bg-gray-50 p-4 rounded-lg cursor-pointer hover:bg-gray-100 transition-colors"

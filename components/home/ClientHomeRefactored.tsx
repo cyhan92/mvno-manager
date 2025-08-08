@@ -110,6 +110,7 @@ const ClientHomeRefactored: React.FC = () => {
         {/* 대시보드 섹션 */}
         <DashboardSection 
           tasks={tasks}
+          onTaskUpdate={handleTaskUpdateIntegrated}
         />
 
         {/* 간트 차트 섹션 */}

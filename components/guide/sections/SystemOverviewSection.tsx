@@ -34,15 +34,23 @@ const SystemOverviewSection: React.FC = () => {
           </ListItem>
           <ListItem>
             <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
-            <ListItemText primary="Gantt 차트를 통한 시각적 프로젝트 일정 관리 (월별/주별 전환 가능)" />
+            <ListItemText primary="Canvas 기반 고성능 Gantt 차트를 통한 시각적 프로젝트 일정 관리 (월별/주별 전환 가능)" />
           </ListItem>
           <ListItem>
             <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
-            <ListItemText primary="트리 구조 Action Items의 단계별 확장/축소 제어" />
+            <ListItemText primary="계층적 Action Items의 트리 구조 관리 및 단계별 확장/축소 제어" />
           </ListItem>
           <ListItem>
             <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
-            <ListItemText primary="담당자별 업무 현황 및 세부 업무 상세보기" />
+            <ListItemText primary="우클릭 컨텍스트 메뉴를 통한 중분류/소분류 추가 기능 (v2.0 신규)" />
+          </ListItem>
+          <ListItem>
+            <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+            <ListItemText primary="담당자별 업무 현황의 오름차순 정렬 및 세부 업무 상세보기 (v2.0 업데이트)" />
+          </ListItem>
+          <ListItem>
+            <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+            <ListItemText primary="대시보드 상태별(완료/진행중/미시작) 더블클릭 팝업 기능 (v2.0 신규)" />
           </ListItem>
           <ListItem>
             <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>

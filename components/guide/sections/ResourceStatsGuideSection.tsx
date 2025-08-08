@@ -32,7 +32,7 @@ const ResourceStatsGuideSection: React.FC = () => {
           <Stack spacing={2}>
             <Box display="flex" alignItems="center" gap={2}>
               <PlayArrowIcon sx={{ color: 'orange.600' }} fontSize="small" />
-              <Typography>담당자별 업무 현황 목록 확인</Typography>
+              <Typography>담당자별 업무 현황 목록을 오름차순으로 확인 (v2.0 업데이트)</Typography>
             </Box>
             <Box display="flex" alignItems="center" gap={2}>
               <PlayArrowIcon sx={{ color: 'orange.600' }} fontSize="small" />
@@ -58,7 +58,15 @@ const ResourceStatsGuideSection: React.FC = () => {
           <List dense>
             <ListItem>
               <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
-              <ListItemText primary="전체 프로젝트 진행률 및 완료/진행중/미완료 작업 수 표시" />
+              <ListItemText primary="전체 프로젝트 진행률 및 완료/진행중/미시작 작업 수 표시" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="상태별 박스 더블클릭 시 해당 상태의 세부 작업 목록 팝업 (v2.0 신규)" />
+            </ListItem>
+            <ListItem>
+              <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+              <ListItemText primary="세부 작업 더블클릭 시 작업 상세 정보 편집 가능 (v2.0 신규)" />
             </ListItem>
             <ListItem>
               <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>

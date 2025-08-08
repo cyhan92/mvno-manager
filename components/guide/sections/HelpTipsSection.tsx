@@ -27,12 +27,24 @@ const HelpTipsSection: React.FC = () => {
       text: 'Gantt 차트에서 작업을 더블클릭하면 상세 정보를 확인할 수 있습니다.'
     },
     {
+      icon: <InfoIcon color="info" />,
+      text: '소분류에서 우클릭하면 중분류나 소분류를 추가할 수 있습니다.'
+    },
+    {
       icon: <WarningIcon color="warning" />,
       text: '작업 편집 시 데이터베이스에 실시간으로 반영됩니다.'
     },
     {
       icon: <LightbulbIcon color="primary" />,
       text: '담당자별 현황에서 담당자 이름을 더블클릭하면 해당 담당자의 모든 업무를 볼 수 있습니다.'
+    },
+    {
+      icon: <InfoIcon color="info" />,
+      text: '대시보드의 완료/진행중/미시작 박스를 더블클릭하면 해당 상태의 작업 목록을 볼 수 있습니다.'
+    },
+    {
+      icon: <LightbulbIcon color="primary" />,
+      text: '팝업에서 표시된 세부 업무를 더블클릭하면 작업 상세 정보를 편집할 수 있습니다.'
     }
   ]
 

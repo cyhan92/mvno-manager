@@ -37,8 +37,8 @@ export const adjustProgressByStatus = (status: string, percentComplete: number):
     case EXCEL_CONFIG.STATUS_VALUES.NOT_STARTED:
       return percentComplete === 0 ? 0 : percentComplete
     case EXCEL_CONFIG.STATUS_VALUES.IN_PROGRESS:
-      // 진행중인데 완료율이 0이면 최소 10%로 설정
-      return percentComplete === 0 ? 10 : percentComplete
+      // 진행중 상태여도 완료율을 그대로 유지 (기존 10% 자동 설정 제거)
+      return percentComplete
     default:
       return percentComplete
   }
