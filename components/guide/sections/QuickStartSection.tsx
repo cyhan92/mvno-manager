@@ -31,8 +31,13 @@ const QuickStartSection: React.FC = () => {
     },
     {
       icon: <EditIcon color="warning" />,
-      primary: '작업 편집',
-      secondary: 'Gantt 차트에서 작업을 클릭하여 상세 정보 편집'
+      primary: '작업 편집 및 Action Item 관리',
+      secondary: 'Gantt 차트에서 작업을 클릭하여 편집하거나 우클릭으로 Action Item 관리 (v2.2 신규)'
+    },
+    {
+      icon: <PlayArrowIcon color="secondary" />,
+      primary: 'Action Item 추가/수정/삭제',
+      secondary: '업무 행에서 우클릭 → 상세업무 메뉴로 세부 항목 관리 (즉시 반영, v2.2 신규)'
     },
     {
       icon: <PeopleIcon color="info" />,
@@ -47,11 +52,11 @@ const QuickStartSection: React.FC = () => {
         <AlertTitle>
           <Box display="flex" alignItems="center" gap={1}>
             <PlayArrowIcon />
-            빠른 시작
+            빠른 시작 (v2.2 업데이트)
           </Box>
         </AlertTitle>
         <Typography variant="body2">
-          아래 단계를 따라하면 쉽게 시작할 수 있습니다.
+          아래 단계를 따라하면 쉽게 시작할 수 있습니다. v2.2에서 Action Item 관리 기능이 대폭 개선되었습니다.
         </Typography>
       </Alert>
 

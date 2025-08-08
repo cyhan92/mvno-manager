@@ -28,6 +28,18 @@ const HelpTipsSection: React.FC = () => {
     },
     {
       icon: <InfoIcon color="info" />,
+      text: '업무 행에서 우클릭하면 Action Item(상세업무) 추가/편집 메뉴가 나타납니다. (v2.2 신규)'
+    },
+    {
+      icon: <LightbulbIcon color="primary" />,
+      text: 'Action Item 추가 시 담당자/부서가 비어있으면 자동으로 "미정"으로 설정됩니다. (v2.2 신규)'
+    },
+    {
+      icon: <CheckCircleIcon color="success" />,
+      text: 'Action Item 추가/수정/삭제 시 페이지 새로고침 없이 즉시 화면에 반영됩니다. (v2.2 신규)'
+    },
+    {
+      icon: <InfoIcon color="info" />,
       text: '소분류에서 우클릭하면 중분류나 소분류를 추가할 수 있습니다.'
     },
     {
@@ -45,6 +57,10 @@ const HelpTipsSection: React.FC = () => {
     {
       icon: <LightbulbIcon color="primary" />,
       text: '팝업에서 표시된 세부 업무를 더블클릭하면 작업 상세 정보를 편집할 수 있습니다.'
+    },
+    {
+      icon: <CheckCircleIcon color="success" />,
+      text: '여러 Action Item을 관리할 때는 "상세업무 편집" 메뉴로 한 번에 관리하는 것이 효율적입니다. (v2.2 팁)'
     }
   ]
 
@@ -54,11 +70,11 @@ const HelpTipsSection: React.FC = () => {
         <AlertTitle>
           <Box display="flex" alignItems="center" gap={1}>
             <LightbulbIcon />
-            도움말 및 팁
+            도움말 및 팁 (v2.2 업데이트)
           </Box>
         </AlertTitle>
         <Typography variant="body2">
-          더 효과적인 사용을 위한 팁들입니다.
+          더 효과적인 사용을 위한 팁들입니다. v2.2의 새로운 Action Item 관리 기능을 포함합니다.
         </Typography>
       </Alert>
 

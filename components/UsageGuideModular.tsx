@@ -40,7 +40,7 @@ const UsageGuideModular: React.FC = () => {
           <Box display="flex" alignItems="center" gap={2}>
             <MenuBookIcon />
             <Typography variant="h6" component="h2" fontWeight={600}>
-              📖 사용 가이드 - 시스템 활용법과 주요 기능을 확인하세요
+              📖 사용 가이드 (v2.2 업데이트) - Action Item 관리 기능 개선 및 시스템 활용법 확인
             </Typography>
           </Box>
           <Button

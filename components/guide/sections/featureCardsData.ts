@@ -15,19 +15,19 @@ export const featureCardsData: FeatureCardData[] = [
   {
     iconName: 'TableChart',
     title: 'Gantt 차트',
-    description: '월별/주별 보기, 트리 확장/축소 제어',
+    description: '월별/주별 보기, 우클릭 메뉴로 Action Item 관리 (v2.2)',
     color: 'success'
   },
   {
     iconName: 'Assignment',
-    title: 'Action Items',
-    description: '작업 목록 트리 구조 및 단계별 확장/축소',
+    title: 'Action Items 관리',
+    description: '우클릭으로 상세업무 추가/편집, 부분 리프레시 지원 (v2.2)',
     color: 'info'
   },
   {
     iconName: 'Edit',
     title: '작업 편집',
-    description: '작업 상세 정보 및 부서 정보 편집',
+    description: '작업 상세 정보 편집, 자동 기본값 설정 "미정" (v2.2)',
     color: 'warning'
   },
   {
@@ -39,7 +39,7 @@ export const featureCardsData: FeatureCardData[] = [
   {
     iconName: 'TrendingUp',
     title: '통계 대시보드',
-    description: '프로젝트 진행률, 진행률 외부 표시 개선',
+    description: '프로젝트 진행률, 스마트 동기화로 실시간 반영 (v2.2)',
     color: 'error'
   }
 ]
