@@ -84,12 +84,7 @@ export const useTaskApi = ({ onTaskUpdate, onDataRefresh }: UseTaskApiProps) => 
 
       const result = await response.json()
       
-      // DB 저장 성공 후 전체 데이터 다시 로드
-      if (onDataRefresh) {
-        await onDataRefresh() // await를 추가하여 완전히 완료될 때까지 대기
-      }
-      
-      // 로컬 업데이트도 수행 (즉시 반영용)
+      // 1. 즉시 로컬 상태 업데이트 (빠른 UI 반응)
       if (onTaskUpdate && result.data) {
         const updatedTask = {
           ...task,
@@ -105,6 +100,18 @@ export const useTaskApi = ({ onTaskUpdate, onDataRefresh }: UseTaskApiProps) => 
         }
         onTaskUpdate(updatedTask)
       }
+      
+      // 2. 작업 저장 시에는 전체 데이터 동기화 하지 않음 (즉시 UI 반영으로 충분)
+      // 대신 개별 작업 업데이트만 수행하여 빠른 사용자 경험 제공
+      // if (onDataRefresh) {
+      //   setTimeout(async () => {
+      //     try {
+      //       await onDataRefresh()
+      //     } catch (error: unknown) {
+      //       console.warn('백그라운드 데이터 동기화 실패:', error)
+      //     }
+      //   }, 100)
+      // }
 
       // 성공 - 별도의 팝업 없이 조용히 처리
       // alert('작업이 성공적으로 저장되었습니다!') // 제거
