@@ -1,11 +1,17 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-// Supabase 클라이언트 생성 (관리자 권한)
-const supabase = createClient(
-  process.env.NEXT_PUBLIC_SUPABASE_URL!,
-  process.env.SUPABASE_SERVICE_ROLE_KEY!
-)
+// Supabase 클라이언트 생성 함수 (런타임에 환경변수 체크)
+function getSupabaseClient() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  
+  if (!url || !key) {
+    throw new Error('Supabase environment variables are not configured')
+  }
+  
+  return createClient(url, key)
+}
 
 /**
  * 완료율에 따른 상태값 결정
@@ -22,6 +28,8 @@ const getStatusByProgress = (percentComplete: number): string => {
 export async function POST(request: NextRequest) {
   try {
     console.log('🔄 작업 상태 일괄 업데이트 시작...')
+
+    const supabase = getSupabaseClient()
 
     // 1. 모든 작업 조회
     const { data: tasks, error: fetchError } = await supabase
@@ -148,6 +156,8 @@ export async function POST(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     console.log('🔍 작업 상태 통계 조회 시작...')
+    
+    const supabase = getSupabaseClient()
     
     const { data: tasks, error } = await supabase
       .from('tasks')
