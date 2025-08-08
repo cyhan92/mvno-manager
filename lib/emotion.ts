@@ -18,8 +18,20 @@ export function createEmotionCache() {
     key: 'mui-style',
     insertionPoint,
     prepend: true,
+    // SSR 호환성을 위한 설정 추가
+    speedy: false,
   })
 }
 
-// 클라이언트 측 emotion cache
-export const clientSideEmotionCache = createEmotionCache()
+// 클라이언트 측 emotion cache (지연 초기화)
+let clientCache: ReturnType<typeof createEmotionCache> | undefined
+
+export function getClientSideEmotionCache() {
+  if (!clientCache) {
+    clientCache = createEmotionCache()
+  }
+  return clientCache
+}
+
+// 호환성을 위한 기본 export
+export const clientSideEmotionCache = isBrowser ? getClientSideEmotionCache() : createEmotionCache()

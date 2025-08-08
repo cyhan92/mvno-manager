@@ -7,6 +7,8 @@ import ContextMenu from './ContextMenu'
 import AddActionItemPopupRefactored from './AddActionItemPopupRefactored'
 import EditMajorCategoryPopup from './EditMajorCategoryPopup'
 import SubCategoryEditPopup from './SubCategoryEditPopup'
+import AddMajorCategoryPopup from './AddMajorCategoryPopup'
+import DeleteConfirmationPopup from './DeleteConfirmationPopup'
 
 interface ActionItemListProps {
   displayTasks: Task[]
@@ -20,6 +22,10 @@ interface ActionItemListProps {
   onTaskAdd?: (newTask: Partial<Task>) => void // 새로운 Task 추가 콜백
   onMajorCategoryUpdate?: (oldCategory: string, newCategory: string) => Promise<void> // 대분류 수정 콜백
   onSubCategoryUpdate?: (taskId: string, middleCategory: string, subCategory: string, currentMiddleCategory?: string, currentSubCategory?: string) => Promise<void> // 중분류,소분류 수정 콜백
+  onTaskUpdate?: (updatedTask: Task) => void // 작업 업데이트 콜백
+  onTaskDelete?: (taskId: string) => void // 작업 삭제 콜백
+  onDataRefresh?: () => void // 데이터 새로고침 콜백
+  onOpenTaskDetailPopup?: (task: Task, position: { x: number; y: number }) => void // 작업 상세 팝업 열기 콜백
 }
 
 const ActionItemList: React.FC<ActionItemListProps> = ({
@@ -33,7 +39,11 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
   showAssigneeInfo,
   onTaskAdd,
   onMajorCategoryUpdate,
-  onSubCategoryUpdate
+  onSubCategoryUpdate,
+  onTaskUpdate,
+  onTaskDelete,
+  onDataRefresh,
+  onOpenTaskDetailPopup
 }) => {
   // 컨텍스트 메뉴 상태
   const [contextMenu, setContextMenu] = useState<{
@@ -77,12 +87,30 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
     task: null
   })
 
+  // Add Major Category 팝업 상태
+  const [addMajorCategoryPopup, setAddMajorCategoryPopup] = useState<{
+    isOpen: boolean
+  }>({
+    isOpen: false
+  })
+
+  // Delete Confirmation 팝업 상태
+  const [deleteConfirmationPopup, setDeleteConfirmationPopup] = useState<{
+    isOpen: boolean
+    task: Task | null
+    isLoading: boolean
+  }>({
+    isOpen: false,
+    task: null,
+    isLoading: false
+  })
+
   // 우클릭 이벤트 핸들러
   const handleContextMenu = (e: React.MouseEvent, task: Task) => {
     e.preventDefault()
     
-    // 대분류(level 0)나 소분류(level 1)에서 컨텍스트 메뉴 표시
-    if ((task.level === 0 || task.level === 1) && task.hasChildren) {
+    // 대분류(level 0), 소분류(level 1), 상세업무(level 2)에서 컨텍스트 메뉴 표시
+    if (task.level === 0 || task.level === 1 || task.level === 2) {
       setContextMenu({
         isOpen: true,
         position: { x: e.clientX, y: e.clientY },
@@ -170,6 +198,51 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
     })
   }
 
+  // Add Major Category 팝업 열기
+  const handleOpenAddMajorCategoryPopup = () => {
+    setAddMajorCategoryPopup({
+      isOpen: true
+    })
+  }
+
+  // Add Major Category 팝업 닫기
+  const handleCloseAddMajorCategoryPopup = () => {
+    setAddMajorCategoryPopup({
+      isOpen: false
+    })
+  }
+
+  // 상세업무 수정 핸들러 (더블클릭과 동일)
+  const handleEditTask = () => {
+    if (contextMenu.task && onOpenTaskDetailPopup) {
+      // 컨텍스트 메뉴 위치를 기반으로 팝업 열기
+      onOpenTaskDetailPopup(contextMenu.task, {
+        x: contextMenu.position.x + 10,
+        y: contextMenu.position.y
+      })
+    }
+  }
+
+  // 상세업무 삭제 핸들러
+  const handleDeleteTask = () => {
+    if (contextMenu.task) {
+      setDeleteConfirmationPopup({
+        isOpen: true,
+        task: contextMenu.task,
+        isLoading: false
+      })
+    }
+  }
+
+  // Delete Confirmation 팝업 닫기
+  const handleCloseDeleteConfirmationPopup = () => {
+    setDeleteConfirmationPopup({
+      isOpen: false,
+      task: null,
+      isLoading: false
+    })
+  }
+
   // 중분류,소분류 수정 핸들러
   const handleSubCategoryUpdate = async (taskId: string, middleCategory: string, subCategory: string, currentMiddleCategory?: string, currentSubCategory?: string) => {
     console.log(`🎯 ActionItemList: handleSubCategoryUpdate 호출`)
@@ -194,8 +267,88 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
 
   // 새로운 Task 추가 핸들러
   const handleAddTask = (newTask: Partial<Task>) => {
-    if (onTaskAdd) {
-      onTaskAdd(newTask)
+    try {
+      console.log('ActionItemList: 새 작업 추가 요청:', newTask)
+      
+      if (!newTask) {
+        throw new Error('새 작업 데이터가 없습니다.')
+      }
+
+      if (!newTask.name || !newTask.name.trim()) {
+        throw new Error('작업명이 필요합니다.')
+      }
+
+      if (onTaskAdd) {
+        onTaskAdd(newTask)
+        console.log('ActionItemList: 새 작업 추가 완료')
+        
+        // 팝업 닫기
+        handleCloseAddPopup()
+      } else {
+        console.warn('ActionItemList: onTaskAdd 함수가 전달되지 않았습니다.')
+      }
+    } catch (error) {
+      console.error('ActionItemList: 작업 추가 실패:', error)
+      alert(`작업 추가 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
+    }
+  }
+
+  // 대분류 추가 핸들러
+  const handleAddMajorCategory = async (majorCategory: string) => {
+    try {
+      // 기본 작업 데이터 생성
+      const newTask: Partial<Task> = {
+        name: '상세업무_1',
+        majorCategory: majorCategory,
+        middleCategory: '중분류_1',
+        minorCategory: '소분류_1',
+        start: new Date(),
+        end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일 후
+        percentComplete: 0,
+        resource: '',
+        department: '',
+        status: 'TODO',
+        level: 2
+      }
+
+      if (onTaskAdd) {
+        onTaskAdd(newTask)
+      }
+
+      // 데이터 새로고침
+      if (onDataRefresh) {
+        onDataRefresh()
+      }
+    } catch (error) {
+      console.error('대분류 추가 실패:', error)
+      throw error
+    }
+  }
+
+  // 작업 삭제 핸들러 (DeleteConfirmationPopup에서 호출)
+  const handleConfirmDelete = async (password: string) => {
+    if (deleteConfirmationPopup.task && onTaskDelete) {
+      try {
+        // 로딩 상태 시작
+        setDeleteConfirmationPopup(prev => ({
+          ...prev,
+          isLoading: true
+        }))
+
+        // 작업 삭제 (useTaskManager에서 이미 부분 리프레시 처리됨)
+        onTaskDelete(deleteConfirmationPopup.task.id)
+        handleCloseDeleteConfirmationPopup()
+        
+        // onDataRefresh 호출 제거 - useTaskManager에서 이미 로컬 상태 업데이트 처리
+        console.log('✅ 삭제 완료 - 부분 리프레시로 처리됨')
+      } catch (error) {
+        console.error('작업 삭제 실패:', error)
+        // 로딩 상태 종료
+        setDeleteConfirmationPopup(prev => ({
+          ...prev,
+          isLoading: false
+        }))
+      }
     }
   }
 
@@ -353,6 +506,9 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
         onEditMajorCategory={handleOpenEditMajorCategoryPopup}
         onEditSubCategory={handleEditSubCategory}
         onAddSubCategory={handleOpenAddSubCategoryPopupForNew}
+        onAddMajorCategory={handleOpenAddMajorCategoryPopup}
+        onEditTask={handleEditTask}
+        onDeleteTask={handleDeleteTask}
       />
 
       {/* Add Action Item 팝업 */}
@@ -401,6 +557,24 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
           onUpdateSubCategory={handleSubCategoryUpdate}
           mode="add"
           onAddTask={handleAddTask}
+        />
+      )}
+
+      {/* Add Major Category 팝업 */}
+      <AddMajorCategoryPopup
+        isOpen={addMajorCategoryPopup.isOpen}
+        onClose={handleCloseAddMajorCategoryPopup}
+        onAdd={handleAddMajorCategory}
+      />
+
+      {/* Delete Confirmation 팝업 */}
+      {deleteConfirmationPopup.task && (
+        <DeleteConfirmationPopup
+          isOpen={deleteConfirmationPopup.isOpen}
+          task={deleteConfirmationPopup.task}
+          onClose={handleCloseDeleteConfirmationPopup}
+          onConfirm={handleConfirmDelete}
+          isLoading={deleteConfirmationPopup.isLoading}
         />
       )}
     </div>

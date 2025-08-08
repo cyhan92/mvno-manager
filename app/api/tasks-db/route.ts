@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { getAllTasks, getTaskStats, createTask } from '../../../lib/database'
 import { Task } from '../../../types/task'
 import { ExcelTask } from '../../../lib/excel/types'
+import { createClient } from '@supabase/supabase-js'
 
 /**
  * 데이터베이스에서 모든 작업 조회
@@ -85,13 +86,13 @@ export async function POST(request: Request) {
       duration: taskData.duration || null,
       percentComplete: taskData.percentComplete || 0,
       dependencies: taskData.dependencies || null,
-      category: taskData.category || '',
-      subcategory: taskData.subcategory || '',
-      detail: taskData.detail || '',
+      category: taskData.category || taskData.majorCategory || '',
+      subcategory: taskData.subcategory || taskData.middleCategory || '',
+      detail: taskData.detail || taskData.name || '',
       department: taskData.department || '',
-      status: (taskData.status === '완료' || taskData.status === '진행중' || taskData.status === '미완료') 
+      status: (taskData.status && ['완료', '진행중', '미완료'].includes(taskData.status)) 
         ? taskData.status 
-        : '미완료', // 기본값을 '미완료'로 설정
+        : '미완료', // 유효하지 않은 status는 '미완료'로 기본 설정
       cost: taskData.cost || '',
       notes: taskData.notes || '',
       majorCategory: taskData.majorCategory || '',
@@ -105,8 +106,36 @@ export async function POST(request: Request) {
     
     console.log('🔍 변환된 ExcelTask 데이터:', JSON.stringify(excelTask, null, 2))
     
-    // 데이터베이스에 Task 생성
-    const createdDbTask = await createTask(excelTask)
+    // ID 중복 시 재시도 로직
+    let createdDbTask
+    let retryCount = 0
+    const maxRetries = 3
+    
+    while (retryCount < maxRetries) {
+      try {
+        // 데이터베이스에 Task 생성
+        createdDbTask = await createTask(excelTask)
+        break // 성공하면 루프 탈출
+      } catch (error) {
+        if (error instanceof Error && error.message.includes('duplicate key value violates unique constraint')) {
+          retryCount++
+          if (retryCount < maxRetries) {
+            // 새로운 고유 ID 생성
+            const timestamp = Date.now()
+            const randomStr = Math.random().toString(36).substr(2, 9)
+            excelTask.id = `task_${timestamp}_${randomStr}_retry${retryCount}`
+            console.log(`🔄 ID 중복으로 재시도 (${retryCount}/${maxRetries}):`, excelTask.id)
+            continue
+          }
+        }
+        throw error // 다른 오류이거나 최대 재시도 횟수 초과 시 오류 다시 발생
+      }
+    }
+
+    // createdDbTask가 없으면 오류
+    if (!createdDbTask) {
+      throw new Error('작업 생성에 실패했습니다.')
+    }
     
     // 생성된 DB Task를 다시 Task 형식으로 변환하여 반환
     const createdTask: Task = {
@@ -148,6 +177,72 @@ export async function POST(request: Request) {
       success: false,
       error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.',
       message: 'Task 생성에 실패했습니다.'
+    }, { status: 500 })
+  }
+}
+
+// Task 삭제 (DELETE)
+export async function DELETE(request: Request) {
+  try {
+    console.log('🗑️ DELETE 요청 시작')
+    
+    // Supabase 클라이언트 초기화
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    
+    if (!supabaseKey || !supabaseUrl) {
+      console.error('❌ Supabase 환경변수가 설정되지 않았습니다.')
+      return NextResponse.json({
+        success: false,
+        error: 'Supabase 환경변수가 설정되지 않았습니다.'
+      }, { status: 500 })
+    }
+    
+    const supabase = createClient(supabaseUrl, supabaseKey)
+    
+    // 요청 본문에서 삭제할 Task ID 추출
+    const body = await request.json()
+    const { id } = body
+    
+    if (!id) {
+      console.error('❌ Task ID가 제공되지 않았습니다.')
+      return NextResponse.json({
+        success: false,
+        error: 'Task ID가 필요합니다.'
+      }, { status: 400 })
+    }
+    
+    console.log('🔍 삭제할 Task ID:', id)
+    
+    // Supabase에서 Task 삭제 (task_id 필드로 삭제)
+    const { error: deleteError } = await supabase
+      .from('tasks')
+      .delete()
+      .eq('task_id', id)
+    
+    if (deleteError) {
+      console.error('❌ Supabase 삭제 오류:', deleteError)
+      return NextResponse.json({
+        success: false,
+        error: `데이터베이스 삭제 실패: ${deleteError.message}`
+      }, { status: 500 })
+    }
+    
+    console.log('✅ Task 삭제 성공:', id)
+    
+    return NextResponse.json({
+      success: true,
+      message: 'Task가 성공적으로 삭제되었습니다.',
+      deletedId: id
+    })
+    
+  } catch (error) {
+    console.error('❌ Task 삭제 실패:', error)
+    
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.',
+      message: 'Task 삭제에 실패했습니다.'
     }, { status: 500 })
   }
 }

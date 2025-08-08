@@ -5,9 +5,10 @@ interface UseTaskManagerProps {
   tasks: Task[]
   setTasks: (tasks: Task[]) => void
   refetch?: () => void
+  onTaskAction?: (action: 'add' | 'delete' | 'update') => void
 }
 
-export const useTaskManager = ({ tasks, setTasks, refetch }: UseTaskManagerProps) => {
+export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTaskManagerProps) => {
   const [isLoading, setIsLoading] = useState(false)
 
   // Task 추가 핸들러
@@ -30,7 +31,7 @@ export const useTaskManager = ({ tasks, setTasks, refetch }: UseTaskManagerProps
       const taskToAdd: Task = {
         id: taskId,
         name: newTask.name || '새로운 업무',
-        resource: newTask.resource || '',
+        resource: newTask.resource || '미정',
         start: newTask.start || new Date(),
         end: newTask.end || new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 기본 7일 후
         duration: newTask.duration || 7,
@@ -39,7 +40,7 @@ export const useTaskManager = ({ tasks, setTasks, refetch }: UseTaskManagerProps
         category: newTask.category || '',
         subcategory: newTask.subcategory || '',
         detail: newTask.detail || '',
-        department: newTask.department || '',
+        department: newTask.department || '미정',
         status: (newTask.status === '완료' || newTask.status === '진행중' || newTask.status === '미완료') 
           ? newTask.status 
           : '미완료', // 기본값을 '미완료'로 설정
@@ -70,9 +71,34 @@ export const useTaskManager = ({ tasks, setTasks, refetch }: UseTaskManagerProps
       const result = await response.json()
       console.log('Task 생성 성공:', result)
 
-      // 전체 데이터 다시 로드
-      if (refetch) {
-        await refetch()
+      // 로컬 상태에 새 Task 추가 (전체 리로드 없이)
+      if (result.task) {
+        // API 응답에서 받은 날짜 문자열을 Date 객체로 변환
+        const taskWithDateObjects = {
+          ...result.task,
+          start: new Date(result.task.start),
+          end: new Date(result.task.end)
+        }
+        
+        const newTasks = [...tasks, taskWithDateObjects]
+        setTasks(newTasks)
+        
+        // 상위 컴포넌트에 추가 알림
+        onTaskAction?.('add')
+        
+        console.log('✅ 로컬 상태에 새 Task 추가 (리프레시 없음)', {
+          newTaskId: taskWithDateObjects.id,
+          newTaskName: taskWithDateObjects.name,
+          startDate: taskWithDateObjects.start,
+          endDate: taskWithDateObjects.end,
+          totalTasks: newTasks.length
+        })
+      } else {
+        // result.task가 없는 경우 fallback으로 refetch 사용
+        console.warn('⚠️ API 응답에 task 정보가 없어 데이터 재로드')
+        if (refetch) {
+          await refetch()
+        }
       }
 
       // 성공 - 별도의 팝업 없이 조용히 처리
@@ -84,19 +110,64 @@ export const useTaskManager = ({ tasks, setTasks, refetch }: UseTaskManagerProps
     } finally {
       setIsLoading(false)
     }
-  }, [tasks, refetch])
+  }, [tasks, setTasks, refetch, onTaskAction])
 
   // Task 업데이트 핸들러
   const handleTaskUpdate = useCallback((updatedTask: Task) => {
     setTasks(tasks.map(task => 
       task.id === updatedTask.id ? updatedTask : task
     ))
-  }, [tasks, setTasks])
+    
+    // 상위 컴포넌트에 업데이트 알림
+    onTaskAction?.('update')
+  }, [tasks, setTasks, onTaskAction])
 
   // Task 삭제 핸들러
-  const handleTaskDelete = useCallback((taskId: string) => {
-    setTasks(tasks.filter(task => task.id !== taskId))
-  }, [tasks, setTasks])
+  const handleTaskDelete = useCallback(async (taskId: string) => {
+    setIsLoading(true)
+    try {
+      console.log('🗑️ 삭제 요청 시작:', taskId)
+
+      // API 호출하여 DB에서 삭제
+      const response = await fetch('/api/tasks-db', {
+        method: 'DELETE',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ id: taskId }),
+      })
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}))
+        console.error('❌ 삭제 API 오류 응답:', errorData)
+        throw new Error(errorData.error || `삭제 실패: ${response.status}`)
+      }
+
+      const result = await response.json()
+      console.log('✅ 삭제 API 성공:', result)
+
+      // 로컬 상태에서 해당 Task 제거 (전체 리로드 없이)
+      const updatedTasks = tasks.filter(task => task.id !== taskId)
+      setTasks(updatedTasks)
+      
+      // 상위 컴포넌트에 삭제 알림
+      onTaskAction?.('delete')
+      
+      console.log('✅ 로컬 상태에서 Task 삭제 완료 (리프레시 없음)', {
+        deletedTaskId: taskId,
+        remainingTasks: updatedTasks.length
+      })
+
+      // 성공 - 별도의 팝업 없이 조용히 처리
+      console.log('업무가 성공적으로 삭제되었습니다!')
+
+    } catch (error) {
+      console.error('❌ Task 삭제 중 오류:', error)
+      alert(`업무 삭제 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
+    } finally {
+      setIsLoading(false)
+    }
+  }, [tasks, setTasks, onTaskAction])
 
   // 대분류 수정 핸들러
   const handleMajorCategoryUpdate = useCallback(async (oldCategory: string, newCategory: string) => {
@@ -172,14 +243,43 @@ export const useTaskManager = ({ tasks, setTasks, refetch }: UseTaskManagerProps
       const result = await response.json()
       console.log('✅ 중분류,소분류 수정 성공:', result)
 
-      // 성공 후 데이터 재로드
-      if (refetch) {
-        console.log('🔄 데이터 재로드 시작...')
-        await refetch()
-        console.log('✅ 데이터 재로드 완료')
-      } else {
-        console.warn('⚠️ refetch 함수가 없습니다')
-      }
+      // API 응답에서 실제 업데이트된 Task ID들 가져오기
+      const updatedTaskIds = result.updatedTasks?.map((t: any) => t.task_id) || []
+      console.log('🔄 업데이트된 Task ID들:', updatedTaskIds)
+
+      // 로컬 상태에서 해당 Task들 업데이트 (전체 리로드 없이)
+      const updatedTasks = tasks.map((task: Task) => {
+        // API에서 실제로 업데이트된 Task들만 로컬에서도 업데이트
+        if (updatedTaskIds.includes(task.id)) {
+          // Task 이름 업데이트: "[중분류] 소분류" 형식으로 변경
+          const newName = `[${middleCategory}] ${subCategory}`
+          console.log(`🎯 Task ${task.id} 업데이트:`, {
+            oldName: task.name,
+            newName,
+            oldMiddle: task.middleCategory,
+            newMiddle: middleCategory,
+            oldMinor: task.minorCategory,
+            newMinor: subCategory
+          })
+          return {
+            ...task,
+            name: newName,
+            middleCategory,
+            minorCategory: subCategory
+          }
+        }
+        return task
+      })
+      
+      setTasks(updatedTasks)
+      
+      // 상위 컴포넌트에 업데이트 알림
+      onTaskAction?.('update')
+
+      console.log('✅ 로컬 상태 업데이트 완료 (리프레시 없음)', { 
+        updatedCount: updatedTaskIds.length,
+        totalTasks: tasks.length 
+      })
 
     } catch (error) {
       console.error('중분류,소분류 수정 중 오류:', error)
@@ -187,7 +287,7 @@ export const useTaskManager = ({ tasks, setTasks, refetch }: UseTaskManagerProps
     } finally {
       setIsLoading(false)
     }
-  }, [refetch])
+  }, [tasks, setTasks, onTaskAction])
 
   return {
     isLoading,

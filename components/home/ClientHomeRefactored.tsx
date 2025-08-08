@@ -28,6 +28,7 @@ import Loading from '../Loading'
 const ClientHomeRefactored: React.FC = () => {
   const { tasks: dbTasks, loading, error, source, refetch, updateTask } = useTasksFromDatabase()
   const [tasks, setTasks] = useState<Task[]>([])
+  const [lastAction, setLastAction] = useState<{ type: 'add' | 'delete' | 'update' | null, timestamp: number }>({ type: null, timestamp: 0 })
   
   const { 
     isLoading: isTaskLoading, 
@@ -39,17 +40,50 @@ const ClientHomeRefactored: React.FC = () => {
   } = useTaskManager({ 
     tasks, 
     setTasks, 
-    refetch 
+    refetch,
+    onTaskAction: (action: 'add' | 'delete' | 'update') => {
+      setLastAction({ type: action, timestamp: Date.now() })
+    }
   })
 
   const { resourceStats } = useTaskAnalytics(tasks)
 
-  // 데이터 동기화
+  // 데이터 동기화 (스마트 merge)
   useEffect(() => {
     if (dbTasks && dbTasks.length > 0) {
-      setTasks(dbTasks)
+      // 현재 로컬 tasks와 DB tasks를 비교하여 스마트하게 merge
+      setTasks(prevTasks => {
+        // 만약 현재 tasks가 비어있으면 DB 데이터 사용 (초기 로드)
+        if (prevTasks.length === 0) {
+          console.log('🔄 DB 데이터로 초기화')
+          return dbTasks
+        }
+        
+        // 최근 3초 이내에 로컬 액션이 있었다면 덮어쓰기 방지
+        const recentActionTime = Date.now() - lastAction.timestamp
+        if (lastAction.type && recentActionTime < 3000) {
+          console.log(`🛡️ 최근 ${lastAction.type} 액션으로 인한 동기화 건너뜀 (${recentActionTime}ms 전)`)
+          return prevTasks
+        }
+        
+        // DB에 더 많은 Task가 있으면 새로운 Task가 추가된 것으로 판단
+        if (dbTasks.length > prevTasks.length) {
+          console.log('📈 새로운 Task 추가 감지, DB 데이터로 동기화')
+          return dbTasks
+        }
+        
+        // DB에 더 적은 Task가 있으면 Task가 삭제된 것으로 판단
+        if (dbTasks.length < prevTasks.length) {
+          console.log('� Task 삭제 감지, DB 데이터로 동기화')
+          return dbTasks
+        }
+        
+        // 길이가 같으면 현재 로컬 상태 유지 (부분 업데이트 보호)
+        console.log('🛡️ 로컬 상태 유지 (부분 업데이트 보호)')
+        return prevTasks
+      })
     }
-  }, [dbTasks])
+  }, [dbTasks, lastAction])
 
   // 전체 데이터 새로고침 핸들러
   const handleDataRefresh = async () => {

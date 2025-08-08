@@ -10,6 +10,9 @@ interface ContextMenuProps {
   onEditMajorCategory?: () => void
   onEditSubCategory?: () => void
   onAddSubCategory?: () => void
+  onAddMajorCategory?: () => void // 대분류 추가
+  onEditTask?: () => void // 상세업무 수정
+  onDeleteTask?: () => void // 상세업무 삭제
 }
 
 const ContextMenu: React.FC<ContextMenuProps> = ({
@@ -20,7 +23,10 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   onAddActionItem,
   onEditMajorCategory,
   onEditSubCategory,
-  onAddSubCategory
+  onAddSubCategory,
+  onAddMajorCategory,
+  onEditTask,
+  onDeleteTask
 }) => {
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -80,10 +86,33 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     onClose()
   }
 
+  const handleAddMajorCategoryClick = () => {
+    if (onAddMajorCategory) {
+      onAddMajorCategory()
+    }
+    onClose()
+  }
+
+  const handleEditTaskClick = () => {
+    if (onEditTask) {
+      onEditTask()
+    }
+    onClose()
+  }
+
+  const handleDeleteTaskClick = () => {
+    if (onDeleteTask) {
+      onDeleteTask()
+    }
+    onClose()
+  }
+
   // 대분류인지 확인 (level 0)
   const isMajorCategory = task?.level === 0
   // 소분류인지 확인 (level 1)
   const isSubCategory = task?.level === 1
+  // 상세업무인지 확인 (level 2)
+  const isDetailTask = task?.level === 2
 
   return (
     <div 
@@ -92,8 +121,19 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
       style={{
         left: `${position.x}px`,
         top: `${position.y}px`,
-      } as React.CSSProperties}
+      }}
     >
+      {/* 대분류 추가 메뉴 (대분류에서만 표시) */}
+      {isMajorCategory && onAddMajorCategory && (
+        <button
+          onClick={handleAddMajorCategoryClick}
+          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-purple-50 hover:text-purple-700 transition-colors flex items-center gap-2"
+        >
+          <span className="text-purple-500">➕</span>
+          대분류 추가
+        </button>
+      )}
+
       {/* 대분류 수정 메뉴 (대분류에서만 표시) */}
       {isMajorCategory && onEditMajorCategory && (
         <button
@@ -102,6 +142,28 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
         >
           <span className="text-orange-500">✏️</span>
           대분류 수정
+        </button>
+      )}
+
+      {/* 상세업무 수정 메뉴 (상세업무에서만 표시) */}
+      {isDetailTask && onEditTask && (
+        <button
+          onClick={handleEditTaskClick}
+          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-blue-50 hover:text-blue-700 transition-colors flex items-center gap-2"
+        >
+          <span className="text-blue-500">✏️</span>
+          상세업무 수정
+        </button>
+      )}
+
+      {/* 상세업무 삭제 메뉴 (상세업무에서만 표시) */}
+      {isDetailTask && onDeleteTask && (
+        <button
+          onClick={handleDeleteTaskClick}
+          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-red-50 hover:text-red-700 transition-colors flex items-center gap-2"
+        >
+          <span className="text-red-500">🗑️</span>
+          상세업무 삭제
         </button>
       )}
 

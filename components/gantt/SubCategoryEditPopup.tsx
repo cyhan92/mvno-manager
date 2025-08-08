@@ -119,7 +119,7 @@ const SubCategoryEditPopup: React.FC<SubCategoryEditPopupProps> = ({
           const newTask: Partial<Task> = {
             id: taskId,
             name: '상세업무_1',
-            resource: '', // 필수 필드
+            resource: '미정', // 기본값을 "미정"으로 설정
             start: new Date(), // 필수 필드
             end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 필수 필드 (7일 후)
             duration: 7, // 필수 필드
@@ -135,7 +135,7 @@ const SubCategoryEditPopup: React.FC<SubCategoryEditPopupProps> = ({
             category: task.majorCategory || '',
             subcategory: middleCategory.trim(),
             detail: subCategory.trim(),
-            department: '',
+            department: '미정', // 기본값을 "미정"으로 설정
             status: '미완료'
           }
           

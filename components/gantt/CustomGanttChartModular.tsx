@@ -113,6 +113,10 @@ const CustomGanttChartModular: React.FC<CustomGanttChartProps> = ({
           onTaskAdd={onTaskAdd}
           onMajorCategoryUpdate={onMajorCategoryUpdate}
           onSubCategoryUpdate={onSubCategoryUpdate}
+          onTaskUpdate={onTaskUpdate}
+          onTaskDelete={onTaskDelete}
+          onDataRefresh={onDataRefresh}
+          onOpenTaskDetailPopup={popup.openPopup}
         />
         
         {/* Gantt Chart 영역 - 동적 크기 */}

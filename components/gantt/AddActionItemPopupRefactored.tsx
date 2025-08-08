@@ -20,6 +20,12 @@ const AddActionItemPopupRefactored: React.FC<AddActionItemPopupProps> = ({
   onClose,
   onAdd
 }) => {
+  // parentTask 유효성 검사
+  if (!parentTask) {
+    console.error('AddActionItemPopupRefactored: parentTask is required')
+    return null
+  }
+
   const popupRef = useRef<HTMLDivElement>(null)
   
   // 커스텀 훅들 사용
