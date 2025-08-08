@@ -10,7 +10,7 @@ interface HeaderProps {
 
 const Header: React.FC<HeaderProps> = ({ taskCount, onRefresh, source }) => {
   const fileInputRef = useRef<HTMLInputElement>(null)
-  const { logout } = useAuth()
+  const { logout, isAdmin } = useAuth()
 
   const handleLogout = () => {
     const confirmed = window.confirm('로그아웃 하시겠습니까?')
@@ -88,12 +88,14 @@ const Header: React.FC<HeaderProps> = ({ taskCount, onRefresh, source }) => {
         </div>
         
         <div className="flex items-center gap-3">
-          <button
-            onClick={handleExcelUpload}
-            className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium text-sm"
-          >
-            📁 Excel → DB
-          </button>
+          {isAdmin() && (
+            <button
+              onClick={handleExcelUpload}
+              className="px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors font-medium text-sm"
+            >
+              📁 Excel → DB
+            </button>
+          )}
           
           <button
             onClick={handleLogout}

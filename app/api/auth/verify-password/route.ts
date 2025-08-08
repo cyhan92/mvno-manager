@@ -18,11 +18,11 @@ export async function POST(request: Request) {
     // TODO: 실제 환경에서는 세션이나 JWT 토큰에서 현재 사용자 정보를 가져와야 합니다.
     // 현재는 하드코딩된 계정 정보로 검증합니다.
     const validCredentials = [
-      { username: 'nable', password: 'nable123!' },
-      { username: 'admin', password: 'admin123' },
-      { username: 'manager', password: 'manager123' },
-      { username: 'user', password: 'user123' },
-      { username: 'test', password: 'test123' }
+      { username: 'nable', password: 'nable123!', role: 'user' },
+      { username: 'admin', password: 'admin0129!', role: 'admin' },
+      { username: 'manager', password: 'manager123', role: 'user' },
+      { username: 'user', password: 'user123', role: 'user' },
+      { username: 'test', password: 'test123', role: 'user' }
     ]
     
     // 간단한 비밀번호 검증 (실제로는 현재 로그인된 사용자의 비밀번호와 비교해야 함)

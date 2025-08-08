@@ -1,5 +1,6 @@
 'use client'
 import React, { useState } from 'react'
+import { useAuth } from '../contexts/AuthContext'
 
 interface SyncStatus {
   excel: {
@@ -14,9 +15,15 @@ interface SyncStatus {
 }
 
 const DatabaseSyncComponent: React.FC = () => {
+  const { isAdmin } = useAuth()
   const [syncStatus, setSyncStatus] = useState<SyncStatus | null>(null)
   const [isLoading, setIsLoading] = useState(false)
   const [message, setMessage] = useState<string>('')
+
+  // 관리자가 아닌 경우 컴포넌트를 렌더링하지 않음
+  if (!isAdmin()) {
+    return null
+  }
 
   // 동기화 상태 확인
   const checkSyncStatus = async () => {
