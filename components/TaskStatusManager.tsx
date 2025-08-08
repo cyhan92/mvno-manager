@@ -76,12 +76,14 @@ const TaskStatusManager: React.FC = () => {
       })
       
       const data: StatusUpdateResponse = await response.json()
-      setResult(data)
       
-      // 업데이트 후 통계 다시 조회
-      if (data.success) {
-        await fetchStats()
+      // 실패한 경우에만 결과 표시
+      if (!data.success) {
+        setResult(data)
       }
+      
+      // 업데이트 후 통계 다시 조회 (성공/실패 관계없이)
+      await fetchStats()
     } catch (error) {
       console.error('업데이트 실패:', error)
       setResult({
@@ -243,49 +245,49 @@ const TaskStatusManager: React.FC = () => {
         )}
       </Paper>
 
-      {/* 결과 표시 */}
-      {result && (
+      {/* 결과 표시 - 실패한 경우에만 */}
+      {result && !result.success && (
         <Paper elevation={2} sx={{ p: 3 }}>
           <Typography variant="h6" fontWeight={600} mb={2}>
-            📋 업데이트 결과
+            ❌ 업데이트 오류
           </Typography>
           
-          <Alert severity={result.success ? 'success' : 'error'} sx={{ mb: 2 }}>
+          <Alert severity="error" sx={{ mb: 2 }}>
             {result.message}
           </Alert>
 
           {result.data && (
             <Box>
               <Typography variant="subtitle2" fontWeight={600} mb={1}>
-                상세 정보:
+                오류 상세 정보:
               </Typography>
               <Box pl={2}>
-                <Typography variant="body2">• 전체 작업: {result.data.totalTasks}개</Typography>
-                <Typography variant="body2">• 업데이트됨: {result.data.updatedCount}개</Typography>
-                <Typography variant="body2">• 변경 없음: {result.data.unchangedCount}개</Typography>
-                
-                {result.data.statusChanges && (
-                  <Box mt={1}>
-                    <Typography variant="body2" fontWeight={600}>상태 변경 내역:</Typography>
-                    <Box pl={2}>
-                      <Typography variant="body2">→ 완료: {result.data.statusChanges.completed}개</Typography>
-                      <Typography variant="body2">→ 진행중: {result.data.statusChanges.inProgress}개</Typography>
-                      <Typography variant="body2">→ 미진행: {result.data.statusChanges.notStarted}개</Typography>
-                    </Box>
-                  </Box>
+                {result.data.totalTasks && (
+                  <Typography variant="body2">• 전체 작업: {result.data.totalTasks}개</Typography>
                 )}
-
+                {result.data.updatedCount !== undefined && (
+                  <Typography variant="body2">• 업데이트됨: {result.data.updatedCount}개</Typography>
+                )}
+                {result.data.unchangedCount !== undefined && (
+                  <Typography variant="body2">• 변경 없음: {result.data.unchangedCount}개</Typography>
+                )}
+                
                 {result.data.errors && result.data.errors.length > 0 && (
                   <Box mt={1}>
                     <Typography variant="body2" color="error" fontWeight={600}>
-                      오류 발생:
+                      발생한 오류들:
                     </Typography>
-                    <Box pl={2}>
-                      {result.data.errors.map((error, index) => (
-                        <Typography key={index} variant="body2" color="error">
+                    <Box pl={2} sx={{ maxHeight: 200, overflowY: 'auto' }}>
+                      {result.data.errors.slice(0, 10).map((error, index) => (
+                        <Typography key={index} variant="body2" color="error" sx={{ fontSize: '0.85rem' }}>
                           • {error}
                         </Typography>
                       ))}
+                      {result.data.errors.length > 10 && (
+                        <Typography variant="body2" color="error" fontStyle="italic">
+                          ... 외 {result.data.errors.length - 10}개 오류 더 있음
+                        </Typography>
+                      )}
                     </Box>
                   </Box>
                 )}

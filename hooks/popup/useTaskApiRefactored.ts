@@ -27,8 +27,8 @@ export const useTaskApiRefactored = ({ onTaskUpdate, onDataRefresh }: UseTaskApi
 
       await saveTaskService(task, editData, options)
       
-      // 성공 메시지 표시
-      alert('작업이 성공적으로 저장되었습니다!')
+      // 성공 - 별도의 팝업 없이 조용히 처리
+      // alert('작업이 성공적으로 저장되었습니다!') // 제거
       
     } catch (error) {
       console.error('Error updating task:', error)
@@ -49,7 +49,8 @@ export const useTaskApiRefactored = ({ onTaskUpdate, onDataRefresh }: UseTaskApi
 
       await deleteTaskService(task, password, options)
       
-      alert('작업이 성공적으로 삭제되었습니다.')
+      // 성공 - 별도의 팝업 없이 조용히 처리 (DeleteConfirmationPopup이 이미 확인함)
+      // alert('작업이 성공적으로 삭제되었습니다.') // 제거
       
     } catch (error) {
       console.error('Error deleting task:', error)

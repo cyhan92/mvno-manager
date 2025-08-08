@@ -74,7 +74,7 @@ const TaskDetailPopupAdvanced: React.FC<TaskDetailPopupProps> = ({
     try {
       await saveTask(task, editData)
       setIsEditing(false)
-      alert('작업이 성공적으로 저장되었습니다!')
+      // 성공 - 별도의 팝업 없이 조용히 처리
     } catch (error) {
       console.error('저장 실패:', error)
     }

@@ -76,7 +76,7 @@ const EditMajorCategoryPopup: React.FC<EditMajorCategoryPopupProps> = ({
       console.log(`🚀 onSave 함수 호출: "${task.majorCategory}" → "${newCategory.trim()}"`)
       await onSave(task.majorCategory || '', newCategory.trim())
       console.log(`✅ onSave 완료`)
-      alert('대분류가 성공적으로 수정되었습니다!')
+      // 성공 - 별도의 팝업 없이 조용히 처리
       onClose()
     } catch (error) {
       console.error('❌ 대분류 수정 실패:', error)

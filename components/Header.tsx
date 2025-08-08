@@ -46,7 +46,8 @@ const Header: React.FC<HeaderProps> = ({ taskCount, onRefresh, source }) => {
       })
 
       if (response.ok) {
-        alert('✅ Excel 데이터가 성공적으로 데이터베이스에 저장되었습니다!')
+        // 성공 - 별도의 팝업 없이 조용히 처리하고 페이지 새로고침
+        console.log('✅ Excel 데이터가 성공적으로 데이터베이스에 저장되었습니다!')
         window.location.reload() // 페이지 새로고침
       } else {
         const error = await response.text()

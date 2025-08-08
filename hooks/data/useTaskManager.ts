@@ -75,7 +75,8 @@ export const useTaskManager = ({ tasks, setTasks, refetch }: UseTaskManagerProps
         await refetch()
       }
 
-      alert('새로운 업무가 성공적으로 추가되었습니다!')
+      // 성공 - 별도의 팝업 없이 조용히 처리
+      console.log('새로운 업무가 성공적으로 추가되었습니다!')
 
     } catch (error) {
       console.error('Task 추가 중 오류:', error)
