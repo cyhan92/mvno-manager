@@ -7,7 +7,10 @@
     "dev:webpack": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "clean": "rimraf .next && rimraf tsconfig.tsbuildinfo",
+    "fresh": "npm run clean && npm ci && npm run dev",
+    "fresh:webpack": "npm run clean && npm ci && npm run dev:webpack"
   },
   "dependencies": {
     "@emotion/cache": "^11.14.0",
@@ -30,6 +33,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/xlsx": "^0.0.35",
+    "rimraf": "^6.0.1",
     "tailwindcss": "^4",
     "typescript": "^5"
   }

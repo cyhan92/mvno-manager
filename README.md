@@ -188,7 +188,22 @@ npm run dev
 # 브라우저에서 http://localhost:3000 접속
 ```
 
-### 6. 빌드 및 배포
+### 6. 캐시 정리 및 문제 해결
+
+```bash
+# 캐시 정리 (빌드 오류 시 사용)
+npm run clean
+
+# 완전 초기화 후 개발 서버 시작
+npm run fresh
+
+# Webpack 모드로 완전 초기화 후 개발 서버 시작
+npm run fresh:webpack
+```
+
+> **💡 팁**: 리팩토링 후나 의존성 변경 후 CSS 청크 로딩 오류가 발생하면 `npm run fresh`를 실행하세요.
+
+### 7. 빌드 및 배포
 
 ```bash
 # 프로덕션 빌드
