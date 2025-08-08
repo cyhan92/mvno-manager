@@ -36,7 +36,8 @@ const ClientHomeRefactored: React.FC = () => {
     handleTaskUpdate, 
     handleTaskDelete,
     handleMajorCategoryUpdate,
-    handleSubCategoryUpdate
+    handleSubCategoryUpdate,
+    handleMoveMajorCategory
   } = useTaskManager({ 
     tasks, 
     setTasks, 
@@ -156,6 +157,7 @@ const ClientHomeRefactored: React.FC = () => {
           onDataRefresh={handleDataRefresh}
           onMajorCategoryUpdate={handleMajorCategoryUpdate}
           onSubCategoryUpdate={handleSubCategoryUpdate}
+          onMoveMajorCategory={handleMoveMajorCategory}
         />
 
         {/* 담당자 현황 - Gantt 차트 아래에 위치 (기존과 동일) */}

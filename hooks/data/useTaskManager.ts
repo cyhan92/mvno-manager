@@ -289,12 +289,78 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
     }
   }, [tasks, setTasks, onTaskAction])
 
+  // 대분류 이동 핸들러
+  const handleMoveMajorCategory = useCallback(async (currentMajorCategory: string, currentMinorCategory: string, targetMajorCategory: string) => {
+    setIsLoading(true)
+    try {
+      console.log('🔄 대분류 이동 시작:', {
+        from: `${currentMajorCategory} > ${currentMinorCategory}`,
+        to: `${targetMajorCategory} > ${currentMinorCategory}`
+      })
+
+      const response = await fetch('/api/move-major-category', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          currentMajorCategory,
+          currentMinorCategory,
+          targetMajorCategory
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.error)
+      }
+
+      console.log('✅ 대분류 이동 API 성공:', result.data)
+
+      // 로컬 상태 업데이트
+      const updatedTasks = tasks.map((task: Task) => {
+        if (task.majorCategory === currentMajorCategory && task.minorCategory === currentMinorCategory) {
+          return {
+            ...task,
+            majorCategory: targetMajorCategory
+          }
+        }
+        return task
+      })
+
+      setTasks(updatedTasks)
+
+      // 부모 컴포넌트에 변경 알림
+      onTaskAction?.('update')
+
+      console.log('✅ 로컬 상태 업데이트 완료:', {
+        updatedCount: result.data.updatedCount,
+        fromMajorCategory: result.data.fromMajorCategory,
+        toMajorCategory: result.data.toMajorCategory,
+        minorCategory: result.data.minorCategory
+      })
+
+      return {
+        success: true,
+        updatedCount: result.data.updatedCount
+      }
+
+    } catch (error) {
+      console.error('❌ 대분류 이동 실패:', error)
+      throw error
+    } finally {
+      setIsLoading(false)
+    }
+  }, [tasks, setTasks, onTaskAction])
+
   return {
     isLoading,
     handleTaskAdd,
     handleTaskUpdate,
     handleTaskDelete,
     handleMajorCategoryUpdate,
-    handleSubCategoryUpdate
+    handleSubCategoryUpdate,
+    handleMoveMajorCategory
   }
 }

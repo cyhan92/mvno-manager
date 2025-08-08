@@ -25,6 +25,7 @@ interface CustomGanttChartProps {
   onDataRefresh?: () => void
   onMajorCategoryUpdate?: (oldCategory: string, newCategory: string) => Promise<void>
   onSubCategoryUpdate?: (taskId: string, middleCategory: string, subCategory: string) => Promise<void>
+  onMoveMajorCategory?: (currentMajorCategory: string, currentMinorCategory: string, targetMajorCategory: string) => Promise<{ success: boolean; updatedCount: number }>
   groupBy?: string
   showAssigneeInfo: boolean
   onTreeStateChange?: (state: {
@@ -48,6 +49,7 @@ const CustomGanttChartModular: React.FC<CustomGanttChartProps> = ({
   onDataRefresh,
   onMajorCategoryUpdate,
   onSubCategoryUpdate,
+  onMoveMajorCategory,
   groupBy,
   showAssigneeInfo,
   onTreeStateChange
@@ -117,6 +119,7 @@ const CustomGanttChartModular: React.FC<CustomGanttChartProps> = ({
           onTaskDelete={onTaskDelete}
           onDataRefresh={onDataRefresh}
           onOpenTaskDetailPopup={popup.openPopup}
+          onMoveMajorCategory={onMoveMajorCategory}
         />
         
         {/* Gantt Chart 영역 - 동적 크기 */}

@@ -11,6 +11,7 @@ interface GanttChartSectionProps {
   onDataRefresh?: () => void
   onMajorCategoryUpdate?: (oldCategory: string, newCategory: string) => Promise<void>
   onSubCategoryUpdate?: (taskId: string, middleCategory: string, subCategory: string) => Promise<void>
+  onMoveMajorCategory?: (currentMajorCategory: string, currentMinorCategory: string, targetMajorCategory: string) => Promise<{ success: boolean; updatedCount: number }>
 }
 
 const GanttChartSection: React.FC<GanttChartSectionProps> = ({ 
@@ -20,7 +21,8 @@ const GanttChartSection: React.FC<GanttChartSectionProps> = ({
   onTaskDelete, 
   onDataRefresh,
   onMajorCategoryUpdate,
-  onSubCategoryUpdate
+  onSubCategoryUpdate,
+  onMoveMajorCategory
 }) => {
   const [viewMode, setViewMode] = useState<ViewMode>('overview')
   const [groupBy, setGroupBy] = useState<GroupBy>('resource')
@@ -44,6 +46,7 @@ const GanttChartSection: React.FC<GanttChartSectionProps> = ({
           onDataRefresh={onDataRefresh}
           onMajorCategoryUpdate={onMajorCategoryUpdate}
           onSubCategoryUpdate={onSubCategoryUpdate}
+          onMoveMajorCategory={onMoveMajorCategory}
         />
       </Paper>
     </Box>

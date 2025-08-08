@@ -18,6 +18,7 @@ interface GanttChartProps {
   onDataRefresh?: () => void // 전체 데이터 다시 로드 함수
   onMajorCategoryUpdate?: (oldCategory: string, newCategory: string) => Promise<void> // 대분류 수정 콜백
   onSubCategoryUpdate?: (taskId: string, middleCategory: string, subCategory: string) => Promise<void> // 중분류,소분류 수정 콜백
+  onMoveMajorCategory?: (currentMajorCategory: string, currentMinorCategory: string, targetMajorCategory: string) => Promise<{ success: boolean; updatedCount: number }> // 대분류 이동 콜백
 }
 
 export default function GanttChart({ 
@@ -31,7 +32,8 @@ export default function GanttChart({
   onTaskDelete,
   onDataRefresh,
   onMajorCategoryUpdate,
-  onSubCategoryUpdate
+  onSubCategoryUpdate,
+  onMoveMajorCategory
 }: GanttChartProps) {
   const {
     selectedTask,
@@ -106,6 +108,7 @@ export default function GanttChart({
         onDataRefresh={onDataRefresh}
         onMajorCategoryUpdate={onMajorCategoryUpdate}
         onSubCategoryUpdate={onSubCategoryUpdate}
+        onMoveMajorCategory={onMoveMajorCategory}
         groupBy={groupBy}
         showAssigneeInfo={showAssigneeInfo}
         onTreeStateChange={setTreeControls}

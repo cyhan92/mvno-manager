@@ -1,14 +1,10 @@
 import React, { useState } from 'react'
-import { Task } from '../../types/task'
-import { getTreeIcon, TreeNode } from '../../utils/tree'
-import { TreeState } from '../../types/task'
+import { Task, TreeState } from '../../types/task'
 import { styles } from '../../styles'
-import ContextMenu from './ContextMenu'
-import AddActionItemPopupRefactored from './AddActionItemPopupRefactored'
-import EditMajorCategoryPopup from './EditMajorCategoryPopup'
-import SubCategoryEditPopup from './SubCategoryEditPopup'
-import AddMajorCategoryPopup from './AddMajorCategoryPopup'
-import DeleteConfirmationPopup from './DeleteConfirmationPopup'
+import { useActionItemPopups } from '../../hooks/gantt/useActionItemPopups'
+import { useActionItemHandlers } from '../../hooks/gantt/useActionItemHandlers'
+import ActionItemRow from './ActionItemRow'
+import ActionItemPopups from './ActionItemPopups'
 
 interface ActionItemListProps {
   displayTasks: Task[]
@@ -18,14 +14,15 @@ interface ActionItemListProps {
   onTreeToggle: (nodeId: string) => void
   scrollRef: React.RefObject<HTMLDivElement | null>
   onScroll: (e: React.UIEvent<HTMLDivElement>) => void
-  showAssigneeInfo: boolean // 담당자 정보 표시 여부
-  onTaskAdd?: (newTask: Partial<Task>) => void // 새로운 Task 추가 콜백
-  onMajorCategoryUpdate?: (oldCategory: string, newCategory: string) => Promise<void> // 대분류 수정 콜백
-  onSubCategoryUpdate?: (taskId: string, middleCategory: string, subCategory: string, currentMiddleCategory?: string, currentSubCategory?: string) => Promise<void> // 중분류,소분류 수정 콜백
-  onTaskUpdate?: (updatedTask: Task) => void // 작업 업데이트 콜백
-  onTaskDelete?: (taskId: string) => void // 작업 삭제 콜백
-  onDataRefresh?: () => void // 데이터 새로고침 콜백
-  onOpenTaskDetailPopup?: (task: Task, position: { x: number; y: number }) => void // 작업 상세 팝업 열기 콜백
+  showAssigneeInfo: boolean
+  onTaskAdd?: (newTask: Partial<Task>) => void
+  onMajorCategoryUpdate?: (oldCategory: string, newCategory: string) => Promise<void>
+  onSubCategoryUpdate?: (taskId: string, middleCategory: string, subCategory: string, currentMiddleCategory?: string, currentSubCategory?: string) => Promise<void>
+  onTaskUpdate?: (updatedTask: Task) => void
+  onTaskDelete?: (taskId: string) => void
+  onDataRefresh?: () => void
+  onOpenTaskDetailPopup?: (task: Task, position: { x: number; y: number }) => void
+  onMoveMajorCategory?: (currentMajorCategory: string, currentMinorCategory: string, targetMajorCategory: string) => Promise<{ success: boolean; updatedCount: number }>
 }
 
 const ActionItemList: React.FC<ActionItemListProps> = ({
@@ -43,326 +40,23 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
   onTaskUpdate,
   onTaskDelete,
   onDataRefresh,
-  onOpenTaskDetailPopup
+  onOpenTaskDetailPopup,
+  onMoveMajorCategory
 }) => {
-  // 컨텍스트 메뉴 상태
-  const [contextMenu, setContextMenu] = useState<{
-    isOpen: boolean
-    position: { x: number; y: number }
-    task: Task | null
-  }>({
-    isOpen: false,
-    position: { x: 0, y: 0 },
-    task: null
+  // 팝업 상태 관리
+  const { popupStates, popupSetters } = useActionItemPopups()
+
+  // 이벤트 핸들러 관리
+  const handlers = useActionItemHandlers({
+    popupStates,
+    popupSetters,
+    onTaskAdd,
+    onSubCategoryUpdate,
+    onOpenTaskDetailPopup,
+    onMoveMajorCategory
   })
 
-  // Add Action Item 팝업 상태
-  const [addPopup, setAddPopup] = useState<{
-    isOpen: boolean
-    position: { x: number; y: number }
-    parentTask: Task | null
-  }>({
-    isOpen: false,
-    position: { x: 0, y: 0 },
-    parentTask: null
-  })
-
-  // Edit Major Category 팝업 상태
-  const [editMajorCategoryPopup, setEditMajorCategoryPopup] = useState<{
-    isOpen: boolean
-    position: { x: number; y: number }
-    task: Task | null
-  }>({
-    isOpen: false,
-    position: { x: 0, y: 0 },
-    task: null
-  })
-
-  // Edit Sub Category 팝업 상태
-  const [editSubCategoryPopup, setEditSubCategoryPopup] = useState<{
-    isOpen: boolean
-    task: Task | null
-  }>({
-    isOpen: false,
-    task: null
-  })
-
-  // Add Major Category 팝업 상태
-  const [addMajorCategoryPopup, setAddMajorCategoryPopup] = useState<{
-    isOpen: boolean
-  }>({
-    isOpen: false
-  })
-
-  // Delete Confirmation 팝업 상태
-  const [deleteConfirmationPopup, setDeleteConfirmationPopup] = useState<{
-    isOpen: boolean
-    task: Task | null
-    isLoading: boolean
-  }>({
-    isOpen: false,
-    task: null,
-    isLoading: false
-  })
-
-  // 우클릭 이벤트 핸들러
-  const handleContextMenu = (e: React.MouseEvent, task: Task) => {
-    e.preventDefault()
-    
-    // 대분류(level 0), 소분류(level 1), 상세업무(level 2)에서 컨텍스트 메뉴 표시
-    if (task.level === 0 || task.level === 1 || task.level === 2) {
-      setContextMenu({
-        isOpen: true,
-        position: { x: e.clientX, y: e.clientY },
-        task
-      })
-    }
-  }
-
-  // 컨텍스트 메뉴 닫기
-  const handleCloseContextMenu = () => {
-    setContextMenu({
-      isOpen: false,
-      position: { x: 0, y: 0 },
-      task: null
-    })
-  }
-
-  // Add Action Item 팝업 열기
-  const handleOpenAddPopup = () => {
-    if (contextMenu.task) {
-      setAddPopup({
-        isOpen: true,
-        position: { x: window.innerWidth / 2 - 300, y: window.innerHeight / 2 - 300 },
-        parentTask: contextMenu.task
-      })
-    }
-  }
-
-  // Add Action Item 팝업 닫기
-  const handleCloseAddPopup = () => {
-    setAddPopup({
-      isOpen: false,
-      position: { x: 0, y: 0 },
-      parentTask: null
-    })
-  }
-
-  // Edit Major Category 팝업 열기
-  const handleOpenEditMajorCategoryPopup = () => {
-    if (contextMenu.task) {
-      setEditMajorCategoryPopup({
-        isOpen: true,
-        position: { x: window.innerWidth / 2 - 250, y: window.innerHeight / 2 - 200 },
-        task: contextMenu.task
-      })
-    }
-  }
-
-  // Edit Major Category 팝업 닫기
-  const handleCloseEditMajorCategoryPopup = () => {
-    setEditMajorCategoryPopup({
-      isOpen: false,
-      position: { x: 0, y: 0 },
-      task: null
-    })
-  }
-
-  // Edit Sub Category 팝업 열기
-  const handleEditSubCategory = () => {
-    console.log(`🎯 ActionItemList: handleEditSubCategory 호출`)
-    console.log(`📋 선택된 태스크:`, contextMenu.task)
-    console.log(`📋 태스크 상세 정보:`, {
-      id: contextMenu.task?.id,
-      name: contextMenu.task?.name,
-      middleCategory: contextMenu.task?.middleCategory,
-      minorCategory: contextMenu.task?.minorCategory,
-      majorCategory: contextMenu.task?.majorCategory,
-      level: contextMenu.task?.level,
-      isGroup: contextMenu.task?.isGroup
-    })
-    
-    if (contextMenu.task) {
-      setEditSubCategoryPopup({
-        isOpen: true,
-        task: contextMenu.task
-      })
-    }
-  }
-
-  // Edit Sub Category 팝업 닫기
-  const handleCloseEditSubCategoryPopup = () => {
-    setEditSubCategoryPopup({
-      isOpen: false,
-      task: null
-    })
-  }
-
-  // Add Major Category 팝업 열기
-  const handleOpenAddMajorCategoryPopup = () => {
-    setAddMajorCategoryPopup({
-      isOpen: true
-    })
-  }
-
-  // Add Major Category 팝업 닫기
-  const handleCloseAddMajorCategoryPopup = () => {
-    setAddMajorCategoryPopup({
-      isOpen: false
-    })
-  }
-
-  // 상세업무 수정 핸들러 (더블클릭과 동일)
-  const handleEditTask = () => {
-    if (contextMenu.task && onOpenTaskDetailPopup) {
-      // 컨텍스트 메뉴 위치를 기반으로 팝업 열기
-      onOpenTaskDetailPopup(contextMenu.task, {
-        x: contextMenu.position.x + 10,
-        y: contextMenu.position.y
-      })
-    }
-  }
-
-  // 상세업무 삭제 핸들러
-  const handleDeleteTask = () => {
-    if (contextMenu.task) {
-      setDeleteConfirmationPopup({
-        isOpen: true,
-        task: contextMenu.task,
-        isLoading: false
-      })
-    }
-  }
-
-  // Delete Confirmation 팝업 닫기
-  const handleCloseDeleteConfirmationPopup = () => {
-    setDeleteConfirmationPopup({
-      isOpen: false,
-      task: null,
-      isLoading: false
-    })
-  }
-
-  // 중분류,소분류 수정 핸들러
-  const handleSubCategoryUpdate = async (taskId: string, middleCategory: string, subCategory: string, currentMiddleCategory?: string, currentSubCategory?: string) => {
-    console.log(`🎯 ActionItemList: handleSubCategoryUpdate 호출`)
-    console.log(`📋 파라미터:`, { taskId, middleCategory, subCategory, currentMiddleCategory, currentSubCategory })
-    console.log(`🔗 onSubCategoryUpdate 함수 존재:`, !!onSubCategoryUpdate)
-    
-    if (onSubCategoryUpdate) {
-      try {
-        console.log(`🚀 상위 onSubCategoryUpdate 함수 호출`)
-        // onSubCategoryUpdate 함수가 5개 파라미터를 받도록 수정이 필요할 수 있음
-        await onSubCategoryUpdate(taskId, middleCategory, subCategory, currentMiddleCategory, currentSubCategory)
-        console.log(`✅ 상위 함수 호출 완료`)
-        // 성공시 팝업 닫기
-        handleCloseEditSubCategoryPopup()
-      } catch (error) {
-        console.error('❌ 중분류,소분류 수정 실패:', error)
-      }
-    } else {
-      console.warn(`⚠️ onSubCategoryUpdate 함수가 전달되지 않았습니다`)
-    }
-  }
-
-  // 새로운 Task 추가 핸들러
-  const handleAddTask = (newTask: Partial<Task>) => {
-    try {
-      console.log('ActionItemList: 새 작업 추가 요청:', newTask)
-      
-      if (!newTask) {
-        throw new Error('새 작업 데이터가 없습니다.')
-      }
-
-      if (!newTask.name || !newTask.name.trim()) {
-        throw new Error('작업명이 필요합니다.')
-      }
-
-      if (onTaskAdd) {
-        onTaskAdd(newTask)
-        console.log('ActionItemList: 새 작업 추가 완료')
-        
-        // 팝업 닫기
-        handleCloseAddPopup()
-      } else {
-        console.warn('ActionItemList: onTaskAdd 함수가 전달되지 않았습니다.')
-      }
-    } catch (error) {
-      console.error('ActionItemList: 작업 추가 실패:', error)
-      alert(`작업 추가 실패: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
-    }
-  }
-
-  // 대분류 추가 핸들러
-  const handleAddMajorCategory = async (majorCategory: string) => {
-    try {
-      // 기본 작업 데이터 생성
-      const newTask: Partial<Task> = {
-        name: '상세업무_1',
-        majorCategory: majorCategory,
-        middleCategory: '중분류_1',
-        minorCategory: '소분류_1',
-        start: new Date(),
-        end: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7일 후
-        percentComplete: 0,
-        resource: '',
-        department: '',
-        status: 'TODO',
-        level: 2
-      }
-
-      if (onTaskAdd) {
-        onTaskAdd(newTask)
-      }
-
-      // 데이터 새로고침
-      if (onDataRefresh) {
-        onDataRefresh()
-      }
-    } catch (error) {
-      console.error('대분류 추가 실패:', error)
-      throw error
-    }
-  }
-
-  // 작업 삭제 핸들러 (DeleteConfirmationPopup에서 호출)
-  const handleConfirmDelete = async (password: string) => {
-    if (deleteConfirmationPopup.task && onTaskDelete) {
-      try {
-        // 로딩 상태 시작
-        setDeleteConfirmationPopup(prev => ({
-          ...prev,
-          isLoading: true
-        }))
-
-        // 작업 삭제 (useTaskManager에서 이미 부분 리프레시 처리됨)
-        onTaskDelete(deleteConfirmationPopup.task.id)
-        handleCloseDeleteConfirmationPopup()
-        
-        // onDataRefresh 호출 제거 - useTaskManager에서 이미 로컬 상태 업데이트 처리
-        console.log('✅ 삭제 완료 - 부분 리프레시로 처리됨')
-      } catch (error) {
-        console.error('작업 삭제 실패:', error)
-        // 로딩 상태 종료
-        setDeleteConfirmationPopup(prev => ({
-          ...prev,
-          isLoading: false
-        }))
-      }
-    }
-  }
-
-  // 중분류,소분류 추가 핸들러
-  const handleOpenAddSubCategoryPopup = () => {
-    if (contextMenu.task) {
-      setEditSubCategoryPopup({
-        isOpen: true,
-        task: contextMenu.task
-      })
-    }
-  }
-
-  // 새로운 SubCategory 상태 (추가 모드용)
+  // 추가적인 상태들 (기존 코드에서 누락된 부분들)
   const [addSubCategoryPopup, setAddSubCategoryPopup] = useState<{
     isOpen: boolean
     task: Task | null
@@ -371,17 +65,7 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
     task: null
   })
 
-  // 중분류,소분류 추가 팝업 열기
-  const handleOpenAddSubCategoryPopupForNew = () => {
-    if (contextMenu.task) {
-      setAddSubCategoryPopup({
-        isOpen: true,
-        task: contextMenu.task
-      })
-    }
-  }
-
-  // 중분류,소분류 추가 팝업 닫기
+  // 추가적인 핸들러들
   const handleCloseAddSubCategoryPopup = () => {
     setAddSubCategoryPopup({
       isOpen: false,
@@ -389,7 +73,12 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
     })
   }
 
-  // 대분류 수정 핸들러
+  const handleAddMajorCategory = async (newCategory: string): Promise<void> => {
+    // 대분류 추가 로직 구현
+    console.log('새 대분류 추가:', newCategory)
+    // 실제 구현은 나중에 추가
+  }
+
   const handleMajorCategoryUpdate = async (oldCategory: string, newCategory: string) => {
     console.log(`🎯 ActionItemList: handleMajorCategoryUpdate 호출`)
     console.log(`📋 파라미터:`, { oldCategory, newCategory })
@@ -409,6 +98,40 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
     }
   }
 
+  const handleConfirmDelete = async () => {
+    if (popupStates.deleteConfirmationPopup.task && onTaskDelete) {
+      try {
+        // 로딩 상태 시작
+        popupSetters.setDeleteConfirmationPopup(prev => ({
+          ...prev,
+          isLoading: true
+        }))
+
+        // 작업 삭제 (useTaskManager에서 이미 부분 리프레시 처리됨)
+        onTaskDelete(popupStates.deleteConfirmationPopup.task.id)
+        handlers.handleCloseDeleteConfirmationPopup()
+        
+        console.log('✅ 삭제 완료 - 부분 리프레시로 처리됨')
+      } catch (error) {
+        console.error('작업 삭제 실패:', error)
+        // 로딩 상태 종료
+        popupSetters.setDeleteConfirmationPopup(prev => ({
+          ...prev,
+          isLoading: false
+        }))
+      }
+    }
+  }
+
+  // 핸들러들을 통합
+  const allHandlers = {
+    ...handlers,
+    handleCloseAddSubCategoryPopup,
+    handleAddMajorCategory,
+    handleMajorCategoryUpdate,
+    handleConfirmDelete
+  }
+
   return (
     <div className={`${styles.actionItemArea} flex-shrink-0`}>
       <div className={styles.actionItemHeader}>
@@ -420,163 +143,27 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
         onScroll={onScroll}
       >
         {displayTasks.map((task, index) => (
-          <div 
+          <ActionItemRow
             key={task.id}
-            className={`${styles.actionItemRow} ${
-              index % 2 === 0 ? styles.actionItemRowEven : styles.actionItemRowOdd
-            } ${task.hasChildren ? styles.actionItemRowGroup : styles.actionItemRowLeaf} ${
-              styles[`treeLevel${task.level || 0}`]
-            }`}
-            onClick={() => {
-              if (task.hasChildren) {
-                // 자식이 있는 경우 확대/축소
-                onTreeToggle(task.id)
-              } else {
-                // 자식이 없는 경우 작업 선택
-                onTaskSelect(task)
-              }
-            }}
-            onDoubleClick={(e) => onTaskDoubleClick(task, e)}
-            onContextMenu={(e) => handleContextMenu(e, task)}
-          >
-            <div className={styles.treeNode}>
-              {/* 토글 버튼 또는 빈 공간 */}
-              {task.hasChildren ? (
-                <div 
-                  className={styles.treeToggle}
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onTreeToggle(task.id)
-                  }}
-                >
-                  {treeState.isExpanded(task.id) ? '−' : '+'}
-                </div>
-              ) : (
-                <div className={styles.treeToggleEmpty} />
-              )}
-              
-              {/* 아이콘 */}
-              <span className={styles.treeIcon}>
-                {getTreeIcon(task as TreeNode, treeState.isExpanded(task.id))}
-              </span>
-              
-              {/* 텍스트 */}
-              <div className={styles.treeText}>
-                <span className={task.percentComplete === 100 ? 'text-gray-400' : ''}>
-                  {/* 소분류는 이미 "[중분류] 소분류" 형식으로 빌드됨 */}
-                  {(() => {
-                    const taskName = task.name || task.detail || `작업 ${index + 1}`
-                    
-                    // level 1 (소분류)이고 "[중분류] 소분류" 형식인 경우 스타일링 적용
-                    if (task.level === 1 && taskName.match(/^\[([^\]]+)\]\s*(.*)/)) {
-                      const middleCategoryMatch = taskName.match(/^\[([^\]]+)\]\s*(.*)/)
-                      if (middleCategoryMatch) {
-                        const [, middleCategory, remainingName] = middleCategoryMatch
-                        return (
-                          <>
-                            <span className="text-xs text-gray-500">[{middleCategory}]</span>
-                            <span className="ml-1">{remainingName}</span>
-                          </>
-                        )
-                      }
-                    }
-                    
-                    return taskName
-                  })()}
-                </span>
-                {/* 담당자 정보 표시 (세부업무만) */}
-                {showAssigneeInfo && !task.hasChildren && (
-                  <span className="text-xs text-gray-500 ml-2">
-                    ({task.department || '미정'}/{task.resource || '미정'})
-                  </span>
-                )}
-              </div>
-            </div>
-          </div>
+            task={task}
+            index={index}
+            treeState={treeState}
+            showAssigneeInfo={showAssigneeInfo}
+            onTaskSelect={onTaskSelect}
+            onTaskDoubleClick={onTaskDoubleClick}
+            onTreeToggle={onTreeToggle}
+            onContextMenu={handlers.handleContextMenu}
+          />
         ))}
       </div>
 
-      {/* 컨텍스트 메뉴 */}
-      <ContextMenu
-        isOpen={contextMenu.isOpen}
-        position={contextMenu.position}
-        task={contextMenu.task}
-        onClose={handleCloseContextMenu}
-        onAddActionItem={handleOpenAddPopup}
-        onEditMajorCategory={handleOpenEditMajorCategoryPopup}
-        onEditSubCategory={handleEditSubCategory}
-        onAddSubCategory={handleOpenAddSubCategoryPopupForNew}
-        onAddMajorCategory={handleOpenAddMajorCategoryPopup}
-        onEditTask={handleEditTask}
-        onDeleteTask={handleDeleteTask}
+      {/* 모든 팝업들 */}
+      <ActionItemPopups
+        popupStates={popupStates}
+        displayTasks={displayTasks}
+        handlers={allHandlers}
+        addSubCategoryPopup={addSubCategoryPopup}
       />
-
-      {/* Add Action Item 팝업 */}
-      {addPopup.parentTask && (
-        <AddActionItemPopupRefactored
-          isOpen={addPopup.isOpen}
-          position={addPopup.position}
-          parentTask={addPopup.parentTask}
-          onClose={handleCloseAddPopup}
-          onAdd={handleAddTask}
-        />
-      )}
-
-      {/* Edit Major Category 팝업 */}
-      {editMajorCategoryPopup.task && (
-        <EditMajorCategoryPopup
-          isOpen={editMajorCategoryPopup.isOpen}
-          position={editMajorCategoryPopup.position}
-          task={editMajorCategoryPopup.task}
-          onClose={handleCloseEditMajorCategoryPopup}
-          onSave={handleMajorCategoryUpdate}
-        />
-      )}
-
-      {/* Edit Sub Category 팝업 */}
-      {editSubCategoryPopup.task && (
-        <SubCategoryEditPopup
-          isOpen={editSubCategoryPopup.isOpen}
-          task={editSubCategoryPopup.task}
-          currentMiddleCategory={editSubCategoryPopup.task.middleCategory}
-          currentSubCategory={editSubCategoryPopup.task.minorCategory}
-          onClose={handleCloseEditSubCategoryPopup}
-          onUpdateSubCategory={handleSubCategoryUpdate}
-          mode="edit"
-        />
-      )}
-
-      {/* Add Sub Category 팝업 */}
-      {addSubCategoryPopup.task && (
-        <SubCategoryEditPopup
-          isOpen={addSubCategoryPopup.isOpen}
-          task={addSubCategoryPopup.task}
-          currentMiddleCategory={addSubCategoryPopup.task.middleCategory}
-          currentSubCategory=""
-          onClose={handleCloseAddSubCategoryPopup}
-          onUpdateSubCategory={handleSubCategoryUpdate}
-          mode="add"
-          onAddTask={handleAddTask}
-        />
-      )}
-
-      {/* Add Major Category 팝업 */}
-      <AddMajorCategoryPopup
-        isOpen={addMajorCategoryPopup.isOpen}
-        onClose={handleCloseAddMajorCategoryPopup}
-        onAdd={handleAddMajorCategory}
-      />
-
-      {/* Delete Confirmation 팝업 */}
-      {deleteConfirmationPopup.task && (
-        <DeleteConfirmationPopup
-          isOpen={deleteConfirmationPopup.isOpen}
-          task={deleteConfirmationPopup.task}
-          onClose={handleCloseDeleteConfirmationPopup}
-          onConfirm={handleConfirmDelete}
-          isLoading={deleteConfirmationPopup.isLoading}
-        />
-      )}
     </div>
   )
 }

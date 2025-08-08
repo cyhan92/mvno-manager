@@ -13,6 +13,7 @@ interface ContextMenuProps {
   onAddMajorCategory?: () => void // 대분류 추가
   onEditTask?: () => void // 상세업무 수정
   onDeleteTask?: () => void // 상세업무 삭제
+  onMoveMajorCategory?: () => void // 대분류 이동 (소분류에서만)
 }
 
 const ContextMenu: React.FC<ContextMenuProps> = ({
@@ -26,7 +27,8 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
   onAddSubCategory,
   onAddMajorCategory,
   onEditTask,
-  onDeleteTask
+  onDeleteTask,
+  onMoveMajorCategory
 }) => {
   const menuRef = useRef<HTMLDivElement>(null)
 
@@ -107,6 +109,13 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
     onClose()
   }
 
+  const handleMoveMajorCategoryClick = () => {
+    if (onMoveMajorCategory) {
+      onMoveMajorCategory()
+    }
+    onClose()
+  }
+
   // 대분류인지 확인 (level 0)
   const isMajorCategory = task?.level === 0
   // 소분류인지 확인 (level 1)
@@ -175,6 +184,17 @@ const ContextMenu: React.FC<ContextMenuProps> = ({
         >
           <span className="text-green-500">✏️</span>
           중분류,소분류 수정
+        </button>
+      )}
+
+      {/* 대분류 이동 메뉴 (소분류에서만 표시) */}
+      {isSubCategory && onMoveMajorCategory && (
+        <button
+          onClick={handleMoveMajorCategoryClick}
+          className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-amber-50 hover:text-amber-700 transition-colors flex items-center gap-2"
+        >
+          <span className="text-amber-500">🔄</span>
+          대분류 이동
         </button>
       )}
 
