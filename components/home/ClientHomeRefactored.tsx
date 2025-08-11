@@ -60,17 +60,11 @@ const ClientHomeRefactored: React.FC = () => {
           return dbTasks
         }
         
-        // 최근 3초 이내에 로컬 액션이 있었다면 덮어쓰기 방지
-        // 단, update 액션의 경우에는 DB 동기화를 허용 (서버 처리 결과 반영)
+        // 최근 5초 이내에 로컬 액션이 있었다면 덮어쓰기 방지 (로컬 상태 우선)
         const recentActionTime = Date.now() - lastAction.timestamp
-        if (lastAction.type && recentActionTime < 3000) {
-          if (lastAction.type === 'update') {
-            console.log(`✅ update 액션 후 DB 동기화 허용 (${recentActionTime}ms 전)`)
-            return dbTasks
-          } else {
-            console.log(`🛡️ 최근 ${lastAction.type} 액션으로 인한 동기화 건너뜀 (${recentActionTime}ms 전)`)
-            return prevTasks
-          }
+        if (lastAction.type && recentActionTime < 5000) {
+          console.log(`🛡️ 최근 ${lastAction.type} 액션으로 인한 동기화 건너뜀 (${recentActionTime}ms 전)`)
+          return prevTasks
         }
         
         // DB에 더 많은 Task가 있으면 새로운 Task가 추가된 것으로 판단

@@ -282,6 +282,12 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
       
       setTasks(updatedTasks)
       
+      console.log('🔍 setTasks 호출 완료:', {
+        originalTasksCount: tasks.length,
+        updatedTasksCount: updatedTasks.length,
+        sampleUpdatedTask: updatedTasks.find(t => t.middleCategory === middleCategory)
+      })
+      
       // 상위 컴포넌트에 업데이트 알림
       onTaskAction?.('update')
 
