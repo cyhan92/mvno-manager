@@ -13,15 +13,51 @@ export async function PATCH(request: NextRequest) {
     console.log('🚀 API 요청 수신: PATCH /api/sub-category')
     console.log('📋 요청 데이터:', { taskId, middleCategory, subCategory, currentMiddleCategory, currentSubCategory })
 
-    if (!middleCategory || !subCategory) {
-      console.error('❌ 필수 파라미터 누락:', { middleCategory, subCategory })
+    if (!middleCategory) {
+      console.error('❌ 필수 파라미터 누락:', { middleCategory })
       return NextResponse.json(
-        { error: '중분류와 소분류가 모두 필요합니다.' },
+        { error: '중분류가 필요합니다.' },
         { status: 400 }
       )
     }
 
-    // 현재 중분류/소분류 정보가 있는 경우 이를 이용해 업데이트
+    // 중분류만 수정하는 경우 (currentMiddleCategory만 있고 currentSubCategory는 없거나 undefined)
+    if (currentMiddleCategory && !currentSubCategory) {
+      console.log('🔍 중분류만 일괄 업데이트:', {
+        from: { middle: currentMiddleCategory },
+        to: { middle: middleCategory }
+      })
+
+      // 동일한 중분류를 가진 모든 작업의 중분류만 업데이트 (소분류는 그대로 유지)
+      const { data: updatedTasks, error: updateError } = await supabase
+        .from('tasks')
+        .update({
+          middle_category: middleCategory
+        })
+        .eq('middle_category', currentMiddleCategory)
+        .select()
+
+      if (updateError) {
+        console.error('❌ 중분류 업데이트 오류:', updateError)
+        return NextResponse.json(
+          { error: `중분류 업데이트 실패: ${updateError.message}` },
+          { status: 500 }
+        )
+      }
+
+      console.log('✅ 중분류 업데이트 성공:', {
+        updatedCount: updatedTasks?.length || 0,
+        updatedTasks: updatedTasks?.map(t => ({ id: t.id, task_id: t.task_id, title: t.title }))
+      })
+
+      return NextResponse.json({
+        success: true,
+        message: `${updatedTasks?.length || 0}개 작업의 중분류가 업데이트되었습니다.`,
+        updatedTasks
+      })
+    }
+
+    // 현재 중분류/소분류 정보가 있는 경우 이를 이용해 일괄 업데이트
     if (currentMiddleCategory && currentSubCategory) {
       console.log('🔍 기존 중분류/소분류로 일괄 업데이트:', {
         from: { middle: currentMiddleCategory, minor: currentSubCategory },
@@ -29,12 +65,18 @@ export async function PATCH(request: NextRequest) {
       })
 
       // 동일한 중분류/소분류를 가진 모든 작업을 업데이트
+      const updateData: any = {
+        middle_category: middleCategory
+      }
+      
+      // 소분류가 제공된 경우에만 업데이트
+      if (subCategory) {
+        updateData.minor_category = subCategory
+      }
+
       const { data: updatedTasks, error: updateError } = await supabase
         .from('tasks')
-        .update({
-          middle_category: middleCategory,
-          minor_category: subCategory
-        })
+        .update(updateData)
         .eq('middle_category', currentMiddleCategory)
         .eq('minor_category', currentSubCategory)
         .select()

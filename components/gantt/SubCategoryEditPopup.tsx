@@ -122,14 +122,29 @@ const SubCategoryEditPopup: React.FC<SubCategoryEditPopupProps> = ({
       } else {
         // 수정 모드: 기존 로직
         
-        // 추가 파라미터와 함께 호출
-        onUpdateSubCategory(
-          task.id, 
-          middleCategory.trim(), 
-          subCategory.trim(),
-          originalMiddleCategory,
-          originalSubCategory
-        )
+        // 중분류만 수정된 경우와 소분류까지 수정된 경우를 구분
+        const isMiddleCategoryChanged = middleCategory.trim() !== originalMiddleCategory
+        const isSubCategoryChanged = subCategory.trim() !== originalSubCategory
+        
+        if (isMiddleCategoryChanged && !isSubCategoryChanged) {
+          // 중분류만 수정된 경우: currentSubCategory를 undefined로 전달하여 중분류만 업데이트
+          onUpdateSubCategory(
+            '', // taskId는 빈 문자열 (개별 Task 수정이 아니므로)
+            middleCategory.trim(), 
+            '', // subCategory는 빈 문자열 (수정하지 않음)
+            originalMiddleCategory,
+            undefined // currentSubCategory를 undefined로 전달
+          )
+        } else {
+          // 소분류도 수정된 경우: 기존 로직 유지
+          onUpdateSubCategory(
+            '', // taskId는 빈 문자열 (개별 Task 수정이 아니므로) 
+            middleCategory.trim(), 
+            subCategory.trim(),
+            originalMiddleCategory,
+            originalSubCategory
+          )
+        }
       }
       onClose()
     }
