@@ -30,7 +30,8 @@ export const calculateDateRange = (tasks: Task[]) => {
 // 초기 뷰포트 위치 계산 (오늘 날짜 기준 왼쪽 1달까지만 표시)
 export const calculateInitialViewport = (fullDateRange: { startDate: Date; endDate: Date; timeRange: number }) => {
   const today = new Date()
-  const viewportStart = new Date(today.getFullYear(), today.getMonth() - 1, 1)
+  // 현재일 기준으로 정확히 30일 전부터 보이도록 설정
+  const viewportStart = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000))
   
   // 실제 데이터 시작일과 뷰포트 시작일 중 늦은 날짜 사용
   const effectiveStart = new Date(Math.max(viewportStart.getTime(), fullDateRange.startDate.getTime()))
