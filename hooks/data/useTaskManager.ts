@@ -225,54 +225,55 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
 
       const result = await response.json()
 
-      // API 응답에서 실제 업데이트된 Task ID들 가져오기
-      const updatedTaskIds = result.updatedTasks?.map((t: any) => t.task_id) || []
+      // 액션 타입 알림 (데이터 동기화를 위해)
+      if (onTaskAction) {
+        onTaskAction('update')
+      }
 
-      // 로컬 상태에서 해당 Task들 업데이트 - 실제 업무 내용은 보존
-      const updatedTasks = tasks.map((task: Task) => {
-        // API에서 실제로 업데이트된 Task들만 로컬에서도 업데이트
-        if (updatedTaskIds.includes(task.id)) {
-          // 기존 task.name에서 실제 업무 내용 추출
-          let actualTaskContent = task.name || ''
-          
-          // "[중분류] 소분류: 실제업무내용" 패턴 매칭
-          const categoryPattern = /^\[([^\]]+)\]\s+([^:：]+)[:：]\s*(.*)/
-          const match = actualTaskContent.match(categoryPattern)
-          
-          if (match) {
-            // 패턴이 매치되면 실제 업무 내용만 추출 (3번째 그룹)
-            actualTaskContent = match[3].trim()
-          } else {
-            // 패턴이 매치되지 않는 경우 다른 패턴들 시도
-            // "[중분류] 소분류" 패턴 (콜론 없음)
-            const simplePattern = /^\[([^\]]+)\]\s+(.+)/
-            const simpleMatch = actualTaskContent.match(simplePattern)
+      // 전체 데이터 다시 로드 (DB와 동기화)
+      if (refetch) {
+        await refetch()
+      } else {
+        console.warn('⚠️ [중분류,소분류 수정] refetch 함수가 없습니다')
+        
+        // fallback: 로컬 상태 업데이트 시도
+        const updatedTaskIds = result.updatedTasks?.map((t: any) => t.task_id) || []
+
+        const updatedTasks = tasks.map((task: Task) => {
+          if (updatedTaskIds.includes(task.id)) {
+            let actualTaskContent = task.name || ''
             
-            if (simpleMatch) {
-              actualTaskContent = simpleMatch[2].trim()
+            const categoryPattern = /^\[([^\]]+)\]\s+([^:：]+)[:：]\s*(.*)/
+            const match = actualTaskContent.match(categoryPattern)
+            
+            if (match) {
+              actualTaskContent = match[3].trim()
+            } else {
+              const simplePattern = /^\[([^\]]+)\]\s+(.+)/
+              const simpleMatch = actualTaskContent.match(simplePattern)
+              
+              if (simpleMatch) {
+                actualTaskContent = simpleMatch[2].trim()
+              }
+            }
+
+            if (!actualTaskContent || actualTaskContent.trim() === '') {
+              actualTaskContent = '업무 내용'
+            }
+            
+            return {
+              ...task,
+              name: actualTaskContent,
+              title: actualTaskContent,
+              middleCategory,
+              minorCategory: subCategory || task.minorCategory
             }
           }
-
-          // 실제 업무 내용이 비어있다면 기본값 설정
-          if (!actualTaskContent || actualTaskContent.trim() === '') {
-            actualTaskContent = '업무 내용'
-          }
-          
-          return {
-            ...task,
-            name: actualTaskContent, // UI 표시용 (실제 업무 내용만)
-            title: actualTaskContent, // DB 저장용 (현재는 name과 동일)
-            middleCategory,
-            minorCategory: subCategory
-          }
-        }
-        return task
-      })
-      
-      setTasks(updatedTasks)
-      
-      // 상위 컴포넌트에 업데이트 알림
-      onTaskAction?.('update')
+          return task
+        })
+        
+        setTasks(updatedTasks)
+      }
 
     } catch (error) {
       console.error('중분류,소분류 수정 중 오류:', error)
