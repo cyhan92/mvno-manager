@@ -230,32 +230,19 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
         let shouldUpdate = false
         let updateReason = ''
         
-        // 중분류만 수정하는 경우: 해당 중분류를 가진 모든 Task 업데이트
-        if (!currentSubCategory && task.middleCategory === currentMiddleCategory) {
-          shouldUpdate = true
-          updateReason = '중분류만 수정'
-        }
-        // 중분류+소분류 수정하는 경우: 해당 중분류+소분류를 가진 모든 Task 업데이트
-        else if (currentSubCategory && 
-                 task.middleCategory === currentMiddleCategory && 
-                 task.minorCategory === currentSubCategory) {
+        // 항상 중분류+소분류 조합으로 업데이트 (특정 소분류의 task만 수정)
+        if (currentMiddleCategory && currentSubCategory &&
+            task.middleCategory === currentMiddleCategory && 
+            task.minorCategory === currentSubCategory) {
           shouldUpdate = true
           updateReason = '중분류+소분류 수정'
         }
         
         if (shouldUpdate) {
-          if (updateReason === '중분류만 수정') {
-            return {
-              ...task,
-              middleCategory
-              // minorCategory는 변경하지 않음
-            }
-          } else {
-            return {
-              ...task,
-              middleCategory,
-              minorCategory: subCategory
-            }
+          return {
+            ...task,
+            middleCategory,
+            minorCategory: subCategory // 소분류도 함께 업데이트 (같은 값일 수도 있음)
           }
         }
         

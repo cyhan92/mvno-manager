@@ -22,39 +22,13 @@ export async function PATCH(request: NextRequest) {
     }
 
     // 중분류만 수정하는 경우 (currentMiddleCategory만 있고 currentSubCategory는 없거나 undefined)
+    // 더 이상 사용하지 않음 - 항상 currentSubCategory 정보가 있어야 함
     if (currentMiddleCategory && !currentSubCategory) {
-      console.log('🔍 중분류만 일괄 업데이트:', {
-        from: { middle: currentMiddleCategory },
-        to: { middle: middleCategory }
-      })
-
-      // 동일한 중분류를 가진 모든 작업의 중분류만 업데이트 (소분류는 그대로 유지)
-      const { data: updatedTasks, error: updateError } = await supabase
-        .from('tasks')
-        .update({
-          middle_category: middleCategory
-        })
-        .eq('middle_category', currentMiddleCategory)
-        .select()
-
-      if (updateError) {
-        console.error('❌ 중분류 업데이트 오류:', updateError)
-        return NextResponse.json(
-          { error: `중분류 업데이트 실패: ${updateError.message}` },
-          { status: 500 }
-        )
-      }
-
-      console.log('✅ 중분류 업데이트 성공:', {
-        updatedCount: updatedTasks?.length || 0,
-        updatedTasks: updatedTasks?.map(t => ({ id: t.id, task_id: t.task_id, title: t.title }))
-      })
-
-      return NextResponse.json({
-        success: true,
-        message: `${updatedTasks?.length || 0}개 작업의 중분류가 업데이트되었습니다.`,
-        updatedTasks
-      })
+      console.log('⚠️ 잘못된 요청: 중분류만 수정할 때도 현재 소분류 정보가 필요합니다.')
+      return NextResponse.json(
+        { error: '중분류 수정 시 현재 소분류 정보가 필요합니다.' },
+        { status: 400 }
+      )
     }
 
     // 현재 중분류/소분류 정보가 있는 경우 이를 이용해 일괄 업데이트
