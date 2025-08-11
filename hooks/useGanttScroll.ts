@@ -63,10 +63,27 @@ export const useGanttScroll = () => {
 
   // 초기 스크롤 위치 설정 함수
   const setInitialScrollPosition = useCallback((scrollLeft: number) => {
-    if (ganttChartScrollRef.current && headerScrollRef.current) {
-      ganttChartScrollRef.current.scrollLeft = scrollLeft
-      headerScrollRef.current.scrollLeft = scrollLeft
+    // 여러 번 시도하여 DOM 요소가 준비될 때까지 기다림
+    const attemptScroll = (attempts = 0) => {
+      if (attempts > 20) return // 최대 20번 시도
+      
+      if (ganttChartScrollRef.current && headerScrollRef.current) {
+        // requestAnimationFrame을 사용하여 브라우저 렌더링 사이클에 맞춤
+        requestAnimationFrame(() => {
+          if (ganttChartScrollRef.current && headerScrollRef.current) {
+            ganttChartScrollRef.current.scrollLeft = scrollLeft
+            headerScrollRef.current.scrollLeft = scrollLeft
+            console.log('Initial scroll position set to:', scrollLeft)
+          }
+        })
+      } else {
+        // DOM 요소가 준비되지 않았으면 100ms 후 재시도
+        setTimeout(() => attemptScroll(attempts + 1), 100)
+      }
     }
+    
+    // 약간의 지연 후 시도하여 DOM이 완전히 준비되도록 함
+    setTimeout(() => attemptScroll(), 100)
   }, [])
 
   return {

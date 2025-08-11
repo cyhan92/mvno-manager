@@ -202,10 +202,12 @@ export const useCustomGanttChart = ({
       const pixelsPerMs = dimensions.chartWidth / fullDateRange.timeRange
       const scrollLeft = (initialViewport.scrollOffset / (24 * 60 * 60 * 1000)) * pixelsPerMs
       
-      // 렌더링 후 스크롤 위치 설정
+      console.log('Calculated scroll position:', scrollLeft, 'from offset:', initialViewport.scrollOffset)
+      
+      // 렌더링 후 스크롤 위치 설정 - 더 긴 지연 시간으로 조정
       const timer = setTimeout(() => {
         setInitialScrollPosition(Math.max(0, scrollLeft))
-      }, 200) // 렌더링 완료 후 설정
+      }, 500) // 200ms에서 500ms로 증가
       
       return () => clearTimeout(timer)
     }
