@@ -16,6 +16,7 @@ interface TaskDetailPopupProps {
   onTaskUpdate?: (updatedTask: Task) => void
   onDataRefresh?: () => void // 전체 데이터 다시 로드 함수
   onTaskDelete?: (taskId: string) => void // 작업 삭제 콜백
+  tasks: Task[] // 전체 작업 목록 (카테고리 옵션 생성용)
 }
 
 interface TaskEditData {
@@ -37,7 +38,8 @@ const TaskDetailPopupRefactored: React.FC<TaskDetailPopupProps> = ({
   onClose,
   onTaskUpdate,
   onDataRefresh,
-  onTaskDelete
+  onTaskDelete,
+  tasks
 }) => {
   const [isEditing, setIsEditing] = useState(false)
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false)
@@ -180,6 +182,7 @@ const TaskDetailPopupRefactored: React.FC<TaskDetailPopupProps> = ({
               onSave={handleSave}
               onCancel={handleCancel}
               isLoading={isLoading}
+              tasks={tasks}
             />
           ) : (
             <TaskInfoDisplay task={task} />

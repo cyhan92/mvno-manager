@@ -1,6 +1,7 @@
 'use client'
 import React, { useState, useEffect } from 'react'
 import { Task } from '../../types/task'
+import { getMajorCategoryOrder } from '../../utils/categoryUtils'
 
 interface MoveMajorCategoryPopupProps {
   isOpen: boolean
@@ -34,7 +35,19 @@ const MoveMajorCategoryPopup: React.FC<MoveMajorCategoryPopupProps> = ({
       majorCategories.delete(task.majorCategory)
     }
     
-    return Array.from(majorCategories).sort()
+    // Action Item과 동일한 방식으로 정렬
+    return Array.from(majorCategories).sort((a, b) => {
+      const orderA = getMajorCategoryOrder(a)
+      const orderB = getMajorCategoryOrder(b)
+      
+      // 1차 정렬: 기존 정의된 순서 (B->A->S->D->C->O)
+      if (orderA !== orderB) {
+        return orderA - orderB
+      }
+      
+      // 2차 정렬: 같은 순서 그룹 내에서 알파벳 순 (ascending)
+      return a.localeCompare(b)
+    })
   }, [tasks, task?.majorCategory])
 
   // 팝업이 열릴 때 첫 번째 대분류를 기본 선택
@@ -114,6 +127,7 @@ const MoveMajorCategoryPopup: React.FC<MoveMajorCategoryPopupProps> = ({
                 value={selectedMajorCategory}
                 onChange={(e) => setSelectedMajorCategory(e.target.value)}
                 className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                title="이동할 대분류를 선택하세요"
               >
                 <option value="">대분류를 선택하세요</option>
                 {availableMajorCategories.map((category) => (

@@ -177,6 +177,7 @@ const StatusTasksPopup: React.FC<StatusTasksPopupProps> = ({
             position={{ x: window.innerWidth / 2 - 400, y: window.innerHeight / 2 - 300 }}
             onClose={handleTaskDetailClose}
             onTaskUpdate={handleTaskUpdate}
+            tasks={tasks}
           />
         )}
       </>

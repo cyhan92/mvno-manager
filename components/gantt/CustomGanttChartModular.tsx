@@ -157,6 +157,7 @@ const CustomGanttChartModular: React.FC<CustomGanttChartProps> = ({
           }}
           onTaskDelete={onTaskDelete}
           onDataRefresh={onDataRefresh}
+          tasks={tasks}
         />
       )}
     </div>

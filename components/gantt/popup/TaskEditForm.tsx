@@ -1,5 +1,6 @@
 import React from 'react'
-import CategoryEditor from './fields/CategoryEditor'
+import HierarchicalCategoryEditor from './fields/HierarchicalCategoryEditor'
+import { Task } from '../../../types/task'
 
 interface TaskEditData {
   name: string
@@ -20,6 +21,7 @@ interface TaskEditFormProps {
   onSave: () => void
   onCancel: () => void
   isLoading: boolean
+  tasks: Task[] // 전체 작업 목록 (카테고리 옵션 생성용)
 }
 
 const TaskEditForm: React.FC<TaskEditFormProps> = ({
@@ -27,7 +29,8 @@ const TaskEditForm: React.FC<TaskEditFormProps> = ({
   onEditDataChange,
   onSave,
   onCancel,
-  isLoading
+  isLoading,
+  tasks
 }) => {
   const handleFieldChange = (field: keyof TaskEditData, value: string | number) => {
     onEditDataChange({
@@ -55,13 +58,14 @@ const TaskEditForm: React.FC<TaskEditFormProps> = ({
       </div>
       
       {/* 카테고리 편집 */}
-      <CategoryEditor
+      <HierarchicalCategoryEditor
         majorCategory={editData.majorCategory}
         middleCategory={editData.middleCategory}
         minorCategory={editData.minorCategory}
-        onMajorChange={(value) => handleFieldChange('majorCategory', value)}
-        onMiddleChange={(value) => handleFieldChange('middleCategory', value)}
-        onMinorChange={(value) => handleFieldChange('minorCategory', value)}
+        onMajorChange={(value: string) => handleFieldChange('majorCategory', value)}
+        onMiddleChange={(value: string) => handleFieldChange('middleCategory', value)}
+        onMinorChange={(value: string) => handleFieldChange('minorCategory', value)}
+        tasks={tasks}
       />
       
       {/* 날짜 필드들 */}

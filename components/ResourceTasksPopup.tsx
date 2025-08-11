@@ -239,6 +239,7 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
           position={{ x: window.innerWidth / 2 - 300, y: window.innerHeight / 2 - 250 }}
           onClose={closeTaskDetail}
           onTaskUpdate={handleTaskUpdate}
+          tasks={tasks}
         />
       )}
     </>
