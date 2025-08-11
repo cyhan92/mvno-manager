@@ -86,13 +86,6 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
         // 상위 컴포넌트에 추가 알림
         onTaskAction?.('add')
         
-        console.log('✅ 로컬 상태에 새 Task 추가 (리프레시 없음)', {
-          newTaskId: taskWithDateObjects.id,
-          newTaskName: taskWithDateObjects.name,
-          startDate: taskWithDateObjects.start,
-          endDate: taskWithDateObjects.end,
-          totalTasks: newTasks.length
-        })
       } else {
         // result.task가 없는 경우 fallback으로 refetch 사용
         console.warn('⚠️ API 응답에 task 정보가 없어 데이터 재로드')
@@ -102,7 +95,6 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
       }
 
       // 성공 - 별도의 팝업 없이 조용히 처리
-      console.log('새로운 업무가 성공적으로 추가되었습니다!')
 
     } catch (error) {
       console.error('Task 추가 중 오류:', error)
@@ -144,7 +136,6 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
       }
 
       const result = await response.json()
-      console.log('✅ 삭제 API 성공:', result)
 
       // 로컬 상태에서 해당 Task 제거 (전체 리로드 없이)
       const updatedTasks = tasks.filter(task => task.id !== taskId)
@@ -153,13 +144,7 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
       // 상위 컴포넌트에 삭제 알림
       onTaskAction?.('delete')
       
-      console.log('✅ 로컬 상태에서 Task 삭제 완료 (리프레시 없음)', {
-        deletedTaskId: taskId,
-        remainingTasks: updatedTasks.length
-      })
-
       // 성공 - 별도의 팝업 없이 조용히 처리
-      console.log('업무가 성공적으로 삭제되었습니다!')
 
     } catch (error) {
       console.error('❌ Task 삭제 중 오류:', error)
@@ -173,7 +158,6 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
   const handleMajorCategoryUpdate = useCallback(async (oldCategory: string, newCategory: string) => {
     setIsLoading(true)
     try {
-      console.log(`🔄 대분류 수정 요청 시작: "${oldCategory}" → "${newCategory}"`)
 
       // API 호출하여 대분류 일괄 수정
       const response = await fetch('/api/major-category', {
@@ -187,40 +171,38 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
         }),
       })
 
-      console.log('📡 API 응답 상태:', response.status, response.statusText)
-
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}))
-        console.error('❌ API 오류 응답:', errorData)
+        console.error('❌ [클라이언트] API 오류 응답:', errorData)
         throw new Error(errorData.error || `서버 오류: ${response.status}`)
       }
 
       const result = await response.json()
-      console.log('✅ 대분류 수정 API 성공:', result)
+
+      // 액션 타입 알림 (데이터 동기화를 위해)
+      if (onTaskAction) {
+        onTaskAction('update')
+      }
 
       // 전체 데이터 다시 로드
       if (refetch) {
-        console.log('🔄 데이터 재로드 시작...')
         await refetch()
-        console.log('✅ 데이터 재로드 완료')
       } else {
-        console.warn('⚠️ refetch 함수가 없습니다')
+        console.warn('⚠️ [클라이언트] refetch 함수가 없습니다')
       }
 
     } catch (error) {
-      console.error('대분류 수정 중 오류:', error)
+      console.error('❌ [클라이언트] 대분류 수정 중 오류:', error)
       throw error // 에러를 상위로 전달하여 팝업에서 처리하도록 함
     } finally {
       setIsLoading(false)
     }
-  }, [refetch])
+  }, [refetch, onTaskAction])
 
   // 중분류,소분류 수정 핸들러
   const handleSubCategoryUpdate = useCallback(async (taskId: string, middleCategory: string, subCategory: string, currentMiddleCategory?: string, currentSubCategory?: string) => {
     setIsLoading(true)
     try {
-      console.log('🎯 중분류,소분류 수정 요청:', { taskId, middleCategory, subCategory, currentMiddleCategory, currentSubCategory })
-      
       const response = await fetch('/api/sub-category', {
         method: 'PATCH',
         headers: {
@@ -241,11 +223,9 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
       }
 
       const result = await response.json()
-      console.log('✅ 중분류,소분류 수정 성공:', result)
 
       // API 응답에서 실제 업데이트된 Task ID들 가져오기
       const updatedTaskIds = result.updatedTasks?.map((t: any) => t.task_id) || []
-      console.log('🔄 업데이트된 Task ID들:', updatedTaskIds)
 
       // 로컬 상태에서 해당 Task들 업데이트 (전체 리로드 없이)
       const updatedTasks = tasks.map((task: Task) => {
@@ -253,14 +233,6 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
         if (updatedTaskIds.includes(task.id)) {
           // Task 이름 업데이트: "[중분류] 소분류" 형식으로 변경
           const newName = `[${middleCategory}] ${subCategory}`
-          console.log(`🎯 Task ${task.id} 업데이트:`, {
-            oldName: task.name,
-            newName,
-            oldMiddle: task.middleCategory,
-            newMiddle: middleCategory,
-            oldMinor: task.minorCategory,
-            newMinor: subCategory
-          })
           return {
             ...task,
             name: newName,
@@ -276,11 +248,6 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
       // 상위 컴포넌트에 업데이트 알림
       onTaskAction?.('update')
 
-      console.log('✅ 로컬 상태 업데이트 완료 (리프레시 없음)', { 
-        updatedCount: updatedTaskIds.length,
-        totalTasks: tasks.length 
-      })
-
     } catch (error) {
       console.error('중분류,소분류 수정 중 오류:', error)
       throw error // 에러를 상위로 전달하여 팝업에서 처리하도록 함
@@ -293,11 +260,6 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
   const handleMoveMajorCategory = useCallback(async (currentMajorCategory: string, currentMinorCategory: string, targetMajorCategory: string) => {
     setIsLoading(true)
     try {
-      console.log('🔄 대분류 이동 시작:', {
-        from: `${currentMajorCategory} > ${currentMinorCategory}`,
-        to: `${targetMajorCategory} > ${currentMinorCategory}`
-      })
-
       const response = await fetch('/api/move-major-category', {
         method: 'PUT',
         headers: {
@@ -316,8 +278,6 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
         throw new Error(result.error)
       }
 
-      console.log('✅ 대분류 이동 API 성공:', result.data)
-
       // 로컬 상태 업데이트
       const updatedTasks = tasks.map((task: Task) => {
         if (task.majorCategory === currentMajorCategory && task.minorCategory === currentMinorCategory) {
@@ -334,12 +294,12 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
       // 부모 컴포넌트에 변경 알림
       onTaskAction?.('update')
 
-      console.log('✅ 로컬 상태 업데이트 완료:', {
-        updatedCount: result.data.updatedCount,
-        fromMajorCategory: result.data.fromMajorCategory,
-        toMajorCategory: result.data.toMajorCategory,
-        minorCategory: result.data.minorCategory
-      })
+      // 전체 데이터 다시 로드 (DB와 동기화)
+      if (refetch) {
+        await refetch()
+      } else {
+        console.warn('⚠️ [대분류 이동] refetch 함수가 없습니다')
+      }
 
       return {
         success: true,

@@ -17,6 +17,7 @@ interface ActionItemPopupsProps {
     handleOpenAddPopup: () => void
     handleOpenEditMajorCategoryPopup: () => void
     handleEditSubCategory: () => void
+    handleAddSubCategory: () => void
     handleOpenAddMajorCategoryPopup: () => void
     handleEditTask: () => void
     handleDeleteTask: () => void
@@ -58,6 +59,7 @@ const ActionItemPopups: React.FC<ActionItemPopupsProps> = ({
         onAddActionItem={handlers.handleOpenAddPopup}
         onEditMajorCategory={handlers.handleOpenEditMajorCategoryPopup}
         onEditSubCategory={handlers.handleEditSubCategory}
+        onAddSubCategory={handlers.handleAddSubCategory}
         onAddMajorCategory={handlers.handleOpenAddMajorCategoryPopup}
         onEditTask={handlers.handleEditTask}
         onDeleteTask={handlers.handleDeleteTask}
@@ -95,7 +97,8 @@ const ActionItemPopups: React.FC<ActionItemPopupsProps> = ({
           currentSubCategory={popupStates.editSubCategoryPopup.task.minorCategory}
           onClose={handlers.handleCloseEditSubCategoryPopup}
           onUpdateSubCategory={handlers.handleSubCategoryUpdate}
-          mode="edit"
+          mode={popupStates.editSubCategoryPopup.mode}
+          onAddTask={handlers.handleAddTask}
         />
       )}
 

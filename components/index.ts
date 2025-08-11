@@ -11,7 +11,6 @@ export { default as CustomGanttChartModular } from './gantt/CustomGanttChartModu
 export { default as TaskDetailPopupRefactored } from './gantt/TaskDetailPopupRefactored'
 export { default as AddActionItemPopupRefactored } from './gantt/AddActionItemPopupRefactored'
 export { default as EditMajorCategoryPopup } from './gantt/EditMajorCategoryPopup'
-export { default as GanttHeaderRefactored } from './gantt/GanttHeaderRefactored'
 export { default as GanttChartHeader } from './gantt/chart/GanttChartHeader'
 export { default as GanttChartArea } from './gantt/chart/GanttChartArea'
 

@@ -185,7 +185,7 @@ export const useTaskApi = ({ onTaskUpdate, onDataRefresh }: UseTaskApiProps) => 
       }
 
       // onDataRefresh 호출 제거 - useTaskManager에서 이미 로컬 상태 업데이트 처리
-      console.log('✅ 삭제 완료 - 부분 리프레시로 처리됨')
+      // 성공 - 삭제 완료
 
       // 성공 - 별도의 팝업 없이 조용히 처리 (DeleteConfirmationPopup이 이미 확인함)
       // alert('작업이 성공적으로 삭제되었습니다.') // 제거

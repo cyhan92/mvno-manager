@@ -67,7 +67,9 @@ const ActionItemRow: React.FC<ActionItemRowProps> = ({
         
         {/* 텍스트 */}
         <div className={styles.treeText}>
-          <span className={task.percentComplete === 100 ? 'text-gray-400' : ''}>
+          <span 
+            className={`${styles.treeTextSmall} ${task.percentComplete === 100 ? 'text-gray-400' : ''}`}
+          >
             {/* 소분류는 이미 "[중분류] 소분류" 형식으로 빌드됨 */}
             {(() => {
               const taskName = task.name || task.detail || `작업 ${index + 1}`
@@ -86,20 +88,24 @@ const ActionItemRow: React.FC<ActionItemRowProps> = ({
                 }
               }
               
+              // 세부업무명 (조직/담당자) 형태로 표시
+              if (showAssigneeInfo && !task.hasChildren) {
+                const department = task.department && task.department !== '미정' ? task.department : '미정'
+                const resource = task.resource && task.resource !== '미정' ? task.resource : '미정'
+                
+                return (
+                  <>
+                    {taskName}
+                    <span className="text-xs text-gray-400 ml-1 opacity-80">
+                      ({department}/{resource})
+                    </span>
+                  </>
+                )
+              }
+              
               return taskName
             })()}
           </span>
-          {/* 담당자 정보 표시 (세부업무만) */}
-          {showAssigneeInfo && !task.hasChildren && (
-            <div className="text-xs text-gray-500 mt-1">
-              {task.resource && task.resource !== '미정' && (
-                <span className="inline-block mr-2">👤 {task.resource}</span>
-              )}
-              {task.department && task.department !== '미정' && (
-                <span className="inline-block">🏢 {task.department}</span>
-              )}
-            </div>
-          )}
         </div>
       </div>
     </div>

@@ -6,6 +6,46 @@ export const useTreeState = (): TreeState => {
   const [expandedNodes, setExpandedNodes] = useState<Set<string>>(new Set())
   const [treeData, setTreeData] = useState<TreeNode[]>([])
 
+  // 트리 데이터 설정 시 기존 확장 상태 보존
+  const setTreeDataWithStatePreservation = useCallback((newTreeData: TreeNode[]) => {
+    setTreeData(prevTreeData => {
+      // 이전 트리 데이터가 없으면 그냥 새 데이터 설정
+      if (prevTreeData.length === 0) {
+        return newTreeData
+      }
+
+      // 새 트리에서 유효한 노드 ID 수집
+      const getValidNodeIds = (nodes: TreeNode[]): Set<string> => {
+        const ids = new Set<string>()
+        const traverse = (nodeList: TreeNode[]) => {
+          nodeList.forEach(node => {
+            ids.add(node.id)
+            if (node.children) {
+              traverse(node.children)
+            }
+          })
+        }
+        traverse(nodes)
+        return ids
+      }
+
+      const validNodeIds = getValidNodeIds(newTreeData)
+      
+      // 기존 확장 상태에서 여전히 유효한 노드들만 유지
+      setExpandedNodes(prevExpanded => {
+        const filteredExpanded = new Set<string>()
+        prevExpanded.forEach(nodeId => {
+          if (validNodeIds.has(nodeId)) {
+            filteredExpanded.add(nodeId)
+          }
+        })
+        return filteredExpanded
+      })
+
+      return newTreeData
+    })
+  }, [])
+
   const toggleNode = useCallback((nodeId: string) => {
     setExpandedNodes(prev => {
       const newSet = new Set(prev)
@@ -76,6 +116,6 @@ export const useTreeState = (): TreeState => {
     expandAll,
     collapseAll,
     expandToLevel,
-    setTreeData: setTreeData // 트리 데이터 설정 함수 추가
+    setTreeData: setTreeDataWithStatePreservation // 상태 보존 함수 사용
   }
 }

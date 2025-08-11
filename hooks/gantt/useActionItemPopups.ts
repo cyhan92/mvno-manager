@@ -23,6 +23,7 @@ interface EditMajorCategoryPopupState {
 interface EditSubCategoryPopupState {
   isOpen: boolean
   task: Task | null
+  mode: 'edit' | 'add'
 }
 
 interface AddMajorCategoryPopupState {
@@ -75,7 +76,8 @@ export const useActionItemPopups = () => {
   // Edit Sub Category 팝업 상태
   const [editSubCategoryPopup, setEditSubCategoryPopup] = useState<EditSubCategoryPopupState>({
     isOpen: false,
-    task: null
+    task: null,
+    mode: 'edit'
   })
 
   // Add Major Category 팝업 상태

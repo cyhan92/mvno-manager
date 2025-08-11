@@ -75,20 +75,13 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
 
   const handleAddMajorCategory = async (newCategory: string): Promise<void> => {
     // 대분류 추가 로직 구현
-    console.log('새 대분류 추가:', newCategory)
     // 실제 구현은 나중에 추가
   }
 
   const handleMajorCategoryUpdate = async (oldCategory: string, newCategory: string) => {
-    console.log(`🎯 ActionItemList: handleMajorCategoryUpdate 호출`)
-    console.log(`📋 파라미터:`, { oldCategory, newCategory })
-    console.log(`🔗 onMajorCategoryUpdate 함수 존재:`, !!onMajorCategoryUpdate)
-    
     if (onMajorCategoryUpdate) {
       try {
-        console.log(`🚀 상위 onMajorCategoryUpdate 함수 호출`)
         await onMajorCategoryUpdate(oldCategory, newCategory)
-        console.log(`✅ 상위 함수 호출 완료`)
       } catch (error) {
         console.error(`❌ 상위 함수 호출 실패:`, error)
         throw error
@@ -96,6 +89,11 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
     } else {
       console.warn(`⚠️ onMajorCategoryUpdate 함수가 전달되지 않았습니다`)
     }
+  }
+
+  const handleAddSubCategory = () => {
+    // 중분류 추가 로직 구현
+    // 실제 구현은 나중에 추가
   }
 
   const handleConfirmDelete = async () => {
@@ -111,7 +109,6 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
         onTaskDelete(popupStates.deleteConfirmationPopup.task.id)
         handlers.handleCloseDeleteConfirmationPopup()
         
-        console.log('✅ 삭제 완료 - 부분 리프레시로 처리됨')
       } catch (error) {
         console.error('작업 삭제 실패:', error)
         // 로딩 상태 종료
@@ -129,6 +126,7 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
     handleCloseAddSubCategoryPopup,
     handleAddMajorCategory,
     handleMajorCategoryUpdate,
+    handleAddSubCategory,
     handleConfirmDelete
   }
 

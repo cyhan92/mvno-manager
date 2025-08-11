@@ -51,16 +51,23 @@
   background-color: #f8fafc;
   font-weight: 700; /* 대분류: 가장 진하게 */
   color: #111827;
+  font-size: 1.125rem; /* 18px, 16px에서 한 단계 크게 */
 }
 
 .treeLevel1 {
   background-color: #f1f5f9;
   font-weight: 600; /* 소분류: 중간 두께 */
   color: #1f2937;
+  font-size: 1.125rem; /* 18px, 16px에서 한 단계 크게 */
 }
 
 .treeLevel2 {
   background-color: white;
   font-weight: 400; /* 세부업무: 기본 두께 */
   color: #374151;
+}
+
+/* 작은 폰트 크기 클래스 */
+.treeTextSmall {
+  font-size: 0.875rem; /* 14px, 12px에서 한 단계 크게 */
 }
