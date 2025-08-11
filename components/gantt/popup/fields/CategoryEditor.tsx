@@ -23,7 +23,10 @@ const CategoryEditor: React.FC<CategoryEditorProps> = ({
 }) => {
   return (
     <div className={className}>
-      <label className="text-sm font-medium text-gray-600">카테고리(대분류&gt;중분류&gt;소분류)</label>
+      <label className="text-sm font-bold text-gray-700 flex items-center gap-1">
+        <span className="text-sm">🏷️</span>
+        카테고리(대분류&gt;중분류&gt;소분류)
+      </label>
       <div className="mt-1 flex items-center gap-2 flex-wrap">
         <span className="text-sm text-gray-500">[</span>
         <input

@@ -40,7 +40,10 @@ const TaskEditForm: React.FC<TaskEditFormProps> = ({
     <div className="space-y-3">
       {/* 세부업무명 */}
       <div>
-        <label className="text-sm font-medium text-gray-600">세부업무명</label>
+        <label className="text-sm font-bold text-gray-700 flex items-center gap-1">
+          <span className="text-sm">📋</span>
+          세부업무명
+        </label>
         <input
           type="text"
           value={editData.name}
@@ -64,7 +67,10 @@ const TaskEditForm: React.FC<TaskEditFormProps> = ({
       {/* 날짜 필드들 */}
       <div className="grid grid-cols-2 gap-4">
         <div>
-          <label className="text-sm font-medium text-gray-600">시작일</label>
+          <label className="text-sm font-bold text-gray-700 flex items-center gap-1">
+            <span className="text-sm">📅</span>
+            시작일
+          </label>
           <input
             type="date"
             value={editData.startDate}
@@ -74,7 +80,10 @@ const TaskEditForm: React.FC<TaskEditFormProps> = ({
           />
         </div>
         <div>
-          <label className="text-sm font-medium text-gray-600">종료일</label>
+          <label className="text-sm font-bold text-gray-700 flex items-center gap-1">
+            <span className="text-sm">🗓️</span>
+            종료일
+          </label>
           <input
             type="date"
             value={editData.endDate}
@@ -86,7 +95,10 @@ const TaskEditForm: React.FC<TaskEditFormProps> = ({
       </div>
       
       <div>
-        <label className="text-sm font-medium text-gray-600">진행률</label>
+        <label className="text-sm font-bold text-gray-700 flex items-center gap-1">
+          <span className="text-sm">📊</span>
+          진행률
+        </label>
         <div className="mt-1">
           <input
             type="range"
@@ -106,7 +118,10 @@ const TaskEditForm: React.FC<TaskEditFormProps> = ({
       </div>
       
       <div>
-        <label className="text-sm font-medium text-gray-600">담당자</label>
+        <label className="text-sm font-bold text-gray-700 flex items-center gap-1">
+          <span className="text-sm">👤</span>
+          담당자
+        </label>
         <input
           type="text"
           value={editData.resource}
@@ -118,7 +133,10 @@ const TaskEditForm: React.FC<TaskEditFormProps> = ({
       </div>
 
       <div>
-        <label className="text-sm font-medium text-gray-600">부서</label>
+        <label className="text-sm font-bold text-gray-700 flex items-center gap-1">
+          <span className="text-sm">🏢</span>
+          부서
+        </label>
         <input
           type="text"
           value={editData.department}
@@ -131,7 +149,10 @@ const TaskEditForm: React.FC<TaskEditFormProps> = ({
 
       {/* 상세 설명 */}
       <div>
-        <label className="text-sm font-medium text-gray-600">상세 설명</label>
+        <label className="text-sm font-bold text-gray-700 flex items-center gap-1">
+          <span className="text-sm">📝</span>
+          상세정보(메모)
+        </label>
         <textarea
           value={editData.detail}
           onChange={(e) => handleFieldChange('detail', e.target.value)}
