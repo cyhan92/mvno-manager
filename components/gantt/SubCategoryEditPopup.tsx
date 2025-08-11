@@ -112,7 +112,7 @@ const SubCategoryEditPopup: React.FC<SubCategoryEditPopupProps> = ({
             // API에서 요구하는 추가 필드들
             category: task.majorCategory || '',
             subcategory: middleCategory.trim(),
-            detail: subCategory.trim(),
+            detail: '', // 기본값을 빈 문자열로 설정
             department: '미정', // 기본값을 "미정"으로 설정
             status: '미완료'
           }

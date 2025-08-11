@@ -40,7 +40,7 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
         dependencies: newTask.dependencies || null,
         category: newTask.category || '',
         subcategory: newTask.subcategory || '',
-        detail: newTask.detail || '',
+        detail: newTask.detail || '', // 빈 문자열 유지 (기본값 추가하지 않음)
         department: newTask.department || '미정',
         status: (newTask.status === '완료' || newTask.status === '진행중' || newTask.status === '미완료') 
           ? newTask.status 

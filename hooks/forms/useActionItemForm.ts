@@ -84,7 +84,7 @@ export const useActionItemForm = ({ parentTask, onAdd, onClose }: UseActionItemF
       const newTask: Partial<Task> = {
         id: uniqueId,
         name: formData.taskName.trim(),
-        detail: formData.taskName.trim(),
+        detail: '', // 기본값을 빈 문자열로 설정
         majorCategory: formData.majorCategory || parentTask.majorCategory || '',
         middleCategory: formData.middleCategory || parentTask.middleCategory || '',
         minorCategory: formData.minorCategory || parentTask.minorCategory || '',
