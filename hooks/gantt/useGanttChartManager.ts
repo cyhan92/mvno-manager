@@ -84,12 +84,13 @@ export const useGanttChartManager = ({
     triggerRender
   })
 
-  // 트리 토글 핸들러
+  // 트리 토글 핸들러 (헤더 스크롤 ref 추가)
   const { handleTreeToggle } = useTreeToggleHandler({
     treeState,
     scrollRefs: {
       actionItemScrollRef: scroll.actionItemScrollRef,
-      ganttChartScrollRef: scroll.ganttChartScrollRef
+      ganttChartScrollRef: scroll.ganttChartScrollRef,
+      headerScrollRef: scroll.headerScrollRef // 헤더 스크롤 ref 추가
     },
     renderChart,
     triggerRender

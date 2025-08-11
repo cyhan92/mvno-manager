@@ -7,6 +7,7 @@ interface UseTreeToggleHandlerProps {
   scrollRefs: {
     actionItemScrollRef: React.RefObject<HTMLDivElement | null>
     ganttChartScrollRef: React.RefObject<HTMLDivElement | null>
+    headerScrollRef?: React.RefObject<HTMLDivElement | null> // 헤더 스크롤 ref 추가
   }
   renderChart?: () => void
   triggerRender: () => void
@@ -18,10 +19,11 @@ export const useTreeToggleHandler = ({
   renderChart,
   triggerRender
 }: UseTreeToggleHandlerProps) => {
-  // 최적화된 트리 노드 토글 핸들러 (깜빡임 완전 방지)
+  // 최적화된 트리 노드 토글 핸들러 (세로바 동기화 포함)
   const handleTreeToggle = useCallback((nodeId: string) => {
-    // 현재 스크롤 위치 저장
+    // 현재 스크롤 위치 저장 (세로 + 가로 모두)
     const currentScrollTop = scrollRefs.actionItemScrollRef.current?.scrollTop || 0
+    const currentScrollLeft = scrollRefs.ganttChartScrollRef.current?.scrollLeft || 0
     
     // 트리 상태 토글
     treeState.toggleNode(nodeId)
@@ -37,12 +39,16 @@ export const useTreeToggleHandler = ({
       requestAnimationFrame(() => {
         triggerRender()
         
-        // 스크롤 위치 즉시 복원 (지연 없음)
+        // 스크롤 위치 즉시 복원 (세로 + 가로 모두)
         if (scrollRefs.actionItemScrollRef.current) {
           scrollRefs.actionItemScrollRef.current.scrollTop = currentScrollTop
         }
         if (scrollRefs.ganttChartScrollRef.current) {
           scrollRefs.ganttChartScrollRef.current.scrollTop = currentScrollTop
+          scrollRefs.ganttChartScrollRef.current.scrollLeft = currentScrollLeft // 가로 스크롤 복원
+        }
+        if (scrollRefs.headerScrollRef?.current) {
+          scrollRefs.headerScrollRef.current.scrollLeft = currentScrollLeft // 헤더 가로 스크롤 복원
         }
       })
     })
