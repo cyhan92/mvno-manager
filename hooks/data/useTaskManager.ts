@@ -225,15 +225,6 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
 
       const result = await response.json()
 
-      console.log('🔄 로컬 상태 업데이트 시작:', {
-        currentMiddleCategory,
-        currentSubCategory,
-        newMiddleCategory: middleCategory,
-        newSubCategory: subCategory,
-        isMiddleOnly: !currentSubCategory,
-        totalTasks: tasks.length
-      })
-
       // 로컬 상태에서 해당 Task들 업데이트
       const updatedTasks = tasks.map((task: Task) => {
         let shouldUpdate = false
@@ -253,15 +244,6 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
         }
         
         if (shouldUpdate) {
-          console.log(`📝 ${updateReason}:`, {
-            taskId: task.id,
-            taskName: task.name,
-            oldMiddle: task.middleCategory,
-            newMiddle: middleCategory,
-            oldMinor: task.minorCategory,
-            newMinor: updateReason === '중분류만 수정' ? task.minorCategory : subCategory
-          })
-          
           if (updateReason === '중분류만 수정') {
             return {
               ...task,
@@ -282,16 +264,8 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
       
       setTasks(updatedTasks)
       
-      console.log('🔍 setTasks 호출 완료:', {
-        originalTasksCount: tasks.length,
-        updatedTasksCount: updatedTasks.length,
-        sampleUpdatedTask: updatedTasks.find(t => t.middleCategory === middleCategory)
-      })
-      
       // 상위 컴포넌트에 업데이트 알림
       onTaskAction?.('update')
-
-      console.log('✅ 로컬 상태 업데이트 완료')
 
     } catch (error) {
       console.error('중분류,소분류 수정 중 오류:', error)
