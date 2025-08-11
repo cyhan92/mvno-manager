@@ -57,17 +57,6 @@ const TaskEditForm: React.FC<TaskEditFormProps> = ({
         />
       </div>
       
-      {/* 카테고리 편집 */}
-      <HierarchicalCategoryEditor
-        majorCategory={editData.majorCategory}
-        middleCategory={editData.middleCategory}
-        minorCategory={editData.minorCategory}
-        onMajorChange={(value: string) => handleFieldChange('majorCategory', value)}
-        onMiddleChange={(value: string) => handleFieldChange('middleCategory', value)}
-        onMinorChange={(value: string) => handleFieldChange('minorCategory', value)}
-        tasks={tasks}
-      />
-      
       {/* 날짜 필드들 */}
       <div className="grid grid-cols-2 gap-4">
         <div>
@@ -166,6 +155,17 @@ const TaskEditForm: React.FC<TaskEditFormProps> = ({
           title="상세 설명을 입력하세요"
         />
       </div>
+
+      {/* 카테고리 편집 */}
+      <HierarchicalCategoryEditor
+        majorCategory={editData.majorCategory}
+        middleCategory={editData.middleCategory}
+        minorCategory={editData.minorCategory}
+        onMajorChange={(value: string) => handleFieldChange('majorCategory', value)}
+        onMiddleChange={(value: string) => handleFieldChange('middleCategory', value)}
+        onMinorChange={(value: string) => handleFieldChange('minorCategory', value)}
+        tasks={tasks}
+      />
 
       {/* 편집 모드 버튼들 */}
       <div className="mt-6 pt-4 border-t border-gray-200 flex gap-2 justify-end">
