@@ -115,11 +115,15 @@ export const drawTodayLine = (
   chartWidth: number
 ) => {
   const today = new Date()
-  today.setHours(0, 0, 0, 0)
+  today.setHours(0, 0, 0, 0) // 시간을 00:00:00으로 정규화
+  const todayMs = today.getTime()
+  const startDateMs = startDate.getTime()
   
-  if (today >= startDate && today <= endDate) {
+  // 오늘 날짜가 차트 범위 내에 있는지 확인
+  if (todayMs >= startDateMs && todayMs <= (startDateMs + timeRange)) {
     const leftMargin = 0
-    const todayX = leftMargin + ((today.getTime() - startDate.getTime()) / timeRange) * chartWidth
+    // 간트차트와 동일한 계산 방식 사용
+    const todayX = leftMargin + ((todayMs - startDateMs) / timeRange) * chartWidth
     
     ctx.strokeStyle = '#ef4444'
     ctx.lineWidth = 2
@@ -127,6 +131,8 @@ export const drawTodayLine = (
     ctx.moveTo(todayX, 0)
     ctx.lineTo(todayX, 80)
     ctx.stroke()
+    
+    console.log('Header today line drawn at:', todayX, 'startDate:', startDate.toISOString(), 'timeRange:', timeRange)
   }
 }
 

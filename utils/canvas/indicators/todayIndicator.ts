@@ -23,6 +23,8 @@ export const drawTodayLine = (
     // 오늘 날짜의 x 위치 계산
     const x = leftMargin + ((todayMs - startDateMs) / timeRange) * chartWidth
     
+    console.log('Gantt today line drawn at:', x, 'startDate:', startDate.toISOString(), 'timeRange:', timeRange, 'leftMargin:', leftMargin)
+    
     // 빨간 세로선 그리기
     ctx.beginPath()
     ctx.strokeStyle = '#ef4444' // 빨간색

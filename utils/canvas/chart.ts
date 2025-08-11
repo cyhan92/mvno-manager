@@ -30,17 +30,21 @@ export const calculateDateRange = (tasks: Task[]) => {
 // 초기 뷰포트 위치 계산 (오늘 날짜 기준 왼쪽 1달까지만 표시)
 export const calculateInitialViewport = (fullDateRange: { startDate: Date; endDate: Date; timeRange: number }) => {
   const today = new Date()
-  // 현재일 기준으로 정확히 30일 전부터 보이도록 설정
-  const viewportStart = new Date(today.getTime() - (30 * 24 * 60 * 60 * 1000))
+  console.log('calculateInitialViewport:', {
+    today: today.toISOString(),
+    dataStart: fullDateRange.startDate.toISOString(), 
+    dataEnd: fullDateRange.endDate.toISOString()
+  })
   
-  // 실제 데이터 시작일과 뷰포트 시작일 중 늦은 날짜 사용
-  const effectiveStart = new Date(Math.max(viewportStart.getTime(), fullDateRange.startDate.getTime()))
+  // 현재일 기준으로 30일 전 위치로 스크롤하고 싶음
+  // scrollOffset은 데이터 시작일부터 현재일까지의 거리
+  const todayOffset = today.getTime() - fullDateRange.startDate.getTime()
   
   return {
-    startDate: effectiveStart,
+    startDate: fullDateRange.startDate,
     endDate: fullDateRange.endDate,
-    timeRange: fullDateRange.endDate.getTime() - effectiveStart.getTime(),
-    scrollOffset: effectiveStart.getTime() - fullDateRange.startDate.getTime()
+    timeRange: fullDateRange.timeRange,
+    scrollOffset: Math.max(0, todayOffset) // 현재일 위치로 스크롤
   }
 }
 

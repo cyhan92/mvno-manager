@@ -187,27 +187,53 @@ export const useCustomGanttChart = ({
     const fullDateRange = calculateDateRange(validTasks)
     const initialViewport = calculateInitialViewport(fullDateRange)
     
+    console.log('useCustomGanttChart scroll setup:', {
+      hasSetFunction: !!setInitialScrollPosition,
+      tasksLength: displayTasks.length,
+      validTasksLength: validTasks.length,
+      scrollOffset: initialViewport.scrollOffset,
+      dateRange: fullDateRange
+    })
+
     if (initialViewport.scrollOffset && initialViewport.scrollOffset > 0) {
       const container = containerRef.current
       if (!container) return
       
-      let containerWidth = container.clientWidth
+      let containerWidth = container.clientWidth || 1200
       if (dateUnit === 'month') {
-        containerWidth = 1000
+        containerWidth = Math.max(containerWidth, 1000)
       } else {
-        containerWidth = 1200
+        containerWidth = Math.max(containerWidth, 1200)
       }
       
       const dimensions = calculateCanvasDimensions(containerWidth, displayTasks.length, dateUnit, fullDateRange)
-      const pixelsPerMs = dimensions.chartWidth / fullDateRange.timeRange
-      const scrollLeft = (initialViewport.scrollOffset / (24 * 60 * 60 * 1000)) * pixelsPerMs
       
-      console.log('Calculated scroll position:', scrollLeft, 'from offset:', initialViewport.scrollOffset)
+      // 더 간단한 계산: 전체 차트 너비에서 현재일이 차지하는 비율
+      const totalDays = fullDateRange.timeRange / (24 * 60 * 60 * 1000)
+      const offsetDays = initialViewport.scrollOffset / (24 * 60 * 60 * 1000)
+      const scrollRatio = offsetDays / totalDays
+      const scrollLeft = scrollRatio * dimensions.chartWidth
       
-      // 렌더링 후 스크롤 위치 설정 - 더 긴 지연 시간으로 조정
+      // 현재일에서 30일 전 위치로 조정 (차트 너비의 일정 비율만큼 왼쪽으로)
+      const thirtyDaysRatio = 30 / totalDays
+      const adjustedScrollLeft = Math.max(0, scrollLeft - (thirtyDaysRatio * dimensions.chartWidth))
+      
+      console.log('Calculated scroll position:', {
+        scrollLeft: adjustedScrollLeft,
+        scrollOffset: initialViewport.scrollOffset,
+        scrollRatio,
+        chartWidth: dimensions.chartWidth,
+        totalDays,
+        offsetDays,
+        thirtyDaysRatio
+      })
+      
+      console.log('Setting scroll position to:', adjustedScrollLeft)
+      
+      // 렌더링 후 스크롤 위치 설정 - 빠른 이동을 위해 지연 시간 단축
       const timer = setTimeout(() => {
-        setInitialScrollPosition(Math.max(0, scrollLeft))
-      }, 500) // 200ms에서 500ms로 증가
+        setInitialScrollPosition(adjustedScrollLeft)
+      }, 100) // 500ms에서 100ms로 단축
       
       return () => clearTimeout(timer)
     }
