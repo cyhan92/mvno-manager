@@ -225,55 +225,67 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
 
       const result = await response.json()
 
-      // 액션 타입 알림 (데이터 동기화를 위해)
-      if (onTaskAction) {
-        onTaskAction('update')
-      }
+      console.log('🔄 로컬 상태 업데이트 시작:', {
+        currentMiddleCategory,
+        currentSubCategory,
+        newMiddleCategory: middleCategory,
+        newSubCategory: subCategory,
+        isMiddleOnly: !currentSubCategory,
+        totalTasks: tasks.length
+      })
 
-      // 전체 데이터 다시 로드 (DB와 동기화)
-      if (refetch) {
-        await refetch()
-      } else {
-        console.warn('⚠️ [중분류,소분류 수정] refetch 함수가 없습니다')
+      // 로컬 상태에서 해당 Task들 업데이트
+      const updatedTasks = tasks.map((task: Task) => {
+        let shouldUpdate = false
+        let updateReason = ''
         
-        // fallback: 로컬 상태 업데이트 시도
-        const updatedTaskIds = result.updatedTasks?.map((t: any) => t.task_id) || []
-
-        const updatedTasks = tasks.map((task: Task) => {
-          if (updatedTaskIds.includes(task.id)) {
-            let actualTaskContent = task.name || ''
-            
-            const categoryPattern = /^\[([^\]]+)\]\s+([^:：]+)[:：]\s*(.*)/
-            const match = actualTaskContent.match(categoryPattern)
-            
-            if (match) {
-              actualTaskContent = match[3].trim()
-            } else {
-              const simplePattern = /^\[([^\]]+)\]\s+(.+)/
-              const simpleMatch = actualTaskContent.match(simplePattern)
-              
-              if (simpleMatch) {
-                actualTaskContent = simpleMatch[2].trim()
-              }
-            }
-
-            if (!actualTaskContent || actualTaskContent.trim() === '') {
-              actualTaskContent = '업무 내용'
-            }
-            
+        // 중분류만 수정하는 경우: 해당 중분류를 가진 모든 Task 업데이트
+        if (!currentSubCategory && task.middleCategory === currentMiddleCategory) {
+          shouldUpdate = true
+          updateReason = '중분류만 수정'
+        }
+        // 중분류+소분류 수정하는 경우: 해당 중분류+소분류를 가진 모든 Task 업데이트
+        else if (currentSubCategory && 
+                 task.middleCategory === currentMiddleCategory && 
+                 task.minorCategory === currentSubCategory) {
+          shouldUpdate = true
+          updateReason = '중분류+소분류 수정'
+        }
+        
+        if (shouldUpdate) {
+          console.log(`📝 ${updateReason}:`, {
+            taskId: task.id,
+            taskName: task.name,
+            oldMiddle: task.middleCategory,
+            newMiddle: middleCategory,
+            oldMinor: task.minorCategory,
+            newMinor: updateReason === '중분류만 수정' ? task.minorCategory : subCategory
+          })
+          
+          if (updateReason === '중분류만 수정') {
             return {
               ...task,
-              name: actualTaskContent,
-              title: actualTaskContent,
+              middleCategory
+              // minorCategory는 변경하지 않음
+            }
+          } else {
+            return {
+              ...task,
               middleCategory,
-              minorCategory: subCategory || task.minorCategory
+              minorCategory: subCategory
             }
           }
-          return task
-        })
+        }
         
-        setTasks(updatedTasks)
-      }
+        return task
+      })
+      
+      setTasks(updatedTasks)
+      
+      // 상위 컴포넌트에 업데이트 알림
+      onTaskAction?.('update')
+
+      console.log('✅ 로컬 상태 업데이트 완료')
 
     } catch (error) {
       console.error('중분류,소분류 수정 중 오류:', error)
