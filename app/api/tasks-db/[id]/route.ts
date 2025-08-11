@@ -30,7 +30,8 @@ export async function PATCH(
       major_category,
       middle_category,
       minor_category,
-      status
+      status,
+      detail
     } = body
 
     // 데이터베이스에서 작업 업데이트
@@ -44,7 +45,8 @@ export async function PATCH(
       majorCategory: major_category,
       middleCategory: middle_category,
       minorCategory: minor_category,
-      status
+      status,
+      detail
     })
     
     return NextResponse.json({

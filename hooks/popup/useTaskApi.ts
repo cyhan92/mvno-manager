@@ -70,8 +70,6 @@ export const useTaskApi = ({ onTaskUpdate, onDataRefresh }: UseTaskApiProps) => 
         detail: editData.detail
       }
 
-      console.log('Updating task:', task.id, 'with data:', updateData)
-
       const response = await fetch(`/api/tasks-db/${task.id}`, {
         method: 'PATCH',
         headers: {
