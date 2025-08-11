@@ -6,6 +6,143 @@ const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PU
 const supabase = createClient(supabaseUrl, supabaseKey)
 
 /**
+ * 대분류 추가 API
+ */
+export async function POST(request: NextRequest) {
+  try {
+    const body = await request.json()
+    const { majorCategory } = body
+
+    console.log(`🚀 API 요청 수신: POST /api/major-category`)
+    console.log(`📋 요청 데이터:`, { majorCategory })
+
+    if (!majorCategory || !majorCategory.trim()) {
+      console.error('❌ 필수 파라미터 누락:', { majorCategory })
+      return NextResponse.json({
+        success: false,
+        error: '대분류명이 필요합니다.'
+      }, { status: 400 })
+    }
+
+    const trimmedCategory = majorCategory.trim()
+
+    // 기존에 동일한 대분류가 있는지 확인
+    const { data: existingTasks, error: findError } = await supabase
+      .from('tasks')
+      .select('major_category')
+      .eq('major_category', trimmedCategory)
+      .limit(1)
+
+    if (findError) {
+      console.error('❌ 기존 대분류 조회 오류:', findError)
+      return NextResponse.json({
+        success: false,
+        error: `기존 대분류 조회 실패: ${findError.message}`
+      }, { status: 500 })
+    }
+
+    if (existingTasks && existingTasks.length > 0) {
+      console.warn(`⚠️ 이미 존재하는 대분류: "${trimmedCategory}"`)
+      return NextResponse.json({
+        success: false,
+        error: '이미 존재하는 대분류입니다.'
+      }, { status: 409 })
+    }
+
+    console.log(`🔄 새 대분류 추가 시작: "${trimmedCategory}"`)
+
+    // 새로운 Task ID 생성 (기존 Task 중 가장 큰 번호 + 1)
+    const { data: allTasks, error: allTasksError } = await supabase
+      .from('tasks')
+      .select('task_id')
+      .order('task_id', { ascending: false })
+      .limit(1)
+
+    if (allTasksError) {
+      console.error('❌ Task ID 조회 오류:', allTasksError)
+      return NextResponse.json({
+        success: false,
+        error: `Task ID 조회 실패: ${allTasksError.message}`
+      }, { status: 500 })
+    }
+
+    let nextId = 1
+    if (allTasks && allTasks.length > 0) {
+      const lastTaskId = allTasks[0].task_id
+      const match = lastTaskId.match(/TASK-(\d+)/)
+      if (match) {
+        nextId = parseInt(match[1], 10) + 1
+      }
+    }
+
+    const newTaskId = `TASK-${String(nextId).padStart(3, '0')}`
+
+    // 새 대분류를 위한 기본 Task 생성
+    const newTask = {
+      task_id: newTaskId,
+      title: trimmedCategory,
+      resource: '미정',
+      start_date: new Date().toISOString(),
+      end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7일 후
+      duration: 7,
+      percent_complete: 0,
+      dependencies: null,
+      category: '',
+      subcategory: '',
+      detail: '',
+      department: '미정',
+      status: '미완료',
+      cost: '',
+      notes: '',
+      major_category: trimmedCategory,
+      middle_category: '',
+      minor_category: '',
+      level: 0, // 대분류는 level 0
+      parent_id: '',
+      has_children: false,
+      is_group: true // 대분류는 그룹
+    }
+
+    const { data: createdTask, error: createError } = await supabase
+      .from('tasks')
+      .insert(newTask)
+      .select()
+      .single()
+
+    if (createError) {
+      console.error('❌ 대분류 Task 생성 오류:', createError)
+      return NextResponse.json({
+        success: false,
+        error: `대분류 Task 생성 실패: ${createError.message}`
+      }, { status: 500 })
+    }
+
+    console.log(`✅ 새 대분류 추가 성공:`, {
+      taskId: newTaskId,
+      majorCategory: trimmedCategory
+    })
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        task: createdTask,
+        majorCategory: trimmedCategory
+      },
+      message: `대분류 "${trimmedCategory}"가 성공적으로 추가되었습니다.`
+    })
+
+  } catch (error) {
+    console.error('대분류 추가 API 오류:', error)
+    
+    return NextResponse.json({
+      success: false,
+      error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.',
+      message: '대분류 추가에 실패했습니다.'
+    }, { status: 500 })
+  }
+}
+
+/**
  * 대분류 일괄 수정 API
  */
 export async function PATCH(request: NextRequest) {

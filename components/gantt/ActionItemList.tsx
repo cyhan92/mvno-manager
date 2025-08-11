@@ -74,8 +74,34 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
   }
 
   const handleAddMajorCategory = async (newCategory: string): Promise<void> => {
-    // 대분류 추가 로직 구현
-    // 실제 구현은 나중에 추가
+    try {
+      const response = await fetch('/api/major-category', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          majorCategory: newCategory
+        }),
+      })
+
+      const result = await response.json()
+
+      if (!result.success) {
+        throw new Error(result.error || '대분류 추가에 실패했습니다.')
+      }
+
+      console.log('✅ 대분류 추가 성공:', result)
+      
+      // 성공 시 전체 데이터 다시 로드
+      if (onDataRefresh) {
+        onDataRefresh()
+      }
+
+    } catch (error) {
+      console.error('❌ 대분류 추가 실패:', error)
+      throw error // 에러를 상위로 전달하여 팝업에서 처리하도록 함
+    }
   }
 
   const handleMajorCategoryUpdate = async (oldCategory: string, newCategory: string) => {
