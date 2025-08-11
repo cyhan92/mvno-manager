@@ -20,8 +20,8 @@ interface CustomGanttChartProps {
   groupedTasks: Record<string, Task[]>
   onTaskSelect: (selection: any) => void
   onTaskUpdate?: (updatedTask: Task) => void
-  onTaskAdd?: (newTask: Partial<Task>) => void
-  onTaskDelete?: (taskId: string) => void
+  onTaskAdd?: (newTask: Partial<Task>) => Promise<void>
+  onTaskDelete?: (taskId: string) => Promise<void>
   onDataRefresh?: () => void
   onMajorCategoryUpdate?: (oldCategory: string, newCategory: string) => Promise<void>
   onSubCategoryUpdate?: (taskId: string, middleCategory: string, subCategory: string) => Promise<void>

@@ -70,26 +70,48 @@ const ActionItemRow: React.FC<ActionItemRowProps> = ({
           <span 
             className={`${styles.treeTextSmall} ${task.percentComplete === 100 ? 'text-gray-400' : ''}`}
           >
-            {/* 소분류는 이미 "[중분류] 소분류" 형식으로 빌드됨 */}
             {(() => {
               const taskName = task.name || task.detail || `작업 ${index + 1}`
               
-              // level 1 (소분류)이고 "[중분류] 소분류" 형식인 경우 스타일링 적용
-              if (task.level === 1 && taskName.match(/^\[([^\]]+)\]\s*(.*)/)) {
-                const middleCategoryMatch = taskName.match(/^\[([^\]]+)\]\s*(.*)/)
-                if (middleCategoryMatch) {
-                  const [, middleCategory, remainingName] = middleCategoryMatch
+              // level 1 (소분류): middleCategory와 minorCategory를 조합하여 표시
+              if (task.level === 1) {
+                const middleCategory = task.middleCategory || ''
+                const minorCategory = task.minorCategory || taskName
+                
+                if (middleCategory) {
                   return (
                     <>
                       <span className="text-xs text-gray-500">[{middleCategory}]</span>
-                      <span className="ml-1">{remainingName}</span>
+                      <span className="ml-1">{minorCategory}</span>
                     </>
                   )
                 }
+                return minorCategory
               }
               
-              // 세부업무명 (조직/담당자) 형태로 표시
-              if (showAssigneeInfo && !task.hasChildren) {
+              // level 2 (상세업무): 상세업무명만 표시 (카테고리 정보 제외)
+              if (task.level === 2) {
+                // 세부업무명 (조직/담당자) 형태로 표시
+                if (showAssigneeInfo && !task.hasChildren) {
+                  const department = task.department && task.department !== '미정' ? task.department : '미정'
+                  const resource = task.resource && task.resource !== '미정' ? task.resource : '미정'
+                  
+                  return (
+                    <>
+                      <span>{taskName}</span>
+                      <span className="text-xs text-gray-400 ml-1 opacity-80">
+                        ({department}/{resource})
+                      </span>
+                    </>
+                  )
+                }
+                
+                // 일반 표시 (상세업무명만)
+                return taskName
+              }
+              
+              // 기본 표시 (대분류 또는 카테고리 정보가 없는 경우)
+              if (showAssigneeInfo && !task.hasChildren && task.level === 2) {
                 const department = task.department && task.department !== '미정' ? task.department : '미정'
                 const resource = task.resource && task.resource !== '미정' ? task.resource : '미정'
                 

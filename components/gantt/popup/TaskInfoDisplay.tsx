@@ -18,14 +18,7 @@ const TaskInfoDisplay: React.FC<TaskInfoDisplayProps> = ({ task }) => {
       <div>
         <label className="text-sm font-medium text-gray-600">작업명</label>
         <p className="text-base font-semibold text-gray-900 mt-1">
-          {task.name || task.detail || '작업명 없음'}
-        </p>
-      </div>
-      
-      <div>
-        <label className="text-sm font-medium text-gray-600">상세 설명</label>
-        <p className="text-sm text-gray-700 mt-1">
-          {task.detail || '상세 설명이 없습니다.'}
+          {task.name || task.title || '작업명 없음'}
         </p>
       </div>
 
@@ -46,14 +39,13 @@ const TaskInfoDisplay: React.FC<TaskInfoDisplayProps> = ({ task }) => {
       
       <div>
         <label className="text-sm font-medium text-gray-600">진행률</label>
-        <div className={styles.taskDetailProgressContainer}>
+        <div className="relative w-full h-2 bg-gray-200 rounded-full overflow-hidden mt-1">
           <div 
-            className={styles.taskDetailProgressFill}
-            style={
-              {
-                '--progress-width': `${task.percentComplete || 0}%`
-              } as React.CSSProperties
-            }
+            className="absolute top-0 left-0 h-full bg-gradient-to-r from-blue-500 to-blue-700 rounded-full"
+            style={{ 
+              width: `${Math.min(Math.max(task.percentComplete || 0, 0), 100)}%`,
+              transition: 'none'
+            }}
           />
         </div>
         <p className="text-sm text-gray-700 mt-1">{task.percentComplete || 0}% 완료</p>
@@ -86,6 +78,18 @@ const TaskInfoDisplay: React.FC<TaskInfoDisplayProps> = ({ task }) => {
           <p className="text-sm text-gray-900 mt-1">{task.status}</p>
         </div>
       )}
+
+      {/* 상세 설명을 가장 아래로 이동 */}
+      <div>
+        <label className="text-sm font-medium text-gray-600">상세 설명</label>
+        <div className="mt-1 p-2 border border-gray-200 rounded-md bg-gray-50">
+          <div 
+            className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed min-h-[5em] max-h-[8em] overflow-auto"
+          >
+            {task.detail || '상세 설명이 없습니다.'}
+          </div>
+        </div>
+      </div>
     </div>
   )
 }

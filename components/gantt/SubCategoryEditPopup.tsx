@@ -42,14 +42,6 @@ const SubCategoryEditPopup: React.FC<SubCategoryEditPopupProps> = ({
           }
         }
         
-        console.log('🔍 SubCategoryEditPopup - 추가 모드 기본값 설정:', {
-          taskId: task.id,
-          taskName: task.name,
-          middleCategory: middleCategoryValue,
-          subCategory: '', // 소분류는 비움
-          originalTask: task
-        })
-        
         setMiddleCategory(middleCategoryValue)
         setSubCategory('') // 소분류는 비움
         setOriginalMiddleCategory(middleCategoryValue)
@@ -68,14 +60,6 @@ const SubCategoryEditPopup: React.FC<SubCategoryEditPopupProps> = ({
             subCategoryValue = match[2] || subCategoryValue
           }
         }
-        
-        console.log('🔍 SubCategoryEditPopup - 수정 모드 기본값 설정:', {
-          taskId: task.id,
-          taskName: task.name,
-          middleCategory: middleCategoryValue,
-          subCategory: subCategoryValue,
-          originalTask: task
-        })
         
         setMiddleCategory(middleCategoryValue)
         setSubCategory(subCategoryValue)
@@ -102,12 +86,6 @@ const SubCategoryEditPopup: React.FC<SubCategoryEditPopupProps> = ({
     if (task) {
       if (mode === 'add') {
         // 추가 모드: 새로운 세부업무 Task 생성
-        console.log('🔍 SubCategoryEditPopup - 새 상세업무 Task 생성:', {
-          parentTaskId: task.id,
-          middleCategory: middleCategory.trim(),
-          subCategory: subCategory.trim(),
-          majorCategory: task.majorCategory || '',
-        })
         
         if (onAddTask) {
           // 새로운 Task ID 생성 (고유성 보장을 위해 타임스탬프 + 밀리초 + 랜덤값 사용)
@@ -139,21 +117,10 @@ const SubCategoryEditPopup: React.FC<SubCategoryEditPopupProps> = ({
             status: '미완료'
           }
           
-          console.log('🔍 SubCategoryEditPopup - 생성할 Task 데이터:', JSON.stringify(newTask, null, 2))
           onAddTask(newTask)
         }
       } else {
         // 수정 모드: 기존 로직
-        console.log('🔍 SubCategoryEditPopup - 전송할 데이터:', {
-          taskId: task.id,
-          taskDbId: task.dbId,
-          taskName: task.name,
-          middleCategory: middleCategory.trim(),
-          subCategory: subCategory.trim(),
-          originalMiddleCategory,
-          originalSubCategory,
-          fullTask: task
-        })
         
         // 추가 파라미터와 함께 호출
         onUpdateSubCategory(

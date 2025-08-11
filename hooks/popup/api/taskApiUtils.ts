@@ -40,7 +40,8 @@ export const transformTaskUpdateData = (task: Task, editData: TaskEditData) => {
 export const transformApiResponseToTask = (task: Task, apiData: any): Task => {
   return {
     ...task,
-    name: apiData.title || apiData.name || task.name,
+    name: apiData.title || apiData.name || task.name, // UI 표시용
+    title: apiData.title || apiData.name || task.title || task.name, // DB 저장용
     start: new Date(apiData.start_date),
     end: new Date(apiData.end_date),
     percentComplete: apiData.progress,

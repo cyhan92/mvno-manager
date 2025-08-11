@@ -26,7 +26,7 @@ export const transformExcelToDatabase = (excelTask: ExcelTask): Database['public
 
   return {
     task_id: excelTask.id,
-    title: excelTask.name,
+    title: excelTask.title || excelTask.name, // DB 저장용 (실제 업무 내용)
     category: excelTask.category,
     subcategory: excelTask.subcategory,
     detail: excelTask.detail,
@@ -51,10 +51,25 @@ export const transformExcelToDatabase = (excelTask: ExcelTask): Database['public
  * Database Task를 Frontend Task로 변환
  */
 export const transformDatabaseToTask = (dbTask: DatabaseTask): ExcelTask => {
+  // DB의 title에서 실제 업무 내용만 추출 (이미 카테고리 정보가 포함되어 있을 수 있음)
+  let actualTaskName = dbTask.title || ''
+  
+  // "[중분류] 소분류: 실제업무내용" 패턴에서 실제 업무 내용만 추출
+  const categoryPattern = /^\[([^\]]+)\]\s+([^:：]+)[:：]\s*(.*)/
+  const match = actualTaskName.match(categoryPattern)
+  
+  if (match && match[3]) {
+    // 패턴이 매치되면 실제 업무 내용만 사용
+    actualTaskName = match[3].trim()
+  } else {
+    // 패턴이 매치되지 않으면 기존 title 그대로 사용 (이미 실제 업무 내용만 있는 경우)
+  }
+
   return {
     id: dbTask.task_id, // TASK-001, TASK-002 등
     dbId: dbTask.id, // 실제 DB의 UUID
-    name: dbTask.title,
+    name: actualTaskName, // UI 표시용 (실제 업무 내용만)
+    title: actualTaskName, // DB 저장용 (현재는 name과 동일)
     resource: dbTask.assignee || 'N/A',
     start: dbTask.start_date ? new Date(dbTask.start_date) : new Date(),
     end: dbTask.end_date ? new Date(dbTask.end_date) : new Date(),

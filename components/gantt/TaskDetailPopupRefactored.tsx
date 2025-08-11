@@ -28,6 +28,7 @@ interface TaskEditData {
   majorCategory: string
   middleCategory: string
   minorCategory: string
+  detail: string
 }
 
 const TaskDetailPopupRefactored: React.FC<TaskDetailPopupProps> = ({
@@ -51,7 +52,8 @@ const TaskDetailPopupRefactored: React.FC<TaskDetailPopupProps> = ({
     department: '',
     majorCategory: '',
     middleCategory: '',
-    minorCategory: ''
+    minorCategory: '',
+    detail: ''
   })
 
   // 커스텀 훅들 사용
@@ -80,7 +82,8 @@ const TaskDetailPopupRefactored: React.FC<TaskDetailPopupProps> = ({
       department: task.department || '',
       majorCategory: task.majorCategory || '',
       middleCategory: task.middleCategory || '',
-      minorCategory: task.minorCategory || ''
+      minorCategory: task.minorCategory || '',
+      detail: task.detail || ''
     })
   }, [task])
 
@@ -118,7 +121,8 @@ const TaskDetailPopupRefactored: React.FC<TaskDetailPopupProps> = ({
       department: task.department || '',
       majorCategory: task.majorCategory || '',
       middleCategory: task.middleCategory || '',
-      minorCategory: task.minorCategory || ''
+      minorCategory: task.minorCategory || '',
+      detail: task.detail || ''
     })
     setIsEditing(false)
   }
@@ -166,7 +170,9 @@ const TaskDetailPopupRefactored: React.FC<TaskDetailPopupProps> = ({
         />
         
         {/* 내용 영역 */}
-        <div className="max-h-96 overflow-y-auto">
+        <div 
+          className={`max-h-96 overflow-y-auto overflow-x-hidden ${styles.scrollContainer}`}
+        >
           {isEditing ? (
             <TaskEditForm
               editData={editData}

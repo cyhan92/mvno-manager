@@ -12,6 +12,7 @@ interface TaskEditData {
   middleCategory: string
   minorCategory: string
   status: string
+  detail: string
 }
 
 interface UseTaskEditFormProps {
@@ -30,7 +31,8 @@ export const useTaskEditForm = ({ task, isEditing }: UseTaskEditFormProps) => {
     majorCategory: '',
     middleCategory: '',
     minorCategory: '',
-    status: '미완료'
+    status: '미완료',
+    detail: ''
   })
 
   // Initialize edit data when task changes or editing starts
@@ -46,7 +48,8 @@ export const useTaskEditForm = ({ task, isEditing }: UseTaskEditFormProps) => {
         majorCategory: task.majorCategory || '',
         middleCategory: task.middleCategory || '',
         minorCategory: task.minorCategory || '',
-        status: task.status || '미완료'
+        status: task.status || '미완료',
+        detail: task.detail || ''
       })
     }
   }, [task, isEditing])
@@ -85,7 +88,8 @@ export const useTaskEditForm = ({ task, isEditing }: UseTaskEditFormProps) => {
       majorCategory: task.majorCategory || '',
       middleCategory: task.middleCategory || '',
       minorCategory: task.minorCategory || '',
-      status: task.status || '미완료'
+      status: task.status || '미완료',
+      detail: task.detail || ''
     })
   }
 

@@ -1,7 +1,8 @@
 export interface Task {
   id: string // task_id (TASK-001, TASK-002 등)
   dbId?: string // 실제 DB의 UUID
-  name: string
+  name: string // UI 표시용 (Action Item에 보이는 내용)
+  title?: string // DB 저장용 (실제 세부업무 내용, 현재는 name과 동일)
   resource: string
   start: Date
   end: Date

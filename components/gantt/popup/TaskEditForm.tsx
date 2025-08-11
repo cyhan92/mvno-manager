@@ -11,6 +11,7 @@ interface TaskEditData {
   majorCategory: string
   middleCategory: string
   minorCategory: string
+  detail: string
 }
 
 interface TaskEditFormProps {
@@ -125,6 +126,19 @@ const TaskEditForm: React.FC<TaskEditFormProps> = ({
           className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder="부서명을 입력하세요"
           title="부서명을 입력하세요"
+        />
+      </div>
+
+      {/* 상세 설명 */}
+      <div>
+        <label className="text-sm font-medium text-gray-600">상세 설명</label>
+        <textarea
+          value={editData.detail}
+          onChange={(e) => handleFieldChange('detail', e.target.value)}
+          className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical"
+          placeholder="상세 설명을 입력하세요"
+          rows={5}
+          title="상세 설명을 입력하세요"
         />
       </div>
 

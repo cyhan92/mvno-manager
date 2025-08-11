@@ -15,11 +15,11 @@ interface ActionItemListProps {
   scrollRef: React.RefObject<HTMLDivElement | null>
   onScroll: (e: React.UIEvent<HTMLDivElement>) => void
   showAssigneeInfo: boolean
-  onTaskAdd?: (newTask: Partial<Task>) => void
+  onTaskAdd?: (newTask: Partial<Task>) => Promise<void>
   onMajorCategoryUpdate?: (oldCategory: string, newCategory: string) => Promise<void>
   onSubCategoryUpdate?: (taskId: string, middleCategory: string, subCategory: string, currentMiddleCategory?: string, currentSubCategory?: string) => Promise<void>
   onTaskUpdate?: (updatedTask: Task) => void
-  onTaskDelete?: (taskId: string) => void
+  onTaskDelete?: (taskId: string) => Promise<void>
   onDataRefresh?: () => void
   onOpenTaskDetailPopup?: (task: Task, position: { x: number; y: number }) => void
   onMoveMajorCategory?: (currentMajorCategory: string, currentMinorCategory: string, targetMajorCategory: string) => Promise<{ success: boolean; updatedCount: number }>
@@ -92,8 +92,15 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
   }
 
   const handleAddSubCategory = () => {
-    // 중분류 추가 로직 구현
-    // 실제 구현은 나중에 추가
+    // 컨텍스트 메뉴에서 선택된 Task를 기반으로 중분류/소분류 추가 팝업 열기
+    if (popupStates.contextMenu.task) {
+      setAddSubCategoryPopup({
+        isOpen: true,
+        task: popupStates.contextMenu.task
+      })
+      // 컨텍스트 메뉴 닫기
+      handlers.handleCloseContextMenu()
+    }
   }
 
   const handleConfirmDelete = async () => {
@@ -106,11 +113,12 @@ const ActionItemList: React.FC<ActionItemListProps> = ({
         }))
 
         // 작업 삭제 (useTaskManager에서 이미 부분 리프레시 처리됨)
-        onTaskDelete(popupStates.deleteConfirmationPopup.task.id)
+        await onTaskDelete(popupStates.deleteConfirmationPopup.task.id)
         handlers.handleCloseDeleteConfirmationPopup()
         
       } catch (error) {
         console.error('작업 삭제 실패:', error)
+        alert(`작업 삭제 중 오류가 발생했습니다: ${error instanceof Error ? error.message : '알 수 없는 오류'}`)
         // 로딩 상태 종료
         popupSetters.setDeleteConfirmationPopup(prev => ({
           ...prev,

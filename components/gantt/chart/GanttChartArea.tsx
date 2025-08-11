@@ -14,7 +14,7 @@ interface GanttChartAreaProps {
   openPopupFromEvent: (task: Task, event: React.MouseEvent) => void
   handleTreeToggle: (nodeId: string) => void
   showAssigneeInfo: boolean
-  onTaskAdd?: (newTask: Partial<Task>) => void
+  onTaskAdd?: (newTask: Partial<Task>) => Promise<void>
   
   // 스크롤 관련
   actionItemScrollRef: React.RefObject<HTMLDivElement | null>

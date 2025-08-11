@@ -11,6 +11,7 @@ interface TaskEditData {
   majorCategory: string
   middleCategory: string
   minorCategory: string
+  detail: string
 }
 
 interface UseTaskApiProps {
@@ -47,7 +48,8 @@ export const useTaskApi = ({ onTaskUpdate, onDataRefresh }: UseTaskApiProps) => 
             department: editData.department,
             majorCategory: editData.majorCategory,
             middleCategory: editData.middleCategory,
-            minorCategory: editData.minorCategory
+            minorCategory: editData.minorCategory,
+            detail: editData.detail
           }
           onTaskUpdate(updatedTask)
         }
@@ -64,7 +66,8 @@ export const useTaskApi = ({ onTaskUpdate, onDataRefresh }: UseTaskApiProps) => 
         department: editData.department,
         major_category: editData.majorCategory,
         middle_category: editData.middleCategory,
-        minor_category: editData.minorCategory
+        minor_category: editData.minorCategory,
+        detail: editData.detail
       }
 
       console.log('Updating task:', task.id, 'with data:', updateData)
@@ -96,7 +99,8 @@ export const useTaskApi = ({ onTaskUpdate, onDataRefresh }: UseTaskApiProps) => 
           department: result.data.department,
           majorCategory: result.data.major_category || editData.majorCategory,
           middleCategory: result.data.middle_category || editData.middleCategory,
-          minorCategory: result.data.minor_category || editData.minorCategory
+          minorCategory: result.data.minor_category || editData.minorCategory,
+          detail: result.data.detail || editData.detail
         }
         onTaskUpdate(updatedTask)
       }

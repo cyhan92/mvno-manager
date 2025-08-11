@@ -13,8 +13,8 @@ interface GanttChartProps {
   onViewModeChange: (mode: ViewMode) => void
   onGroupByChange: (groupBy: GroupBy) => void
   onTaskUpdate?: (updatedTask: Task) => void
-  onTaskAdd?: (newTask: Partial<Task>) => void // 새로운 Task 추가 콜백
-  onTaskDelete?: (taskId: string) => void // 작업 삭제 콜백
+  onTaskAdd?: (newTask: Partial<Task>) => Promise<void> // 새로운 Task 추가 콜백
+  onTaskDelete?: (taskId: string) => Promise<void> // 작업 삭제 콜백
   onDataRefresh?: () => void // 전체 데이터 다시 로드 함수
   onMajorCategoryUpdate?: (oldCategory: string, newCategory: string) => Promise<void> // 대분류 수정 콜백
   onSubCategoryUpdate?: (taskId: string, middleCategory: string, subCategory: string) => Promise<void> // 중분류,소분류 수정 콜백

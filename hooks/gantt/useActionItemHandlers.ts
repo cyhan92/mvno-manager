@@ -101,17 +101,6 @@ export const useActionItemHandlers = ({
 
   // Edit Sub Category 팝업 열기
   const handleEditSubCategory = () => {
-    console.log(`🎯 ActionItemList: handleEditSubCategory 호출`)
-    console.log(`📋 선택된 태스크:`, popupStates.contextMenu.task)
-    console.log(`📋 태스크 상세 정보:`, {
-      id: popupStates.contextMenu.task?.id,
-      name: popupStates.contextMenu.task?.name,
-      middleCategory: popupStates.contextMenu.task?.middleCategory,
-      minorCategory: popupStates.contextMenu.task?.minorCategory,
-      majorCategory: popupStates.contextMenu.task?.majorCategory,
-      level: popupStates.contextMenu.task?.level,
-      isGroup: popupStates.contextMenu.task?.isGroup
-    })
     
     if (popupStates.contextMenu.task) {
       setEditSubCategoryPopup({
@@ -226,7 +215,6 @@ export const useActionItemHandlers = ({
 
   // 중분류,소분류 수정 핸들러
   const handleSubCategoryUpdate = async (taskId: string, middleCategory: string, subCategory: string, currentMiddleCategory?: string, currentSubCategory?: string) => {
-    console.log(`🎯 ActionItemList: handleSubCategoryUpdate 호출`)
     console.log(`📋 파라미터:`, { taskId, middleCategory, subCategory, currentMiddleCategory, currentSubCategory })
     console.log(`🔗 onSubCategoryUpdate 함수 존재:`, !!onSubCategoryUpdate)
     
@@ -246,9 +234,9 @@ export const useActionItemHandlers = ({
   }
 
   // 새로운 Task 추가 핸들러
-  const handleAddTask = (newTask: Partial<Task>) => {
+  const handleAddTask = async (newTask: Partial<Task>) => {
     try {
-      console.log('ActionItemList: 새 작업 추가 요청:', newTask)
+
       
       if (!newTask) {
         throw new Error('새 작업 데이터가 없습니다.')
@@ -259,16 +247,16 @@ export const useActionItemHandlers = ({
       }
 
       if (onTaskAdd) {
-        onTaskAdd(newTask)
-        console.log('ActionItemList: 새 작업 추가 완료')
+        await onTaskAdd(newTask)
+
         
         // 팝업 닫기
         handleCloseAddPopup()
       } else {
-        console.warn('ActionItemList: onTaskAdd 함수가 전달되지 않았습니다.')
+
       }
     } catch (error) {
-      console.error('ActionItemList: 새 작업 추가 실패:', error)
+
       alert(`작업 추가 중 오류가 발생했습니다: ${error}`)
     }
   }
