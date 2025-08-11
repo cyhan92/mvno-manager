@@ -45,7 +45,7 @@ export async function POST(request: NextRequest) {
       console.warn(`⚠️ 이미 존재하는 대분류: "${trimmedCategory}"`)
       return NextResponse.json({
         success: false,
-        error: '이미 존재하는 대분류입니다.'
+        error: '이미 해당 대분류에 속한 Task가 존재합니다.'
       }, { status: 409 })
     }
 
@@ -77,30 +77,25 @@ export async function POST(request: NextRequest) {
 
     const newTaskId = `TASK-${String(nextId).padStart(3, '0')}`
 
-    // 새 대분류를 위한 기본 Task 생성
+    // 새 대분류에 속하는 기본 Task 생성 (대분류/중분류/소분류/상세업무 구조)
     const newTask = {
       task_id: newTaskId,
-      title: trimmedCategory,
-      resource: '미정',
-      start_date: new Date().toISOString(),
-      end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7일 후
-      duration: 7,
-      percent_complete: 0,
-      dependencies: null,
-      category: '',
-      subcategory: '',
-      detail: '',
+      title: '상세업무1', // 실제 업무 내용
+      category: '', // 기존 category 필드 (사용하지 않음)
+      subcategory: '', // 기존 subcategory 필드 (사용하지 않음)
+      detail: '상세업무1', // 상세 설명
       department: '미정',
-      status: '미완료',
+      assignee: '미정',
+      start_date: new Date().toISOString().split('T')[0],
+      end_date: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
+      duration: 7,
+      progress: 0,
+      status: '미완료' as const,
       cost: '',
       notes: '',
-      major_category: trimmedCategory,
-      middle_category: '',
-      minor_category: '',
-      level: 0, // 대분류는 level 0
-      parent_id: '',
-      has_children: false,
-      is_group: true // 대분류는 그룹
+      major_category: trimmedCategory, // 입력받은 대분류명
+      middle_category: '중분류1', // 기본 중분류
+      minor_category: '소분류1' // 기본 소분류
     }
 
     const { data: createdTask, error: createError } = await supabase
@@ -117,18 +112,23 @@ export async function POST(request: NextRequest) {
       }, { status: 500 })
     }
 
-    console.log(`✅ 새 대분류 추가 성공:`, {
+    console.log(`✅ 새 대분류 Task 추가 성공:`, {
       taskId: newTaskId,
-      majorCategory: trimmedCategory
+      majorCategory: trimmedCategory,
+      middleCategory: '중분류1',
+      minorCategory: '소분류1',
+      title: '상세업무1'
     })
 
     return NextResponse.json({
       success: true,
       data: {
         task: createdTask,
-        majorCategory: trimmedCategory
+        majorCategory: trimmedCategory,
+        middleCategory: '중분류1',
+        minorCategory: '소분류1'
       },
-      message: `대분류 "${trimmedCategory}"가 성공적으로 추가되었습니다.`
+      message: `대분류 "${trimmedCategory}"에 속하는 기본 Task가 성공적으로 추가되었습니다.`
     })
 
   } catch (error) {
