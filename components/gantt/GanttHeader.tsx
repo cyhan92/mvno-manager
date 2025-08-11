@@ -102,9 +102,16 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const observerRef = useRef<MutationObserver | null>(null)
   const renderTimeoutRef = useRef<NodeJS.Timeout | null>(null)
+  const isRenderingRef = useRef(false) // 렌더링 중복 방지
+  const lastRenderConfigRef = useRef<string>('') // 마지막 렌더링 설정 캐시
 
-  // 헤더 렌더링 함수
+  // 헤더 렌더링 함수 (성능 최적화)
   const renderHeader = () => {
+    // 중복 렌더링 방지
+    if (isRenderingRef.current) {
+      return
+    }
+    
     const canvas = canvasRef.current
     const container = scrollRef.current
     if (!canvas || !container) {
@@ -113,6 +120,16 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
 
     const ctx = canvas.getContext('2d')
     if (!ctx) return
+
+    // 현재 렌더링 설정 생성
+    const currentConfig = `${displayTasks.length}-${dateUnit}-${expandedNodesSize}-${chartWidth}-${renderTrigger}`
+    
+    // 동일한 설정이면 렌더링 스킵 (불필요한 재렌더링 방지)
+    if (lastRenderConfigRef.current === currentConfig) {
+      return
+    }
+
+    isRenderingRef.current = true
 
     // 메인 차트에서 전달받은 chartWidth가 있으면 우선 사용
     let finalChartWidth: number
@@ -131,22 +148,25 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
       }
     }
 
-    canvas.width = finalChartWidth
-    canvas.height = 80
-
-    // 모든 스타일을 강제로 초기화 (매우 중요!)
-    canvas.removeAttribute('style')
+    // Canvas 크기 및 스타일 최적화 (깜빡임 완전 방지)
+    const needsResize = canvas.width !== finalChartWidth || canvas.height !== 80
+    const needsStyleInit = !canvas.style.width || canvas.style.width === ''
     
-    // 기본 스타일 설정
-    canvas.style.width = `${finalChartWidth}px`
-    canvas.style.height = '80px'
-
-    if (dateUnit === 'week') {
-      canvas.style.minWidth = '1800px'
-      canvas.style.maxWidth = 'none'
-    } else {
-      canvas.style.minWidth = `${finalChartWidth}px` // 고정 최소 너비 설정
-      canvas.style.maxWidth = 'none'
+    if (needsResize || needsStyleInit) {
+      // Canvas 속성 및 스타일을 한번에 설정 (DOM 조작 최소화)
+      canvas.width = finalChartWidth
+      canvas.height = 80
+      
+      // 스타일 일괄 설정 (reflow 최소화)
+      const styleUpdates = {
+        width: `${finalChartWidth}px`,
+        height: '80px',
+        minWidth: dateUnit === 'week' ? '1800px' : `${finalChartWidth}px`,
+        maxWidth: 'none',
+        display: 'block'
+      }
+      
+      Object.assign(canvas.style, styleUpdates)
     }
 
     const validTasks = displayTasks.filter(task => task.start && task.end)
@@ -213,24 +233,42 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
       ctx.lineTo(todayX, canvas.height)
       ctx.stroke()
     }
+
+    // 렌더링 완료 처리
+    lastRenderConfigRef.current = currentConfig
+    isRenderingRef.current = false
   }
 
-  // 초기 렌더링
+  // 최적화된 헤더 렌더링 useEffect (디바운싱 및 중복 방지)
   useEffect(() => {
-    const syncRender = () => {
-      requestAnimationFrame(() => {
-        renderHeader()
-      })
+    let renderTimeout: NodeJS.Timeout | null = null
+    
+    const executeRender = () => {
+      if (renderTimeout) {
+        clearTimeout(renderTimeout)
+      }
+      
+      // 렌더링 지연을 최소화하고 requestAnimationFrame으로 부드럽게 처리
+      renderTimeout = setTimeout(() => {
+        if (!isRenderingRef.current) {
+          requestAnimationFrame(() => {
+            renderHeader()
+          })
+        }
+      }, 10) // 극도로 짧은 지연 시간
     }
     
-    const timer = setTimeout(syncRender, 120)
+    executeRender()
     
     return () => {
-      clearTimeout(timer)
+      if (renderTimeout) {
+        clearTimeout(renderTimeout)
+      }
+      isRenderingRef.current = false
     }
-  }, [displayTasks.length, dateUnit, expandedNodesSize, renderTrigger, chartWidth]) // 배열 대신 길이 사용
+  }, [displayTasks.length, dateUnit, expandedNodesSize, renderTrigger, chartWidth])
 
-  // DOM 변경 감지
+  // DOM 변경 감지 (최적화된 디바운싱)
   useEffect(() => {
     const container = scrollRef.current
     if (!container) return
@@ -248,16 +286,18 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
         }
       })
       
-      if (shouldRerender) {
+      if (shouldRerender && !isRenderingRef.current) {
         if (renderTimeout) {
           clearTimeout(renderTimeout)
         }
         
         renderTimeout = setTimeout(() => {
-          requestAnimationFrame(() => {
-            renderHeader()
-          })
-        }, 150)
+          if (!isRenderingRef.current) {
+            requestAnimationFrame(() => {
+              renderHeader()
+            })
+          }
+        }, 100) // DOM 변경 감지는 조금 더 긴 지연
       }
     })
 
@@ -283,31 +323,32 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
       if (renderTimeoutRef.current) {
         clearTimeout(renderTimeoutRef.current)
       }
+      isRenderingRef.current = false
     }
   }, [scrollRef])
 
-  // 렌더링 트리거 변경 시
-  useEffect(() => {
-    if (renderTimeoutRef.current) {
-      clearTimeout(renderTimeoutRef.current)
-    }
-    
-    renderTimeoutRef.current = setTimeout(() => {
-      requestAnimationFrame(() => {
-        renderHeader()
-      })
-    }, 100)
-  }, [renderTrigger])
+  // 렌더링 트리거 변경 시 (제거 - 위의 통합된 useEffect에서 처리)
+  // useEffect(() => {
+  //   if (renderTimeoutRef.current) {
+  //     clearTimeout(renderTimeoutRef.current)
+  //   }
+  //   
+  //   renderTimeoutRef.current = setTimeout(() => {
+  //     requestAnimationFrame(() => {
+  //       renderHeader()
+  //     })
+  //   }, 100)
+  // }, [renderTrigger])
 
   return (
     <div 
       ref={scrollRef}
-      className={`${styles.ganttChartHeader} flex-shrink-0`}
+      className={`${styles.ganttChartHeader} flex-shrink-0 overflow-hidden`}
       onScroll={onScroll} // 스크롤 핸들러 적용
     >
       <canvas 
         ref={canvasRef}
-        key={`header-${displayTasks.length}-${expandedNodesSize}-${dateUnit}`}
+        key={`header-stable-${dateUnit}`} // 안정적인 key로 변경 (불필요한 재마운트 방지)
         className="block"
       />
     </div>

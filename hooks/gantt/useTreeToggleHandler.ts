@@ -18,7 +18,7 @@ export const useTreeToggleHandler = ({
   renderChart,
   triggerRender
 }: UseTreeToggleHandlerProps) => {
-  // 트리 노드 토글 핸들러
+  // 최적화된 트리 노드 토글 핸들러 (깜빡임 완전 방지)
   const handleTreeToggle = useCallback((nodeId: string) => {
     // 현재 스크롤 위치 저장
     const currentScrollTop = scrollRefs.actionItemScrollRef.current?.scrollTop || 0
@@ -26,27 +26,25 @@ export const useTreeToggleHandler = ({
     // 트리 상태 토글
     treeState.toggleNode(nodeId)
     
-    // 부드러운 단일 동기화 렌더링
+    // 즉시 렌더링으로 깜빡임 방지 (지연 최소화)
     requestAnimationFrame(() => {
-      // 메인 차트 렌더링
+      // 메인 차트 즉시 렌더링
       if (renderChart) {
         renderChart()
       }
       
-      // 헤더 렌더링 (한 번만, 적절한 지연으로)
-      setTimeout(() => {
-        triggerRender() // 디바운싱된 함수 사용
+      // 헤더 렌더링을 최소 지연으로 처리
+      requestAnimationFrame(() => {
+        triggerRender()
         
-        // 스크롤 위치 복원
-        setTimeout(() => {
-          if (scrollRefs.actionItemScrollRef.current) {
-            scrollRefs.actionItemScrollRef.current.scrollTop = currentScrollTop
-          }
-          if (scrollRefs.ganttChartScrollRef.current) {
-            scrollRefs.ganttChartScrollRef.current.scrollTop = currentScrollTop
-          }
-        }, 30) // 빠른 스크롤 복원
-      }, 100) // 메인 차트 렌더링 완료 후
+        // 스크롤 위치 즉시 복원 (지연 없음)
+        if (scrollRefs.actionItemScrollRef.current) {
+          scrollRefs.actionItemScrollRef.current.scrollTop = currentScrollTop
+        }
+        if (scrollRefs.ganttChartScrollRef.current) {
+          scrollRefs.ganttChartScrollRef.current.scrollTop = currentScrollTop
+        }
+      })
     })
   }, [treeState, scrollRefs, renderChart, triggerRender])
 
