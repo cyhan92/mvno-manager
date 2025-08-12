@@ -10,7 +10,6 @@ export { useTreeState } from './useTreeState'
 
 // Gantt hooks
 export { useGanttPopup } from './useGanttPopup'
-export { useGanttScroll } from './useGanttScroll'
 export { useGanttHeight } from './useGanttHeight'
 
 // Popup related hooks
