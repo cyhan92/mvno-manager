@@ -7,6 +7,7 @@ import { useGanttTreeManager } from './useGanttTreeManager'
 import { useRenderTrigger } from './useRenderTrigger'
 import { useSynchronizedRendering } from './useSynchronizedRendering'
 import { useTreeToggleHandler } from './useTreeToggleHandler'
+import { useScrollbarGutterSync } from './useScrollbarGutterSync'
 
 interface UseGanttChartManagerProps {
   tasks: Task[]
@@ -31,10 +32,18 @@ export const useGanttChartManager = ({
   groupBy,
   onTreeStateChange
 }: UseGanttChartManagerProps) => {
-  // 트리 상태 관리
+  // 스크롤 관리 (트리 관리보다 먼저 초기화)
+  const scroll = useGanttScroll()
+
+  // 트리 상태 관리 (스크롤 컨텍스트와 함께)
   const { taskTree, treeState, flattenedTasks } = useGanttTreeManager({
     tasks,
-    onTreeStateChange
+    onTreeStateChange,
+    scrollRefs: { // 스크롤 컨텍스트 전달
+      actionItemScrollRef: scroll.actionItemScrollRef,
+      ganttChartScrollRef: scroll.ganttChartScrollRef,
+      headerScrollRef: scroll.headerScrollRef
+    }
   })
 
   // 렌더링 트리거 관리
@@ -42,9 +51,6 @@ export const useGanttChartManager = ({
 
   // 팝업 상태 관리
   const popup = useGanttPopup()
-  
-  // 스크롤 관리
-  const scroll = useGanttScroll()
 
   // 높이 관리
   useGanttHeight({
@@ -82,6 +88,12 @@ export const useGanttChartManager = ({
     canvasRef,
     renderChart,
     triggerRender
+  })
+
+  // 세로 스크롤바 거터 동기화(헤더 오른쪽 패딩 = 차트 세로 스크롤바 폭)
+  useScrollbarGutterSync({
+    headerScrollRef: scroll.headerScrollRef,
+    ganttChartScrollRef: scroll.ganttChartScrollRef
   })
 
   // 트리 토글 핸들러 (헤더 스크롤 ref 추가)

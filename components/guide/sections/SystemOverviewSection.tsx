@@ -25,7 +25,7 @@ const SystemOverviewSection: React.FC = () => {
           </Typography>
         </Box>
         <Typography variant="h6" gutterBottom sx={{ fontWeight: 600, color: 'info.dark' }}>
-          스노우모바일 MVNO 프로젝트 관리 시스템
+          MVNO Manager v2.3 - 통합 프로젝트 관리 시스템
         </Typography>
         <List dense>
           <ListItem>
@@ -42,15 +42,23 @@ const SystemOverviewSection: React.FC = () => {
           </ListItem>
           <ListItem>
             <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
-            <ListItemText primary="우클릭 컨텍스트 메뉴를 통한 중분류/소분류 추가 기능 (v2.0 신규)" />
+            <ListItemText primary="우클릭 컨텍스트 메뉴를 통한 중분류/소분류 추가 기능" />
           </ListItem>
           <ListItem>
             <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
-            <ListItemText primary="담당자별 업무 현황의 오름차순 정렬 및 세부 업무 상세보기 (v2.0 업데이트)" />
+            <ListItemText primary="담당자 업무창 상태별 3단계 섹션 분리 (미시작/진행중/완료) - v2.3 신규" />
           </ListItem>
           <ListItem>
             <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
-            <ListItemText primary="대시보드 상태별(완료/진행중/미시작) 더블클릭 팝업 기능 (v2.0 신규)" />
+            <ListItemText primary="각 섹션 대분류 그룹핑 + 펼치기/접기 + 모두 펼치기/접기 - v2.3 신규" />
+          </ListItem>
+          <ListItem>
+            <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+            <ListItemText primary="대분류 정렬 기준 통일 (Action Item과 동일: B→A→S→D→C→O) - v2.3 개선" />
+          </ListItem>
+          <ListItem>
+            <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>
+            <ListItemText primary="상태 배지/진행률 바 색상 일관화 및 스크롤 안정화 - v2.3 개선" />
           </ListItem>
           <ListItem>
             <ListItemIcon><CheckCircleIcon color="success" fontSize="small" /></ListItemIcon>

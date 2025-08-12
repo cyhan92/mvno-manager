@@ -2,81 +2,8 @@
 import React, { useEffect, useRef } from 'react'
 import { Task, DateUnit } from '../../types/task'
 import { styles } from '../../styles'
-import { calculateDateRange, calculateCanvasDimensions } from '../../utils/canvas'
-
-// 월별 헤더 생성 함수
-const generateMonthHeaders = (startDate: Date, endDate: Date) => {
-  const months = []
-  const current = new Date(startDate.getFullYear(), startDate.getMonth(), 1)
-  
-  while (current <= endDate) {
-    const monthStart = new Date(current)
-    const monthEnd = new Date(current.getFullYear(), current.getMonth() + 1, 0)
-    
-    const monthLabel = current.toLocaleDateString('ko-KR', { 
-      year: 'numeric', 
-      month: 'short' 
-    })
-    
-    months.push({
-      label: monthLabel,
-      start: monthStart.getTime(),
-      end: monthEnd.getTime()
-    })
-    
-    current.setMonth(current.getMonth() + 1)
-  }
-  
-  return months
-}
-
-// 주별 헤더 생성 함수 (개선된 구현)
-const generateWeekHeaders = (startDate: Date, endDate: Date) => {
-  const weeks = []
-  const current = new Date(startDate)
-  
-  // 시작 날짜를 주의 시작일(월요일)로 조정
-  const dayOfWeek = current.getDay()
-  const adjustedStart = new Date(current)
-  adjustedStart.setDate(current.getDate() - (dayOfWeek === 0 ? 6 : dayOfWeek - 1))
-  
-  let weekStart = new Date(adjustedStart)
-  let weekNumber = 1
-  
-  while (weekStart < endDate) {
-    const weekEnd = new Date(weekStart)
-    weekEnd.setDate(weekStart.getDate() + 6) // 일주일 끝
-    
-    // 더 명확한 주별 라벨 생성
-    const startMonth = weekStart.getMonth() + 1
-    const startDay = weekStart.getDate()
-    const endMonth = weekEnd.getMonth() + 1
-    const endDay = weekEnd.getDate()
-    
-    let weekLabel = ''
-    if (startMonth === endMonth) {
-      // 같은 달 내의 주
-      weekLabel = `${startMonth}/${startDay}-${endDay}`
-    } else {
-      // 월을 넘나드는 주
-      weekLabel = `${startMonth}/${startDay}~${endMonth}/${endDay}`
-    }
-    
-    weeks.push({
-      label: weekLabel,
-      start: weekStart.getTime(),
-      end: weekEnd.getTime(),
-      weekNumber: weekNumber
-    })
-    
-    // 다음 주로 이동
-    weekStart = new Date(weekStart)
-    weekStart.setDate(weekStart.getDate() + 7)
-    weekNumber++
-  }
-  
-  return weeks
-}
+import { calculateDateRange } from '../../utils/canvas'
+import { generateMonthHeaders, generateWeekHeaders } from '../../utils/canvas/headers/headerGenerators'
 
 interface GanttHeaderProps {
   displayTasks: Task[]
@@ -186,7 +113,7 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
     const leftMargin = 0
 
     // 월별/주별 구분선과 라벨 그리기
-    let headers = []
+    let headers = [] as Array<{ start: number; end: number; label: string; weekNumber?: number }>
     if (dateUnit === 'month') {
       headers = generateMonthHeaders(startDate, endDate)
     } else {
@@ -198,19 +125,19 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
     ctx.textAlign = 'center'
 
     headers.forEach((header) => {
-        const x = leftMargin + ((header.start - startDate.getTime()) / timeRange) * finalChartWidth
-        const width = ((header.end - header.start) / timeRange) * finalChartWidth
+  const x = leftMargin + ((header.start - startDate.getTime()) / timeRange) * finalChartWidth
+  const width = ((header.end - header.start) / timeRange) * finalChartWidth
         
         // 헤더 라벨 그리기
         ctx.fillText(header.label, x + width / 2, dateUnit === 'week' ? 30 : 40)
 
-        // 세로선 그리기 - 구간 끝에만 (모든 모드에서 점선 사용)
-        const endX = leftMargin + ((header.end - startDate.getTime()) / timeRange) * finalChartWidth
-        ctx.strokeStyle = dateUnit === 'week' ? '#d1d5db' : '#e5e7eb' // 주별도 연한 회색으로 변경
-        ctx.lineWidth = 1 // 주별도 1px로 변경
-        
-        // 모든 모드에서 점선 사용
-        ctx.setLineDash([2, 2]) // 주별도 점선 패턴
+  // 세로선 그리기 - 구간 끝에만 (그리드와 동일한 점선 패턴 사용)
+  const endXRaw = leftMargin + ((header.end - startDate.getTime()) / timeRange) * finalChartWidth
+  const endX = Math.round(endXRaw) + 0.5
+  ctx.strokeStyle = '#d1d5db'
+  ctx.lineWidth = 1
+  // 월별은 [4,4], 주별은 [2,2] 패턴으로 통일
+  ctx.setLineDash(dateUnit === 'month' ? [4, 4] : [2, 2])
         
         ctx.beginPath()
         ctx.moveTo(endX, 0)
@@ -225,7 +152,8 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     if (today >= startDate && today <= endDate) {
-      const todayX = leftMargin + ((today.getTime() - startDate.getTime()) / timeRange) * finalChartWidth
+  const todayXRaw = leftMargin + ((today.getTime() - startDate.getTime()) / timeRange) * finalChartWidth
+  const todayX = Math.round(todayXRaw) + 0.5
       ctx.strokeStyle = '#ef4444'
       ctx.lineWidth = 2
       ctx.beginPath()
@@ -343,7 +271,7 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
   return (
     <div 
       ref={scrollRef}
-      className={`${styles.ganttChartHeader} flex-shrink-0 overflow-hidden`}
+  className={`${styles.ganttChartHeader} flex-shrink-0`}
       onScroll={onScroll} // 스크롤 핸들러 적용
     >
       <canvas 

@@ -20,13 +20,13 @@ export const featureCards = [
   {
     iconType: 'People',
     title: 'Resource',
-    description: '담당자별 작업 현황 확인',
+    description: '담당자별 업무 현황 (v2.3: 섹션 분리/그룹핑)',
     color: 'info' as const
   },
   {
     iconType: 'Assignment',
     title: 'Progress',
-    description: '프로젝트 진행률 추적',
+    description: '진행률 추적 (v2.3: 색상/스크롤 안정화)',
     color: 'secondary' as const
   },
   {
@@ -175,6 +175,16 @@ export const tips = [
       "지연되는 작업을 사전에 식별하세요",
       "팀원별 업무량을 균등하게 분배하세요",
       "정기적인 프로젝트 회의를 진행하세요"
+    ]
+  },
+  {
+    iconType: 'People',
+    title: "담당자 업무창 활용 팁 (v2.3 신규)",
+    content: [
+      "상태별 섹션으로 업무 우선순위를 파악하세요",
+      "대분류 그룹핑으로 관련 업무를 한눈에 확인하세요",
+      "'모두 펼치기/접기'로 필요한 정보만 표시하세요",
+      "상태 배지 색상으로 진행률을 빠르게 판단하세요"
     ]
   }
 ]

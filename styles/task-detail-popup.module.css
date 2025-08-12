@@ -58,6 +58,9 @@
   border-radius: 4px;
   overflow: hidden;
   margin-top: 4px;
+  /* 스크롤시 레이어 안정화 */
+  contain: paint;
+  will-change: contents;
 }
 
 .taskDetailProgressFill {
@@ -65,16 +68,49 @@
   background: linear-gradient(90deg, #3b82f6, #1d4ed8);
   border-radius: 4px;
   transition: width 0.3s ease;
-  width: var(--progress-width);
+  will-change: width;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  width: var(--progress-width, 0%);
 }
 
 /* Resource Tasks Popup Progress Bar */
 .resourceTaskProgressFill {
-  width: var(--progress-width);
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.2s ease;
+  will-change: width;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  width: var(--progress-width, 0%);
 }
 
 /* 스크롤 최적화 클래스 */
 .scrollContainer {
   transform: translateZ(0); /* GPU 레이어 분리 */
   will-change: scroll-position; /* 스크롤 최적화 힌트 */
+  contain: paint; /* 내부 그리기 분리로 겹침 방지 */
+}
+
+/* ResourceTasksPopup 전용: 스크롤/레이어 안정화 */
+.listScroll {
+  overflow-y: auto;
+  contain: paint;
+  isolation: isolate; /* 자식 z-index를 외부와 격리 */
+  will-change: scroll-position;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+.sectionHeader {
+  position: relative;
+  z-index: 3; /* 그룹 박스보다 위 */
+  background: #ffffff; /* 텍스트 가독성 확보 */
+}
+
+.categoryGroup {
+  position: relative;
+  z-index: 1;
+  background-clip: padding-box;
+  transform: translateZ(0);
 }

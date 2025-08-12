@@ -21,7 +21,8 @@ export const drawTodayLine = (
   // 오늘 날짜가 차트 범위 내에 있는지 확인
   if (todayMs >= startDateMs && todayMs <= (startDateMs + timeRange)) {
     // 오늘 날짜의 x 위치 계산
-    const x = leftMargin + ((todayMs - startDateMs) / timeRange) * chartWidth
+  const xRaw = leftMargin + ((todayMs - startDateMs) / timeRange) * chartWidth
+  const x = Math.round(xRaw) + 0.5
     
     console.log('Gantt today line drawn at:', x, 'startDate:', startDate.toISOString(), 'timeRange:', timeRange, 'leftMargin:', leftMargin)
     

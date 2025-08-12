@@ -23,33 +23,64 @@ export const useTreeToggleHandler = ({
   const handleTreeToggle = useCallback((nodeId: string) => {
     // 현재 스크롤 위치 저장 (세로 + 가로 모두)
     const currentScrollTop = scrollRefs.actionItemScrollRef.current?.scrollTop || 0
-    const currentScrollLeft = scrollRefs.ganttChartScrollRef.current?.scrollLeft || 0
+  // 소수점 스크롤로 인한 어긋남 방지: 정수로 반올림해서 저장
+  const currentScrollLeft = Math.round(scrollRefs.ganttChartScrollRef.current?.scrollLeft || 0)
+    
+    console.log('트리 토글 전 스크롤 위치:', { scrollTop: currentScrollTop, scrollLeft: currentScrollLeft })
     
     // 트리 상태 토글
     treeState.toggleNode(nodeId)
     
-    // 즉시 렌더링으로 깜빡임 방지 (지연 최소화)
+    // 더 안정적인 스크롤 복원을 위해 여러 단계로 처리
     requestAnimationFrame(() => {
       // 메인 차트 즉시 렌더링
       if (renderChart) {
         renderChart()
       }
       
-      // 헤더 렌더링을 최소 지연으로 처리
+      // 헤더와 메인 차트의 렌더링을 분리하여 처리
       requestAnimationFrame(() => {
         triggerRender()
         
-        // 스크롤 위치 즉시 복원 (세로 + 가로 모두)
-        if (scrollRefs.actionItemScrollRef.current) {
-          scrollRefs.actionItemScrollRef.current.scrollTop = currentScrollTop
-        }
-        if (scrollRefs.ganttChartScrollRef.current) {
-          scrollRefs.ganttChartScrollRef.current.scrollTop = currentScrollTop
-          scrollRefs.ganttChartScrollRef.current.scrollLeft = currentScrollLeft // 가로 스크롤 복원
-        }
-        if (scrollRefs.headerScrollRef?.current) {
-          scrollRefs.headerScrollRef.current.scrollLeft = currentScrollLeft // 헤더 가로 스크롤 복원
-        }
+        // 첫 번째 스크롤 위치 복원 시도
+        setTimeout(() => {
+          if (scrollRefs.actionItemScrollRef.current) {
+            scrollRefs.actionItemScrollRef.current.scrollTop = currentScrollTop
+          }
+          if (scrollRefs.ganttChartScrollRef.current) {
+            scrollRefs.ganttChartScrollRef.current.scrollTop = currentScrollTop
+            scrollRefs.ganttChartScrollRef.current.scrollLeft = currentScrollLeft
+          }
+          if (scrollRefs.headerScrollRef?.current) {
+            scrollRefs.headerScrollRef.current.scrollLeft = currentScrollLeft
+          }
+          
+          console.log('첫 번째 스크롤 복원 완료')
+          
+          // 두 번째 검증 및 보정
+          setTimeout(() => {
+            const ganttScrollLeft = scrollRefs.ganttChartScrollRef.current?.scrollLeft || 0
+            const headerScrollLeft = scrollRefs.headerScrollRef?.current?.scrollLeft || 0
+            
+            console.log('스크롤 동기화 검증:', { 
+              target: currentScrollLeft,
+              gantt: ganttScrollLeft, 
+              header: headerScrollLeft,
+              diff: Math.abs(ganttScrollLeft - headerScrollLeft)
+            })
+            
+            // 동기화가 어긋났으면 강제로 맞춤
+            if (Math.abs(ganttScrollLeft - headerScrollLeft) > 0) {
+              console.log('스크롤 재동기화 실행')
+              if (scrollRefs.ganttChartScrollRef.current) {
+                scrollRefs.ganttChartScrollRef.current.scrollLeft = currentScrollLeft
+              }
+              if (scrollRefs.headerScrollRef?.current) {
+                scrollRefs.headerScrollRef.current.scrollLeft = currentScrollLeft
+              }
+            }
+          }, 50) // 50ms 후 재검증
+        }, 10) // 10ms 후 첫 번째 복원
       })
     })
   }, [treeState, scrollRefs, renderChart, triggerRender])

@@ -1,7 +1,8 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { Task } from '../types/task'
 import styles from '../styles/task-detail-popup.module.css'
 import TaskDetailPopupRefactored from './gantt/TaskDetailPopupRefactored'
+import { getMajorCategoryOrder } from '../utils/tree/builder'
 
 interface ResourceTasksPopupProps {
   resource: string
@@ -20,6 +21,10 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
 }) => {
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false)
+  // 섹션별 대분류 펼침 상태
+  const [expandedInProgressMajors, setExpandedInProgressMajors] = useState<Set<string>>(new Set())
+  const [expandedNotStartedMajors, setExpandedNotStartedMajors] = useState<Set<string>>(new Set())
+  const [expandedCompletedMajors, setExpandedCompletedMajors] = useState<Set<string>>(new Set())
 
   if (!isOpen) return null
 
@@ -43,9 +48,61 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
     closeTaskDetail()
   }
 
-  // 작업을 완료/미완료로 분류
+  // 작업을 상태별로 분류
   const completedTasks = tasks.filter(task => (task.percentComplete || 0) >= 100)
-  const incompleteTasks = tasks.filter(task => (task.percentComplete || 0) < 100)
+  const notStartedTasks = tasks.filter(task => (task.percentComplete || 0) === 0)
+  const inProgressTasks = tasks.filter(task => {
+    const p = task.percentComplete || 0
+    return p > 0 && p < 100
+  })
+
+  // 공통: 대분류별 그룹핑 유틸
+  const groupByMajorCategory = (targetTasks: Task[]) => {
+    const grouped: Record<string, Task[]> = {}
+    targetTasks.forEach(task => {
+      const majorCategory = task.majorCategory || task.category || '기타'
+      if (!grouped[majorCategory]) grouped[majorCategory] = []
+      grouped[majorCategory].push(task)
+    })
+    return grouped
+  }
+
+  const groupedInProgress = groupByMajorCategory(inProgressTasks)
+  const groupedNotStarted = groupByMajorCategory(notStartedTasks)
+  const groupedCompleted = groupByMajorCategory(completedTasks)
+
+  // 섹션별 대분류 펼치기/접기 토글 및 일괄 처리
+  const toggleMajor = (section: 'inProgress' | 'notStarted' | 'completed', majorCategory: string) => {
+    const map = {
+      inProgress: [expandedInProgressMajors, setExpandedInProgressMajors] as const,
+      notStarted: [expandedNotStartedMajors, setExpandedNotStartedMajors] as const,
+      completed: [expandedCompletedMajors, setExpandedCompletedMajors] as const,
+    }
+    const [set, setter] = map[section]
+    const next = new Set(set)
+    if (next.has(majorCategory)) next.delete(majorCategory)
+    else next.add(majorCategory)
+    setter(next)
+  }
+
+  const expandAll = (section: 'inProgress' | 'notStarted' | 'completed') => {
+    const map = {
+      inProgress: [groupedInProgress, setExpandedInProgressMajors] as const,
+      notStarted: [groupedNotStarted, setExpandedNotStartedMajors] as const,
+      completed: [groupedCompleted, setExpandedCompletedMajors] as const,
+    }
+    const [grouped, setter] = map[section]
+    setter(new Set(Object.keys(grouped)))
+  }
+
+  const collapseAll = (section: 'inProgress' | 'notStarted' | 'completed') => {
+    const map = {
+      inProgress: setExpandedInProgressMajors,
+      notStarted: setExpandedNotStartedMajors,
+      completed: setExpandedCompletedMajors,
+    }
+    map[section](new Set())
+  }
 
   // 작업을 계층 구조로 표시하기 위한 함수 (대분류 > 소분류 > 세부업무)
   const getTaskHierarchy = (task: Task) => {
@@ -78,10 +135,33 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
   const TaskItem: React.FC<{ task: Task; isCompleted: boolean }> = ({ task, isCompleted }) => {
     const hierarchy = getTaskHierarchy(task)
     const progress = task.percentComplete || 0
+    const progressRef = useRef<HTMLDivElement>(null)
+    const isCompletedByProgress = progress >= 100
+    const isNotStarted = progress === 0
+    const isInProgress = progress > 0 && progress < 100
+    const statusLabel = isCompletedByProgress ? '✅ 완료' : isNotStarted ? '🛌 미시작' : '⏳ 진행중'
+    const badgeClass = isCompletedByProgress
+      ? 'bg-green-100 text-green-800'
+      : isNotStarted
+        ? 'bg-gray-100 text-gray-700'
+        : 'bg-yellow-100 text-yellow-800'
+    const cardClass = isCompletedByProgress
+      ? 'bg-green-50 border-green-200 hover:bg-green-100'
+      : isNotStarted
+        ? 'bg-gray-50 border-gray-200 hover:bg-gray-100'
+        : 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100'
+    const progressBarColor = isCompletedByProgress ? 'bg-green-500' : isNotStarted ? 'bg-gray-300' : 'bg-yellow-500'
+    
+    useEffect(() => {
+      if (progressRef.current) {
+  // 진행률 바 width를 단일 CSS 변수로 설정하여 레이아웃 계산을 간소화
+  progressRef.current.style.setProperty('--progress-width', `${progress}%`)
+      }
+    }, [progress])
     
     return (
       <div 
-        className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-all ${isCompleted ? 'bg-green-50 border-green-200 hover:bg-green-100' : 'bg-yellow-50 border-yellow-200 hover:bg-yellow-100'}`}
+        className={`p-3 rounded-lg border cursor-pointer hover:shadow-md transition-all ${cardClass}`}
         onDoubleClick={() => handleTaskDoubleClick(task)}
         title="더블클릭하여 상세 정보 보기"
       >
@@ -101,12 +181,8 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
             </div>
           </div>
           <div className="text-right">
-            <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-              isCompleted 
-                ? 'bg-green-100 text-green-800' 
-                : 'bg-yellow-100 text-yellow-800'
-            }`}>
-              {isCompleted ? '✅ 완료' : '⏳ 진행중'}
+            <div className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${badgeClass}`}>
+              {statusLabel}
             </div>
             <div className="text-xs text-gray-500 mt-1">
               {progress}% 완료
@@ -115,13 +191,10 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
         </div>
         
         {/* 진행률 바 */}
-        <div className="w-full bg-gray-200 rounded-full h-1.5">
+  <div className={`w-full bg-gray-200 rounded-full h-1.5 ${styles.taskDetailProgressContainer}`}>
           <div 
-            className={`h-1.5 rounded-full ${isCompleted ? 'bg-green-500' : 'bg-yellow-500'} ${styles.resourceTaskProgressFill}`}
-            // eslint-disable-next-line react/forbid-dom-props
-            style={{
-              '--progress-width': `${progress}%`
-            } as React.CSSProperties}
+            ref={progressRef}
+            className={`h-1.5 rounded-full ${progressBarColor} ${styles.resourceTaskProgressFill}`}
           />
         </div>
         
@@ -162,7 +235,7 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
           
           {/* 통계 요약 */}
           <div className="p-6 bg-gray-50 border-b">
-            <div className="grid grid-cols-3 gap-4 text-center">
+              <div className="grid grid-cols-3 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold text-blue-600">{tasks.length}</div>
                 <div className="text-sm text-gray-600">총 업무</div>
@@ -172,43 +245,207 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
                 <div className="text-sm text-gray-600">완료</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-yellow-600">{incompleteTasks.length}</div>
+                  <div className="text-2xl font-bold text-yellow-600">{inProgressTasks.length}</div>
                 <div className="text-sm text-gray-600">진행중</div>
               </div>
             </div>
           </div>
           
           {/* 업무 목록 */}
-          <div className="p-6 overflow-y-auto max-h-96">
+          <div className={`p-6 max-h-96 ${styles.listScroll}`}>
             {tasks.length === 0 ? (
               <div className="text-center text-gray-500 py-8">
                 할당된 업무가 없습니다.
               </div>
             ) : (
               <div className="space-y-6">
-                {/* 미완료 업무 */}
-                {incompleteTasks.length > 0 && (
+                {/* 진행중 업무 - 대분류별 그룹핑 */}
+                {Object.keys(groupedInProgress).length > 0 && (
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                      ⏳ 진행중인 업무 ({incompleteTasks.length}개)
-                    </h3>
-                    <div className="space-y-3">
-                      {incompleteTasks.map((task) => (
-                        <TaskItem key={task.id} task={task} isCompleted={false} />
+                    <div className={`flex justify-between items-center mb-3 ${styles.sectionHeader}`}>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        ⏳ 진행중인 업무 ({inProgressTasks.length}개)
+                      </h3>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => expandAll('inProgress')}
+                          className="px-3 py-1 text-xs bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors"
+                        >
+                          모두 펼치기
+                        </button>
+                        <button
+                          onClick={() => collapseAll('inProgress')}
+                          className="px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors"
+                        >
+                          모두 접기
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {Object.entries(groupedInProgress)
+                        .sort(([a], [b]) => {
+                          const orderA = getMajorCategoryOrder(a)
+                          const orderB = getMajorCategoryOrder(b)
+                          if (orderA !== orderB) return orderA - orderB
+                          return a.localeCompare(b)
+                        })
+                        .map(([majorCategory, categoryTasks]) => (
+                        <div key={majorCategory} className={`border border-gray-200 rounded-lg overflow-hidden ${styles.categoryGroup}`}>
+                          {/* 대분류 헤더 */}
+                          <div 
+                            className="flex justify-between items-center p-3 bg-gray-100 cursor-pointer hover:bg-gray-150 transition-colors"
+                            onClick={() => toggleMajor('inProgress', majorCategory)}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">
+                                {expandedInProgressMajors.has(majorCategory) ? '📂' : '📁'}
+                              </span>
+                              <span className="font-medium text-gray-900">{majorCategory}</span>
+                              <span className="text-sm text-gray-500">({categoryTasks.length}개)</span>
+                            </div>
+                            <span className="text-gray-400">
+                              {expandedInProgressMajors.has(majorCategory) ? '▼' : '▶'}
+                            </span>
+                          </div>
+                          
+                          {/* 대분류별 업무 목록 */}
+                          {expandedInProgressMajors.has(majorCategory) && (
+                            <div className="p-3 space-y-3 bg-white">
+                              {categoryTasks.map((task) => (
+                                <TaskItem key={task.id} task={task} isCompleted={false} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </div>
                 )}
                 
-                {/* 완료 업무 */}
-                {completedTasks.length > 0 && (
+                {/* 미시작 업무 - 대분류별 그룹핑 */}
+                {Object.keys(groupedNotStarted).length > 0 && (
                   <div>
-                    <h3 className="text-lg font-semibold text-gray-900 mb-3">
-                      ✅ 완료된 업무 ({completedTasks.length}개)
-                    </h3>
-                    <div className="space-y-3">
-                      {completedTasks.map((task) => (
-                        <TaskItem key={task.id} task={task} isCompleted={true} />
+                    <div className={`flex justify-between items-center mb-3 ${styles.sectionHeader}`}>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        💤 미시작 업무 ({notStartedTasks.length}개)
+                      </h3>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => expandAll('notStarted')}
+                          className="px-3 py-1 text-xs bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors"
+                        >
+                          모두 펼치기
+                        </button>
+                        <button
+                          onClick={() => collapseAll('notStarted')}
+                          className="px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors"
+                        >
+                          모두 접기
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {Object.entries(groupedNotStarted)
+                        .sort(([a], [b]) => {
+                          const orderA = getMajorCategoryOrder(a)
+                          const orderB = getMajorCategoryOrder(b)
+                          if (orderA !== orderB) return orderA - orderB
+                          return a.localeCompare(b)
+                        })
+                        .map(([majorCategory, categoryTasks]) => (
+                        <div key={majorCategory} className={`border border-gray-200 rounded-lg overflow-hidden ${styles.categoryGroup}`}>
+                          {/* 대분류 헤더 */}
+                          <div 
+                            className="flex justify-between items-center p-3 bg-gray-100 cursor-pointer hover:bg-gray-150 transition-colors"
+                            onClick={() => toggleMajor('notStarted', majorCategory)}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">
+                                {expandedNotStartedMajors.has(majorCategory) ? '📂' : '📁'}
+                              </span>
+                              <span className="font-medium text-gray-900">{majorCategory}</span>
+                              <span className="text-sm text-gray-500">({categoryTasks.length}개)</span>
+                            </div>
+                            <span className="text-gray-400">
+                              {expandedNotStartedMajors.has(majorCategory) ? '▼' : '▶'}
+                            </span>
+                          </div>
+                          
+                          {/* 대분류별 업무 목록 */}
+                          {expandedNotStartedMajors.has(majorCategory) && (
+                            <div className="p-3 space-y-3 bg-white">
+                              {categoryTasks.map((task) => (
+                                <TaskItem key={task.id} task={task} isCompleted={false} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                
+                {/* 완료 업무 - 대분류별 그룹핑 */}
+                {Object.keys(groupedCompleted).length > 0 && (
+                  <div>
+                    <div className={`flex justify-between items-center mb-3 ${styles.sectionHeader}`}>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        ✅ 완료된 업무 ({completedTasks.length}개)
+                      </h3>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => expandAll('completed')}
+                          className="px-3 py-1 text-xs bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors"
+                        >
+                          모두 펼치기
+                        </button>
+                        <button
+                          onClick={() => collapseAll('completed')}
+                          className="px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors"
+                        >
+                          모두 접기
+                        </button>
+                      </div>
+                    </div>
+                    
+                    <div className="space-y-4">
+                      {Object.entries(groupedCompleted)
+                        .sort(([a], [b]) => {
+                          const orderA = getMajorCategoryOrder(a)
+                          const orderB = getMajorCategoryOrder(b)
+                          if (orderA !== orderB) return orderA - orderB
+                          return a.localeCompare(b)
+                        })
+                        .map(([majorCategory, categoryTasks]) => (
+                        <div key={majorCategory} className={`border border-gray-200 rounded-lg overflow-hidden ${styles.categoryGroup}`}>
+                          {/* 대분류 헤더 */}
+                          <div 
+                            className="flex justify-between items-center p-3 bg-gray-100 cursor-pointer hover:bg-gray-150 transition-colors"
+                            onClick={() => toggleMajor('completed', majorCategory)}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">
+                                {expandedCompletedMajors.has(majorCategory) ? '📂' : '📁'}
+                              </span>
+                              <span className="font-medium text-gray-900">{majorCategory}</span>
+                              <span className="text-sm text-gray-500">({categoryTasks.length}개)</span>
+                            </div>
+                            <span className="text-gray-400">
+                              {expandedCompletedMajors.has(majorCategory) ? '▼' : '▶'}
+                            </span>
+                          </div>
+                          
+                          {/* 대분류별 업무 목록 */}
+                          {expandedCompletedMajors.has(majorCategory) && (
+                            <div className="p-3 space-y-3 bg-white">
+                              {categoryTasks.map((task) => (
+                                <TaskItem key={task.id} task={task} isCompleted={true} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       ))}
                     </div>
                   </div>

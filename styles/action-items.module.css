@@ -30,6 +30,8 @@
   height: calc(70vh - 80px); /* 간트차트와 정확히 일치하는 고정 높이 */
   /* 스크롤 동작 개선 */
   scroll-behavior: auto;
+  /* 세로 스크롤바 등장/제거에 따른 너비 변화 방지 */
+  scrollbar-gutter: stable both-edges;
 }
 
 .actionItemListDynamic {

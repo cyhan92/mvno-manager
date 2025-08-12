@@ -1,6 +1,6 @@
 # MVNO Manager
 
-> **v2.2** - 통합 프로젝트 관리 시스템 with 고급 간트 차트 & 개선된 Action Item 관리
+> **v2.3** - 통합 프로젝트 관리 시스템 with 고급 간트 차트 & 담당자 업무창 UX 향상
 
 ![Next.js](https://img.shields.io/badge/Next.js-15.4.5-black?logo=next.js)
 ![React](https://img.shields.io/badge/React-19.1.0-blue?logo=react)
@@ -21,69 +21,92 @@
 - **💾 Supabase 통합**: 실시간 데이터베이스 연동
 - **📱 반응형 디자인**: 모바일부터 데스크톱까지 최적화
 
-## 🚀 최신 업데이트 (v2.2)
+## 🚀 최신 업데이트 (v2.3)
 
-### ✨ v2.2 새로운 기능
-- **🎯 개선된 Action Item 관리**: 우클릭 컨텍스트 메뉴로 직관적인 CRUD 작업
-- **⚡ 부분 리프레시**: 삭제/추가/수정 시 전체 페이지 리로드 없이 즉시 UI 업데이트
-- **🏷️ 자동 필드 설정**: 담당자/부서 필드가 비어있을 때 자동으로 "미정"으로 설정
-- **🔄 스마트 동기화**: 불필요한 데이터 덮어쓰기 방지로 사용자 경험 향상
+### ✨ v2.3 새로운 기능/개선
 
-### 🔧 v2.0 주요 기능
-- **중분류/소분류 추가**: 소분류 우클릭으로 새로운 분류 및 Task 생성
-- **대분류 일괄 수정**: 대분류명 변경시 하위 모든 Task 자동 업데이트
-- **고유 ID 생성 시스템**: 타임스탬프 기반 중복 방지 ID 생성
-- **향상된 컨텍스트 메뉴**: 직관적인 우클릭 메뉴 시스템
-
-### 🏗️ 대규모 리팩토링
-- **모듈화된 아키텍처**: 600+ 줄 컴포넌트를 10-50줄 단위로 분해
-- **재사용 가능한 훅**: 비즈니스 로직과 UI 로직 완전 분리
-- **타입 안전성 강화**: TypeScript 활용도 극대화
-- **성능 최적화**: Canvas 렌더링 및 메모리 사용량 개선
+- 담당자 업무창 섹션 분리: 상태별 3단계로 표시
+  - 🛌 미시작(0%), ⏳ 진행중(1~99%), ✅ 완료(≥100%)
+- 각 섹션 모두 대분류로 그룹핑 + 펼치기/접기 + "모두 펼치기/접기" 지원
+- 대분류 정렬 기준 통일: Action Item과 동일 Comparator 적용
+  - 기본 순서: B → A → S → D → C → O, 같은 그룹 내선 알파벳 오름차순
+- 상태 배지/진행률 바 색상 일관화
+  - 미시작: 회색, 진행중: 노랑, 완료: 초록
+- 스크롤/레이어 안정화로 겹침 현상 해결
+  - scroll 영역 격리(isolation), contain: paint, GPU 컴포지팅 적용
+- 진행률 바 글리치 개선
+  - 단일 CSS 변수(--progress-width) 기반 width, will-change/translateZ 최적화
 
 ## 🏗️ 프로젝트 구조
 
-```
+```text
 mvno-manager/
-├── 📁 app/                          # Next.js App Router
-│   ├── api/                         # API Routes
-│   │   ├── tasks-db/               # Task CRUD API
-│   │   ├── major-category/         # 대분류 관리 API
-│   │   └── sub-category/           # 중분류/소분류 관리 API
-│   ├── layout.tsx                  # 전역 레이아웃
-│   └── page.tsx                    # 메인 페이지
+├── app/                          # Next.js App Router
+│   ├── api/                      # API Routes
+│   ├── layout.tsx                # 전역 레이아웃
+│   └── page.tsx                  # 메인 페이지
 │
-├── 📁 components/                   # React 컴포넌트
-│   ├── gantt/                      # 간트 차트 관련 컴포넌트
-│   │   ├── CustomGanttChartModular.tsx     # 모듈화된 간트 차트
-│   │   ├── ActionItemList.tsx              # 좌측 액션 아이템 목록
-│   │   ├── TaskDetailPopupRefactored.tsx   # 리팩토링된 Task 상세 팝업
-│   │   ├── SubCategoryEditPopup.tsx        # 중분류/소분류 편집 팝업
-│   │   └── popup/                          # 팝업 관련 서브 컴포넌트
-│   │       └── fields/                     # 재사용 가능한 폼 필드들
-│   ├── home/                       # 홈 화면 관련 컴포넌트
-│   │   └── sections/               # 대시보드 섹션들
-│   └── guide/                      # 사용 가이드 컴포넌트
+├── components/                   # React 컴포넌트
+│   ├── gantt/                    # 간트 관련 컴포넌트
+│   ├── home/                     # 홈 화면 컴포넌트/섹션
+│   └── guide/                    # 사용 가이드 컴포넌트
 │
-├── 📁 hooks/                       # Custom React Hooks
-│   ├── chart/                      # 차트 관련 훅
-│   ├── data/                       # 데이터 관리 훅
-│   ├── gantt/                      # 간트 관련 훅
-│   └── popup/                      # 팝업 관련 훅
+├── hooks/                        # Custom React Hooks
+│   ├── chart/
+│   ├── data/
+│   ├── gantt/
+│   └── popup/
 │
-├── 📁 utils/                       # 유틸리티 함수
-│   ├── canvas/                     # Canvas 렌더링 유틸
-│   └── gantt/                      # 간트 관련 유틸
+├── utils/                        # 유틸리티 함수
+│   ├── canvas/
+│   └── gantt/
 │
-├── 📁 types/                       # TypeScript 타입 정의
-├── 📁 contexts/                    # React Context
-├── 📁 lib/                         # 외부 라이브러리 설정
-└── 📁 styles/                      # 스타일 관련 파일
+├── types/                        # 타입 정의
+├── contexts/                     # React Context
+├── lib/                          # 외부 라이브러리 설정
+└── styles/                       # 스타일 파일
 ```
+
+## 🧭 사용 가이드 (v2.3)
+
+담당자 업무창과 주요 기능 사용법을 요약합니다.
+
+### 열기/닫기
+
+- 담당자 이름을 더블클릭하면 “담당 업무 현황” 팝업이 열립니다.
+- 팝업 바깥 클릭 또는 닫기(×) 버튼으로 닫을 수 있습니다.
+
+### 섹션 구성과 정렬
+
+- 상태별 3개 섹션으로 나뉩니다.
+  - 🛌 미시작: 진행률 0%
+  - ⏳ 진행중: 진행률 1~99%
+  - ✅ 완료: 진행률 100% 이상
+- 각 섹션은 “대분류” 단위로 그룹핑됩니다.
+- 대분류 정렬은 Action Item과 동일한 규칙을 사용합니다.
+  - 기본 순서: B → A → S → D → C → O, 같은 그룹 내 알파벳 오름차순
+
+### 펼치기/접기
+
+- 각 대분류 헤더를 클릭해 개별로 펼치기/접기 할 수 있습니다.
+- 섹션 우측 “모두 펼치기/모두 접기”로 일괄 제어할 수 있습니다.
+
+### 업무 카드와 상세
+
+- 업무 카드를 더블클릭하면 상세 팝업이 열립니다.
+- 카드 우측 상단 상태 배지는 진행률에 따라 자동 표기됩니다.
+  - 🛌 미시작(회색) / ⏳ 진행중(노랑) / ✅ 완료(초록)
+- 진행률 바는 상태에 맞춘 색상과 너비로 표시됩니다.
+
+### 스크롤/시각 안정화
+
+- 스크롤 중 레이블과 그룹 박스가 겹치지 않도록 내부 레이어를 격리했습니다.
+- 문제 발생 시 새로고침 후 다시 시도해 주세요. 지속되면 이슈로 등록 바랍니다.
 
 ## 🛠️ 기술 스택
 
 ### Frontend
+
 - **Framework**: [Next.js 15.4.5](https://nextjs.org/) (App Router)
 - **UI Library**: [React 19.1.0](https://react.dev/)
 - **Language**: [TypeScript 5.0](https://www.typescriptlang.org/)
@@ -91,24 +114,28 @@ mvno-manager/
 - **Icons**: [Lucide React](https://lucide.dev/) + [MUI Icons](https://mui.com/material-ui/material-icons/)
 
 ### Backend & Database
+
 - **Database**: [Supabase](https://supabase.com/) (PostgreSQL)
 - **Authentication**: Supabase Auth
 - **API**: Next.js API Routes
 - **Real-time**: Supabase Realtime
 
 ### Development Tools
+
 - **Build Tool**: [Turbopack](https://turbo.build/pack) (Next.js 15 기본)
 - **Package Manager**: npm
 - **Code Quality**: ESLint + TypeScript
 - **Version Control**: Git
 
 ### Data Processing
+
 - **Excel Processing**: [ExcelJS](https://github.com/exceljs/exceljs), [XLSX](https://sheetjs.com/)
 - **Date Handling**: [date-fns](https://date-fns.org/)
 
 ## 🎨 주요 기능
 
 ### 1. 🗂️ 계층적 Task 관리
+
 ```typescript
 // Task 계층 구조
 interface Task {
@@ -122,17 +149,20 @@ interface Task {
 ```
 
 ### 2. 🎯 고급 간트 차트
+
 - **Canvas 기반 렌더링**: 고성능 시각화
 - **실시간 업데이트**: Supabase Realtime 연동
 - **인터랙티브 UI**: 드래그, 클릭, 컨텍스트 메뉴
 - **다중 뷰 모드**: 주별/월별 보기, 그룹핑 옵션
 
 ### 3. 📊 대시보드 & 분석
+
 - **진행률 통계**: 전체/부서별/담당자별 진행률
 - **리스크 분석**: 지연 예상 Task 자동 감지
 - **담당자 현황**: 업무 부하 분석 및 시각화
 
 ### 4. 🔧 관리자 기능
+
 - **일괄 수정**: 대분류명 변경시 하위 모든 Task 업데이트
 - **Excel 연동**: 기존 Excel 데이터 import/export
 - **권한 관리**: Supabase Auth 기반 접근 제어
@@ -140,6 +170,7 @@ interface Task {
 ## 🚀 시작하기
 
 ### 1. 사전 요구사항
+
 - Node.js 18.0.0 이상
 - npm 또는 yarn
 - Supabase 계정 (데이터베이스 설정용)
@@ -220,6 +251,7 @@ npm start
 ### 🔰 React 19 핵심 개념
 
 #### 1. **함수형 컴포넌트 & Hooks**
+
 ```typescript
 // 커스텀 훅 예제 (hooks/data/useTaskManager.ts)
 export const useTaskManager = ({ tasks, setTasks, refetch }) => {
@@ -234,6 +266,7 @@ export const useTaskManager = ({ tasks, setTasks, refetch }) => {
 ```
 
 #### 2. **Context API 활용**
+
 ```typescript
 // contexts/AuthContext.tsx
 export const AuthContext = createContext<AuthContextType | null>(null)
@@ -246,11 +279,13 @@ export const useAuth = () => {
 ```
 
 #### 3. **고급 상태 관리**
+
 - `useState`, `useEffect`, `useCallback`, `useMemo`
 - 복잡한 상태 로직을 커스텀 훅으로 분리
 - 상태 최적화 및 메모이제이션
 
 #### 4. **컴포넌트 설계 패턴**
+
 ```typescript
 // 컴포넌트 합성 패턴
 <TaskDetailPopup>
@@ -265,6 +300,7 @@ export const useAuth = () => {
 ### 🚀 Next.js 15 핵심 개념
 
 #### 1. **App Router (13+)**
+
 ```typescript
 // app/layout.tsx - 루트 레이아웃
 export default function RootLayout({ children }) {
@@ -284,6 +320,7 @@ export default function Home() {
 ```
 
 #### 2. **API Routes**
+
 ```typescript
 // app/api/tasks-db/route.ts
 export async function POST(request: Request) {
@@ -294,6 +331,7 @@ export async function POST(request: Request) {
 ```
 
 #### 3. **Server & Client Components**
+
 ```typescript
 // 서버 컴포넌트 (기본값)
 export default function ServerComponent() {
@@ -311,6 +349,7 @@ export default function ClientComponent() {
 ```
 
 #### 4. **Dynamic Imports & Code Splitting**
+
 ```typescript
 // 동적 import로 코드 분할
 const ClientHome = dynamic(() => import('../components/home/ClientHomeRefactored'), {
@@ -320,6 +359,7 @@ const ClientHome = dynamic(() => import('../components/home/ClientHomeRefactored
 ```
 
 #### 5. **Turbopack 최적화**
+
 - Next.js 15의 새로운 번들러
 - 빠른 개발 서버 시작
 - 증분 컴파일 지원
@@ -327,6 +367,7 @@ const ClientHome = dynamic(() => import('../components/home/ClientHomeRefactored
 ### 🎯 TypeScript 고급 활용
 
 #### 1. **타입 안전성**
+
 ```typescript
 // types/task.ts
 export interface Task {
@@ -346,6 +387,7 @@ interface UseTaskManagerProps {
 ```
 
 #### 2. **유니온 타입 & 리터럴 타입**
+
 ```typescript
 export type ViewMode = 'overview' | 'detailed'
 export type GroupBy = 'resource' | 'action' | 'major'
@@ -353,6 +395,7 @@ export type DateUnit = 'week' | 'month'
 ```
 
 #### 3. **고급 타입 조작**
+
 ```typescript
 // 조건부 타입, 매핑된 타입 등 활용
 type TaskUpdate<T> = Partial<Pick<Task, keyof T>>
@@ -361,6 +404,7 @@ type TaskUpdate<T> = Partial<Pick<Task, keyof T>>
 ### 🎨 스타일링 학습
 
 #### 1. **Tailwind CSS**
+
 ```tsx
 // 유틸리티 클래스 활용
 <button className="px-4 py-2 bg-blue-500 text-white rounded-md hover:bg-blue-600 transition-colors">
@@ -369,6 +413,7 @@ type TaskUpdate<T> = Partial<Pick<Task, keyof T>>
 ```
 
 #### 2. **Material-UI (MUI)**
+
 ```tsx
 // MUI 컴포넌트 활용
 <Paper elevation={2} sx={{ p: 2 }}>
@@ -379,6 +424,7 @@ type TaskUpdate<T> = Partial<Pick<Task, keyof T>>
 ```
 
 #### 3. **CSS-in-JS (Emotion)**
+
 ```typescript
 // MUI와 함께 사용되는 Emotion
 const StyledComponent = styled.div`
@@ -389,6 +435,7 @@ const StyledComponent = styled.div`
 ### 🔧 고급 패턴 학습
 
 #### 1. **컴포넌트 합성 (Composition)**
+
 ```typescript
 // 작은 컴포넌트들을 조합하여 큰 기능 구현
 <TaskForm>
@@ -399,6 +446,7 @@ const StyledComponent = styled.div`
 ```
 
 #### 2. **Render Props & Higher-Order Components**
+
 ```typescript
 // 로직 재사용을 위한 패턴들
 const withLoading = (Component) => (props) => {
@@ -408,6 +456,7 @@ const withLoading = (Component) => (props) => {
 ```
 
 #### 3. **Error Boundaries**
+
 ```typescript
 class ErrorBoundary extends Component {
   componentDidCatch(error, errorInfo) {
@@ -424,11 +473,13 @@ class ErrorBoundary extends Component {
 ### 📊 상태 관리 패턴
 
 #### 1. **Local State vs Global State**
+
 - `useState`: 컴포넌트 로컬 상태
 - `useContext`: 전역 상태 공유
 - 커스텀 훅: 로직 재사용
 
 #### 2. **비동기 상태 관리**
+
 ```typescript
 const useAsyncTask = () => {
   const [loading, setLoading] = useState(false)
@@ -455,6 +506,7 @@ const useAsyncTask = () => {
 ### 🚀 성능 최적화
 
 #### 1. **React.memo & useMemo**
+
 ```typescript
 // 컴포넌트 메모이제이션
 const TaskItem = React.memo(({ task, onUpdate }) => {
@@ -468,6 +520,7 @@ const expensiveValue = useMemo(() => {
 ```
 
 #### 2. **useCallback 최적화**
+
 ```typescript
 // 함수 메모이제이션으로 리렌더링 방지
 const handleClick = useCallback((id) => {
@@ -476,6 +529,7 @@ const handleClick = useCallback((id) => {
 ```
 
 #### 3. **Code Splitting**
+
 ```typescript
 // 지연 로딩으로 초기 번들 크기 감소
 const HeavyComponent = lazy(() => import('./HeavyComponent'))
@@ -484,26 +538,31 @@ const HeavyComponent = lazy(() => import('./HeavyComponent'))
 ## 🔍 프로젝트에서 학습할 수 있는 실무 패턴
 
 ### 1. **모듈화 아키텍처**
+
 - 큰 컴포넌트를 작은 단위로 분해하는 방법
 - 재사용 가능한 컴포넌트 설계
 - 관심사 분리 (Separation of Concerns)
 
 ### 2. **Custom Hooks 설계**
+
 - 비즈니스 로직과 UI 로직 분리
 - 상태 관리 로직 재사용
 - API 호출 로직 추상화
 
 ### 3. **TypeScript 실무 활용**
+
 - 복잡한 데이터 구조 타입 정의
 - 제네릭을 활용한 재사용 가능한 컴포넌트
 - 타입 가드와 타입 추론
 
 ### 4. **Canvas API 활용**
+
 - 고성능 그래픽 렌더링
 - 실시간 상호작용 구현
 - 커스텀 차트 라이브러리 개발
 
 ### 5. **데이터베이스 통합**
+
 - Supabase 실시간 기능 활용
 - CRUD 작업 최적화
 - 관계형 데이터 모델링
@@ -511,18 +570,21 @@ const HeavyComponent = lazy(() => import('./HeavyComponent'))
 ## 📖 학습 순서 추천
 
 ### 초급자 (React 기초)
+
 1. **기본 컴포넌트 구조 파악**: `components/Loading.tsx`, `components/Header.tsx`
 2. **Props와 State 이해**: `components/gantt/ActionItemList.tsx`
 3. **이벤트 핸들링**: 클릭, 폼 제출 등
 4. **조건부 렌더링**: 로딩 상태, 에러 상태 처리
 
 ### 중급자 (React + Next.js)
+
 1. **커스텀 훅 분석**: `hooks/data/useTaskManager.ts`
 2. **Context API 활용**: `contexts/AuthContext.tsx`
 3. **API 연동**: `app/api/` 폴더의 API Routes
 4. **상태 관리 패턴**: 복잡한 상태 로직 분석
 
 ### 고급자 (아키텍처 & 최적화)
+
 1. **컴포넌트 리팩토링**: TaskDetailPopup의 모듈화 과정
 2. **성능 최적화**: 메모이제이션, 지연 로딩
 3. **Canvas API**: 간트 차트 렌더링 로직
@@ -540,7 +602,7 @@ Action Item은 각 업무의 구체적인 실행 항목들을 의미합니다. �
 
 ### ➕ Action Item 추가하기
 
-**방법 1: 우클릭 메뉴 사용 (권장)**
+#### 방법 1: 우클릭 메뉴 사용 (권장)
 
 1. 간트 차트에서 Action Item을 추가하고 싶은 **업무 행을 우클릭**
 2. 컨텍스트 메뉴에서 **"상세업무 추가"** 선택
@@ -552,7 +614,7 @@ Action Item은 각 업무의 구체적인 실행 항목들을 의미합니다. �
    - **상태**: 진행 상황 (대기중, 진행중, 완료 등)
 4. **"저장"** 버튼 클릭
 
-**방법 2: 키보드 단축키**
+#### 방법 2: 키보드 단축키
 
 - 업무를 선택한 상태에서 `Ctrl + A` (Action Item 추가)
 

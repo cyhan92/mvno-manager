@@ -41,8 +41,8 @@ const QuickStartSection: React.FC = () => {
     },
     {
       icon: <PeopleIcon color="info" />,
-      primary: '담당자별 현황 확인',
-      secondary: '담당자별 업무 현황을 확인하고 세부 업무 관리'
+      primary: '담당자별 현황 확인 (v2.3 대폭 개선)',
+      secondary: '담당자 더블클릭 → 상태별 3단계 섹션(미시작/진행중/완료) → 대분류 그룹핑/펼치기/접기'
     }
   ]
 
@@ -52,11 +52,11 @@ const QuickStartSection: React.FC = () => {
         <AlertTitle>
           <Box display="flex" alignItems="center" gap={1}>
             <PlayArrowIcon />
-            빠른 시작 (v2.2 업데이트)
+            빠른 시작 (v2.3 업데이트)
           </Box>
         </AlertTitle>
         <Typography variant="body2">
-          아래 단계를 따라하면 쉽게 시작할 수 있습니다. v2.2에서 Action Item 관리 기능이 대폭 개선되었습니다.
+          아래 단계를 따라하면 쉽게 시작할 수 있습니다. v2.3에서 담당자 업무창 UX가 대폭 개선되었습니다.
         </Typography>
       </Alert>
 

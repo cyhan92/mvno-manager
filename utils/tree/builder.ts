@@ -3,7 +3,7 @@ import { TreeNode } from './types'
 import { calculateAverageProgress } from './progress'
 
 // 대분류 정렬 순서 정의 (B -> A -> S -> D -> C -> O)
-const getMajorCategoryOrder = (category: string): number => {
+export const getMajorCategoryOrder = (category: string): number => {
   const firstChar = category.charAt(0).toUpperCase()
   const orderMap: Record<string, number> = {
     'B': 1,

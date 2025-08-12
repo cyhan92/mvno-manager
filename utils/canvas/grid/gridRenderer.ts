@@ -23,7 +23,8 @@ export const drawGridLines = (
     
     months.forEach((month: HeaderItem) => {
       // 월 끝 지점 점선만 표시 (가독성을 위해 시작 지점 제거)
-      const endX = leftMargin + ((month.end - startDate.getTime()) / timeRange) * chartWidth
+      const endXRaw = leftMargin + ((month.end - startDate.getTime()) / timeRange) * chartWidth
+      const endX = Math.round(endXRaw) + 0.5
       ctx.strokeStyle = '#d1d5db' // 연한 회색
       ctx.lineWidth = 1
       ctx.setLineDash([4, 4]) // 점선 패턴
@@ -40,7 +41,8 @@ export const drawGridLines = (
     
     weeks.forEach((week: HeaderItem, index: number) => {
       // 주 끝 지점에 점선만 표시 (시작 지점 실선 제거)
-      const endX = leftMargin + ((week.end - startDate.getTime()) / timeRange) * chartWidth
+      const endXRaw = leftMargin + ((week.end - startDate.getTime()) / timeRange) * chartWidth
+      const endX = Math.round(endXRaw) + 0.5
       
       // 주 끝선 - 점선으로 구분 (점선만 유지)
       ctx.strokeStyle = '#d1d5db' // 연한 회색

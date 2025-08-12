@@ -18,7 +18,7 @@ const ActionItemsGuideSection: React.FC = () => {
         <Box display="flex" alignItems="center" gap={2} mb={3}>
           <AssignmentIcon sx={{ color: 'cyan.700' }} />
           <Typography variant="h6" sx={{ color: 'cyan.700' }} fontWeight={600}>
-            Action Items 관리 (v2.2 업데이트)
+            Action Items 관리 (v2.3 안정화)
           </Typography>
         </Box>
         <Stack spacing={2}>
@@ -50,7 +50,7 @@ const ActionItemsGuideSection: React.FC = () => {
           </Box>
 
           <Typography variant="body2" sx={{ color: 'cyan.800', fontWeight: 'bold', mb: 1, mt: 2 }}>
-            🚀 새로운 기능 (v2.2)
+            🚀 주요 기능 (v2.3 안정화)
           </Typography>
           <Box display="flex" alignItems="center" gap={2}>
             <PlayArrowIcon sx={{ color: 'cyan.600' }} fontSize="small" />
@@ -67,6 +67,10 @@ const ActionItemsGuideSection: React.FC = () => {
           <Box display="flex" alignItems="center" gap={2}>
             <PlayArrowIcon sx={{ color: 'cyan.600' }} fontSize="small" />
             <Typography><strong>스마트 동기화:</strong> 다른 사용자 변경사항과 충돌 방지</Typography>
+          </Box>
+          <Box display="flex" alignItems="center" gap={2}>
+            <PlayArrowIcon sx={{ color: 'cyan.600' }} fontSize="small" />
+            <Typography><strong>대분류 정렬 통일:</strong> 담당자 업무창과 동일 기준 적용 (v2.3 개선)</Typography>
           </Box>
 
           <Typography variant="body2" sx={{ color: 'cyan.800', fontWeight: 'bold', mb: 1, mt: 2 }}>
