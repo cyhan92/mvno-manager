@@ -11,6 +11,8 @@
   overflow-x: auto; /* 주별 표시 시 가로 스크롤 */
   overflow-y: hidden;
   box-sizing: border-box;
+  /* 세로 스크롤바와의 시각 폭 일관성 확보 (fallback: JS로 padding-right 동기화) */
+  scrollbar-gutter: stable both-edges;
 }
 
 /* 기본 Gantt Chart 컨테이너 */
@@ -100,6 +102,8 @@
   min-width: 600px; /* 최소 너비 보장 */
   position: relative; /* 캔버스 절대 위치를 위한 relative 포지션 */
   box-sizing: border-box;
+  /* 스크롤바 등장/제거에 따른 가시 영역 폭 변화 최소화 */
+  scrollbar-gutter: stable both-edges;
 }
 
 .ganttChartContentDynamic {

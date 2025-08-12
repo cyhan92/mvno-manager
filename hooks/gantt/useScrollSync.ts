@@ -134,22 +134,43 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
       // 실제 스크롤바 폭 계산 (Windows/브라우저 차이 반영)
       const gutter = Math.max(0, chart.offsetWidth - chart.clientWidth)
       const targetPadding = gutter > 0 ? `${gutter}px` : ''
-      if (header.style.paddingRight !== targetPadding) header.style.paddingRight = targetPadding
+      const paddingChanged = header.style.paddingRight !== targetPadding
+      if (paddingChanged) header.style.paddingRight = targetPadding
   // 헤더 폭은 CSS(box-sizing: border-box, width: auto/100%)에 맡기고, 우측 패딩만 동기화
+
+      // 중요: 패딩 변경 직후 헤더 가로 스크롤을 차트의 현재 비율에 맞춰 재보정
+      // 이렇게 해야 오늘선/세로선이 패딩 변화로 인해 1px 어긋나는 현상을 방지
+      const cMax = Math.max(1, chart.scrollWidth - chart.clientWidth)
+      const ratio = cMax > 0 ? chart.scrollLeft / cMax : 0
+      const hMax = Math.max(0, header.scrollWidth - header.clientWidth)
+      const desired = rounding ? Math.round(ratio * hMax) : ratio * hMax
+      // 미세 차이일 때만 적용하여 불필요한 쓰기를 방지
+      if (Math.abs(header.scrollLeft - desired) > 0.5) {
+        header.scrollLeft = desired
+      }
     }
 
+    // 초기 적용 + 첫 몇 프레임 보정 (레이아웃 안정 전 후 변동 대비)
     applyGutter()
+    requestAnimationFrame(applyGutter)
+    setTimeout(() => requestAnimationFrame(applyGutter), 0)
+
     const ro = new ResizeObserver(() => requestAnimationFrame(applyGutter))
     ro.observe(chart)
     const onScroll = () => requestAnimationFrame(applyGutter)
     chart.addEventListener('scroll', onScroll, { passive: true })
     const onWin = () => requestAnimationFrame(applyGutter)
     window.addEventListener('resize', onWin)
+
+    // overflowY/style/class 변경(세로 스크롤바 등장/제거) 감지
+    const mo = new MutationObserver(() => requestAnimationFrame(applyGutter))
+    mo.observe(chart, { attributes: true, attributeFilter: ['style', 'class'] })
     return () => {
       chart.removeEventListener('scroll', onScroll)
       window.removeEventListener('resize', onWin)
   ro.disconnect()
   header.style.paddingRight = ''
+      mo.disconnect()
     }
   }, [])
 
