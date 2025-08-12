@@ -1,13 +1,18 @@
+import React from 'react'
 import { DateUnit } from '../../../types/task'
+import { styles } from '../../../styles'
 
 interface GanttChartHeaderProps {
   flattenedTasksLength: number
   dateUnit: DateUnit
 }
 
-const GanttChartHeader = ({ flattenedTasksLength, dateUnit }: GanttChartHeaderProps) => {
+const GanttChartHeader: React.FC<GanttChartHeaderProps> = ({
+  flattenedTasksLength,
+  dateUnit
+}) => {
   return (
-    <div className="flex justify-between items-center mb-4">
+    <div className={`flex justify-between items-center mb-4 ${styles.ganttHeader}`}>
       <div>
         <h3 className="text-lg font-semibold text-gray-900">
           📊 프로젝트 간트 차트

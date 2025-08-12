@@ -8,8 +8,8 @@ import { styles } from '../../styles'
 import ActionItemList from './ActionItemList'
 import TaskDetailPopupRefactored from './TaskDetailPopupRefactored'
 import EmptyState from './EmptyState'
-import GanttChartHeader from './sections/GanttChartHeader'
-import GanttChartArea from './sections/GanttChartArea'
+import GanttChartHeader from './chart/GanttChartHeader'
+import GanttChartArea from './chart/GanttChartArea'
 
 interface CustomGanttChartProps {
   tasks: Task[]

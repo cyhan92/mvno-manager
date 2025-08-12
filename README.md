@@ -132,6 +132,135 @@ mvno-manager/
 - **Excel Processing**: [ExcelJS](https://github.com/exceljs/exceljs), [XLSX](https://sheetjs.com/)
 - **Date Handling**: [date-fns](https://date-fns.org/)
 
+## 🧩 Task 데이터 모델과 DB 연결
+
+### 1) Task 타입(프론트엔드)
+
+```ts
+// types/task.ts
+export interface Task {
+  id: string           // 업무 식별자(표시/업무키) → DB의 task_id에 매핑
+  dbId?: string        // DB UUID(PK) → DB의 id
+  name: string         // UI 표시용 업무명 (대개 title와 동일)
+  title?: string       // 저장용 제목(옵션)
+  resource: string     // 담당자(내부명) → DB assignee와 개념상 동일
+  start: Date
+  end: Date
+  duration: number | null
+  percentComplete: number // 0~100 정수
+  dependencies: string | null
+  category?: string
+  subcategory?: string
+  detail?: string
+  department?: string
+  status?: string            // '완료' | '진행중' | '미완료' 권장
+  cost?: string | number
+  notes?: string
+  majorCategory?: string
+  middleCategory?: string
+  minorCategory?: string
+  isGroup?: boolean
+  level?: number             // 0:대, 1:소, 2:세부
+  parentId?: string
+  hasChildren?: boolean
+}
+```
+
+### 2) DB 스키마(Supabase)
+
+```ts
+// types/database.ts - public.tasks
+export interface DatabaseTask {
+  id: string            // UUID (PK)
+  task_id: string       // 업무 키(고유)
+  title: string
+  category?: string
+  subcategory?: string
+  detail?: string
+  department?: string
+  assignee?: string
+  start_date?: string   // ISO 날짜(yyyy-mm-dd)
+  end_date?: string
+  duration?: number
+  progress: number      // 0~100
+  status: '완료' | '진행중' | '미완료'
+  cost?: string
+  notes?: string
+  major_category?: string
+  middle_category?: string
+  minor_category?: string
+  created_at: string
+  updated_at: string
+}
+```
+
+### 3) 필드 매핑 요약
+
+- Task.id → tasks.task_id
+- Task.dbId ↔ tasks.id(UUID)
+- Task.name 또는 Task.title → tasks.title
+- Task.start/end(Date) → tasks.start_date/end_date(YYYY-MM-DD 문자열)
+- Task.duration → tasks.duration
+- Task.percentComplete → tasks.progress(0~100 정수)
+- Task.status → tasks.status(허용값: '완료' | '진행중' | '미완료')
+- Task.resource → tasks.assignee
+- Task.department → tasks.department
+- Task.category/majorCategory → tasks.category/major_category
+- Task.subcategory/middleCategory → tasks.subcategory/middle_category
+- Task.detail/minorCategory → tasks.detail/minor_category
+- Task.cost → tasks.cost, Task.notes → tasks.notes
+
+주의사항
+
+- 날짜는 API에서 문자열(YYYY-MM-DD)로 저장됩니다. 프론트엔드에서는 Date로 관리하되 송수신 시 변환합니다.
+- status는 유효값 이외가 들어오면 기본값을 '미완료'로 정규화하는 로직이 포함되어 있습니다.
+- percent(엑셀 등) 입력이 0.5처럼 소수로 올 수 있어 0~1 값은 0~100으로 변환합니다.
+
+### 4) 데이터 흐름과 API
+
+- 읽기
+  - GET /api/tasks-db: DB에서 Task 목록과 통계를 조회합니다. DB 오류 시 Excel 파싱으로 폴백합니다.
+  - GET /api/tasks: Excel 파일에서 직접 읽어오는 경로(개발/폴백용).
+
+- 생성
+  - POST /api/tasks-db: 프론트 Task를 수신 → ExcelTask 형태로 정규화 → Supabase에 insert.
+    - ID 충돌 시 최대 3회까지 새로운 task_id로 재시도하는 로직이 포함되어 있습니다.
+    - 응답 시 DB UUID를 Task.dbId에 매핑하여 반환합니다.
+
+- 업데이트/삭제
+  - PATCH /api/tasks-db/[id]: DB UUID(id) 기준 업데이트.
+  - DELETE /api/tasks-db: body의 task_id로 삭제(Supabase 직접 쿼리).
+
+- Excel 업로드/동기화
+  - POST /api/upload-excel: 업로드한 Excel을 파싱해 tasks 테이블 전체를 재작성합니다(기존 데이터 삭제 후 삽입).
+  - POST /api/sync: Excel → DB 동기화(내부 헬퍼 사용). 환경에 따라 SQL 세팅이 필요할 수 있습니다.
+
+### 5) Supabase 연결 설정
+
+- 라이브러리: `lib/supabase.ts`
+  - `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`를 사용하여 Typed 클라이언트 생성.
+- 테이블 생성: `POST /api/create-table` 경로 또는 `SUPABASE_SETUP.sql`를 Supabase SQL Editor에서 실행.
+
+### 6) 예시: 생성 요청 페이로드(Task)
+
+```json
+{
+  "id": "TASK-001",
+  "name": "세부업무명",
+  "resource": "홍길동",
+  "start": "2025-08-01T00:00:00.000Z",
+  "end": "2025-08-10T00:00:00.000Z",
+  "duration": 10,
+  "percentComplete": 50,
+  "status": "진행중",
+  "majorCategory": "B-사업",
+  "middleCategory": "계약체결",
+  "minorCategory": "도매계약"
+}
+```
+
+서버에서는 날짜를 `YYYY-MM-DD`로 변환, 상태/진행률을 정규화하여 `public.tasks`에 저장합니다.
+
 ## 🎨 주요 기능
 
 ### 1. 🗂️ 계층적 Task 관리
