@@ -79,14 +79,14 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
     const needsResize = canvas.width !== finalChartWidth || canvas.height !== 80
     const needsStyleInit = !canvas.style.width || canvas.style.width === ''
     
-    if (needsResize || needsStyleInit) {
+  if (needsResize || needsStyleInit) {
       // Canvas 속성 및 스타일을 한번에 설정 (DOM 조작 최소화)
       canvas.width = finalChartWidth
       canvas.height = 80
       
       // 스타일 일괄 설정 (reflow 최소화)
       const styleUpdates = {
-        width: `${finalChartWidth}px`,
+    width: `${finalChartWidth}px`,
         height: '80px',
         minWidth: dateUnit === 'week' ? '1800px' : `${finalChartWidth}px`,
         maxWidth: 'none',
@@ -188,7 +188,7 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
     
     executeRender()
     
-    return () => {
+  return () => {
       if (renderTimeout) {
         clearTimeout(renderTimeout)
       }

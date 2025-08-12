@@ -20,7 +20,7 @@ const TaskEditGuideSection: React.FC = () => {
         <Box display="flex" alignItems="center" gap={2} mb={3}>
           <EditIcon color="warning" />
           <Typography variant="h6" color="warning.main" fontWeight={600}>
-            작업 편집 & Action Item 관리 (v2.2 업데이트)
+            작업 편집 & Action Item 관리 (v2.3 업데이트)
           </Typography>
         </Box>
         <Stack spacing={2}>
@@ -41,7 +41,7 @@ const TaskEditGuideSection: React.FC = () => {
           </Box>
 
           <Typography variant="body2" sx={{ color: 'warning.800', fontWeight: 'bold', mb: 1, mt: 2 }}>
-            🚀 새로운 Action Item 관리 (v2.2)
+            🚀 새로운 Action Item 관리 (v2.3)
           </Typography>
           <Box display="flex" alignItems="center" gap={2}>
             <PlayArrowIcon color="warning" fontSize="small" />
@@ -77,7 +77,7 @@ const TaskEditGuideSection: React.FC = () => {
 
           <Alert severity="info" sx={{ mt: 2 }}>
             <Typography variant="body2">
-              💡 <strong>v2.2의 핵심 개선:</strong> 모든 편집 작업이 부분 리프레시로 처리되어 더욱 빠르고 부드러운 사용자 경험을 제공합니다.
+              💡 <strong>v2.3의 핵심 개선:</strong> 모든 편집 작업이 부분 리프레시로 처리되어 더욱 빠르고 부드러운 사용자 경험을 제공합니다.
             </Typography>
           </Alert>
 

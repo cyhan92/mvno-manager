@@ -1,5 +1,6 @@
 import { useRef, useCallback } from 'react'
 
+// Deprecated: useScrollSync in hooks/gantt/useScrollSync.ts
 export const useGanttScroll = () => {
   const actionItemScrollRef = useRef<HTMLDivElement>(null)
   const ganttChartScrollRef = useRef<HTMLDivElement>(null)

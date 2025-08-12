@@ -40,11 +40,13 @@ export const useGanttTreeManager = ({ tasks, onTreeStateChange, scrollRefs }: Us
       return
     }
     
-    // 현재 스크롤 위치 저장
-    const currentScrollTop = scrollRefs.actionItemScrollRef.current?.scrollTop || 0
-    const currentScrollLeft = scrollRefs.ganttChartScrollRef.current?.scrollLeft || 0
+  // 현재 스크롤 위치 저장 (비율 기반)
+  const currentScrollTop = scrollRefs.actionItemScrollRef.current?.scrollTop || 0
+  const gBefore = scrollRefs.ganttChartScrollRef.current
+  const gBeforeMax = gBefore ? Math.max(1, gBefore.scrollWidth - gBefore.clientWidth) : 1
+  const currentScrollRatio = gBefore ? (gBefore.scrollLeft / gBeforeMax) : 0
     
-    console.log('expandAll - 스크롤 위치 저장:', { scrollTop: currentScrollTop, scrollLeft: currentScrollLeft })
+  console.log('expandAll - 스크롤 위치 저장:', { scrollTop: currentScrollTop, scrollRatio: currentScrollRatio })
     
     // 트리 확장
     treeState.expandAll()
@@ -55,27 +57,32 @@ export const useGanttTreeManager = ({ tasks, onTreeStateChange, scrollRefs }: Us
         scrollRefs.actionItemScrollRef.current.scrollTop = currentScrollTop
       }
       if (scrollRefs.ganttChartScrollRef.current) {
-        scrollRefs.ganttChartScrollRef.current.scrollTop = currentScrollTop
-        scrollRefs.ganttChartScrollRef.current.scrollLeft = currentScrollLeft
+        const g = scrollRefs.ganttChartScrollRef.current
+        g.scrollTop = currentScrollTop
+        const gMax = Math.max(0, g.scrollWidth - g.clientWidth)
+        g.scrollLeft = Math.round(currentScrollRatio * gMax)
       }
       if (scrollRefs.headerScrollRef?.current) {
-        scrollRefs.headerScrollRef.current.scrollLeft = currentScrollLeft
+        const h = scrollRefs.headerScrollRef.current
+        const hMax = Math.max(0, h.scrollWidth - h.clientWidth)
+        h.scrollLeft = Math.round(currentScrollRatio * hMax)
       }
       
       console.log('expandAll - 스크롤 위치 복원 완료')
       
       // 재검증
       setTimeout(() => {
-        const ganttScrollLeft = scrollRefs.ganttChartScrollRef.current?.scrollLeft || 0
-        const headerScrollLeft = scrollRefs.headerScrollRef?.current?.scrollLeft || 0
-        
-        if (Math.abs(ganttScrollLeft - headerScrollLeft) > 1) {
-          console.log('expandAll - 스크롤 재동기화')
-          if (scrollRefs.ganttChartScrollRef.current) {
-            scrollRefs.ganttChartScrollRef.current.scrollLeft = currentScrollLeft
-          }
-          if (scrollRefs.headerScrollRef?.current) {
-            scrollRefs.headerScrollRef.current.scrollLeft = currentScrollLeft
+        const g = scrollRefs.ganttChartScrollRef.current
+        const h = scrollRefs.headerScrollRef?.current
+        if (g && h) {
+          const gMax = Math.max(1, g.scrollWidth - g.clientWidth)
+          const hMax = Math.max(1, h.scrollWidth - h.clientWidth)
+          const rG = g.scrollLeft / gMax
+          const rH = h.scrollLeft / hMax
+          if (Math.abs(rG - rH) > 0.002) {
+            const avg = (rG + rH) / 2
+            g.scrollLeft = Math.round(avg * gMax)
+            h.scrollLeft = Math.round(avg * hMax)
           }
         }
       }, 50)
@@ -88,11 +95,13 @@ export const useGanttTreeManager = ({ tasks, onTreeStateChange, scrollRefs }: Us
       return
     }
     
-    // 현재 스크롤 위치 저장
-    const currentScrollTop = scrollRefs.actionItemScrollRef.current?.scrollTop || 0
-    const currentScrollLeft = scrollRefs.ganttChartScrollRef.current?.scrollLeft || 0
+  // 현재 스크롤 위치 저장 (비율 기반)
+  const currentScrollTop = scrollRefs.actionItemScrollRef.current?.scrollTop || 0
+  const gBefore = scrollRefs.ganttChartScrollRef.current
+  const gBeforeMax = gBefore ? Math.max(1, gBefore.scrollWidth - gBefore.clientWidth) : 1
+  const currentScrollRatio = gBefore ? (gBefore.scrollLeft / gBeforeMax) : 0
     
-    console.log('collapseAll - 스크롤 위치 저장:', { scrollTop: currentScrollTop, scrollLeft: currentScrollLeft })
+  console.log('collapseAll - 스크롤 위치 저장:', { scrollTop: currentScrollTop, scrollRatio: currentScrollRatio })
     
     // 트리 축소
     treeState.collapseAll()
@@ -103,11 +112,15 @@ export const useGanttTreeManager = ({ tasks, onTreeStateChange, scrollRefs }: Us
         scrollRefs.actionItemScrollRef.current.scrollTop = currentScrollTop
       }
       if (scrollRefs.ganttChartScrollRef.current) {
-        scrollRefs.ganttChartScrollRef.current.scrollTop = currentScrollTop
-        scrollRefs.ganttChartScrollRef.current.scrollLeft = currentScrollLeft
+        const g = scrollRefs.ganttChartScrollRef.current
+        g.scrollTop = currentScrollTop
+        const gMax = Math.max(0, g.scrollWidth - g.clientWidth)
+        g.scrollLeft = Math.round(currentScrollRatio * gMax)
       }
       if (scrollRefs.headerScrollRef?.current) {
-        scrollRefs.headerScrollRef.current.scrollLeft = currentScrollLeft
+        const h = scrollRefs.headerScrollRef.current
+        const hMax = Math.max(0, h.scrollWidth - h.clientWidth)
+        h.scrollLeft = Math.round(currentScrollRatio * hMax)
       }
       
       console.log('collapseAll - 스크롤 위치 복원 완료')
@@ -120,11 +133,13 @@ export const useGanttTreeManager = ({ tasks, onTreeStateChange, scrollRefs }: Us
       return
     }
     
-    // 현재 스크롤 위치 저장
-    const currentScrollTop = scrollRefs.actionItemScrollRef.current?.scrollTop || 0
-    const currentScrollLeft = scrollRefs.ganttChartScrollRef.current?.scrollLeft || 0
-    
-    console.log('expandToLevel - 스크롤 위치 저장:', { level, scrollTop: currentScrollTop, scrollLeft: currentScrollLeft })
+  // 현재 스크롤 위치 저장 (비율 기반)
+  const currentScrollTop = scrollRefs.actionItemScrollRef.current?.scrollTop || 0
+  const gBefore = scrollRefs.ganttChartScrollRef.current
+  const gBeforeMax = gBefore ? Math.max(1, gBefore.scrollWidth - gBefore.clientWidth) : 1
+  const currentScrollRatio = gBefore ? (gBefore.scrollLeft / gBeforeMax) : 0
+
+  console.log('expandToLevel - 스크롤 위치 저장:', { level, scrollTop: currentScrollTop, scrollRatio: currentScrollRatio })
     
     // 트리 레벨 확장
     treeState.expandToLevel(level)
@@ -135,27 +150,33 @@ export const useGanttTreeManager = ({ tasks, onTreeStateChange, scrollRefs }: Us
         scrollRefs.actionItemScrollRef.current.scrollTop = currentScrollTop
       }
       if (scrollRefs.ganttChartScrollRef.current) {
-        scrollRefs.ganttChartScrollRef.current.scrollTop = currentScrollTop
-        scrollRefs.ganttChartScrollRef.current.scrollLeft = currentScrollLeft
+        const g = scrollRefs.ganttChartScrollRef.current
+        g.scrollTop = currentScrollTop
+        const gMax = Math.max(0, g.scrollWidth - g.clientWidth)
+        g.scrollLeft = Math.round(currentScrollRatio * gMax)
       }
       if (scrollRefs.headerScrollRef?.current) {
-        scrollRefs.headerScrollRef.current.scrollLeft = currentScrollLeft
+        const h = scrollRefs.headerScrollRef.current
+        const hMax = Math.max(0, h.scrollWidth - h.clientWidth)
+        h.scrollLeft = Math.round(currentScrollRatio * hMax)
       }
       
       console.log('expandToLevel - 스크롤 위치 복원 완료')
       
-      // 재검증
+      // 재검증 (비율 기반)
       setTimeout(() => {
-        const ganttScrollLeft = scrollRefs.ganttChartScrollRef.current?.scrollLeft || 0
-        const headerScrollLeft = scrollRefs.headerScrollRef?.current?.scrollLeft || 0
-        
-        if (Math.abs(ganttScrollLeft - headerScrollLeft) > 1) {
-          console.log('expandToLevel - 스크롤 재동기화')
-          if (scrollRefs.ganttChartScrollRef.current) {
-            scrollRefs.ganttChartScrollRef.current.scrollLeft = currentScrollLeft
-          }
-          if (scrollRefs.headerScrollRef?.current) {
-            scrollRefs.headerScrollRef.current.scrollLeft = currentScrollLeft
+        const g = scrollRefs.ganttChartScrollRef.current
+        const h = scrollRefs.headerScrollRef?.current
+        if (g && h) {
+          const gMax = Math.max(1, g.scrollWidth - g.clientWidth)
+          const hMax = Math.max(1, h.scrollWidth - h.clientWidth)
+          const rG = g.scrollLeft / gMax
+          const rH = h.scrollLeft / hMax
+          if (Math.abs(rG - rH) > 0.002) {
+            console.log('expandToLevel - 스크롤 재동기화(비율)')
+            const avg = (rG + rH) / 2
+            g.scrollLeft = Math.round(avg * gMax)
+            h.scrollLeft = Math.round(avg * hMax)
           }
         }
       }, 50)

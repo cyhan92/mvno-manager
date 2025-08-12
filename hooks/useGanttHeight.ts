@@ -48,16 +48,9 @@ export const useGanttHeight = ({
       ganttChartScrollRef.current.style.maxHeight = `${listHeight}px`
       ganttChartScrollRef.current.style.overflowY = shouldScroll ? 'auto' : 'hidden'
       
-      // 스크롤바 너비 고려 - Gantt Chart에만 적용
-      if (shouldScroll) {
-        // Windows 스크롤바 너비는 보통 17px
-        const scrollbarWidth = 17
-        ganttChartScrollRef.current.style.paddingRight = `${scrollbarWidth}px`
-        ganttChartScrollRef.current.style.marginRight = `-${scrollbarWidth}px`
-      } else {
-        ganttChartScrollRef.current.style.paddingRight = '0'
-        ganttChartScrollRef.current.style.marginRight = '0'
-      }
+  // 스크롤바 여백 보정은 useScrollSync의 헤더 패딩 동기화로 일원화 (여기서는 미적용)
+  ganttChartScrollRef.current.style.paddingRight = '0'
+  ganttChartScrollRef.current.style.marginRight = '0'
     }
   }, [initialHeight, displayTasks.length, actionItemScrollRef, ganttChartScrollRef])
 

@@ -17,7 +17,7 @@ const GanttChartGuideSection: React.FC = () => {
         <Box display="flex" alignItems="center" gap={2} mb={3}>
           <TableChartIcon color="success" />
           <Typography variant="h6" color="success.main" fontWeight={600}>
-            Gantt 차트 활용법 (v2.2 업데이트)
+            Gantt 차트 활용법 (v2.3 업데이트)
           </Typography>
         </Box>
         <Stack spacing={2}>
@@ -46,7 +46,7 @@ const GanttChartGuideSection: React.FC = () => {
           </Box>
 
           <Typography variant="body2" sx={{ color: 'success.800', fontWeight: 'bold', mb: 1, mt: 2 }}>
-            🚀 v2.2 새로운 기능
+            🚀 v2.3 새로운 기능
           </Typography>
           <Box display="flex" alignItems="center" gap={2}>
             <Chip label="🖱️" size="small" color="secondary" />
@@ -69,7 +69,7 @@ const GanttChartGuideSection: React.FC = () => {
 
           <Alert severity="success" sx={{ mt: 1 }}>
             <Typography variant="body2">
-              🎯 <strong>v2.2 핵심 개선:</strong> 우클릭 메뉴를 통한 직관적인 Action Item 관리와 실시간 UI 업데이트를 지원합니다.
+              🎯 <strong>v2.3 핵심 개선:</strong> 우클릭 메뉴를 통한 직관적인 Action Item 관리와 실시간 UI 업데이트를 지원합니다.
             </Typography>
           </Alert>
         </Stack>

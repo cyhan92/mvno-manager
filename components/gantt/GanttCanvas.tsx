@@ -23,7 +23,7 @@ const GanttCanvas: React.FC<GanttCanvasProps> = ({
   return (
     <div 
       ref={scrollRef}
-      className={`${styles.ganttChartContent} ${styles.ganttChartContentDynamic}`}
+      className={`${styles.ganttChartContent} ${styles.ganttChartContentDynamic} ${styles.ganttChartViewport}`}
       onScroll={onScroll}
     >
       <div ref={containerRef} className="relative">

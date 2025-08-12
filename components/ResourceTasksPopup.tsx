@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react'
 import { Task } from '../types/task'
 import styles from '../styles/task-detail-popup.module.css'
+import { formatDate } from '../utils/task/formatters'
 import TaskDetailPopupRefactored from './gantt/TaskDetailPopupRefactored'
 import { getMajorCategoryOrder } from '../utils/tree/builder'
 
@@ -25,6 +26,7 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
   const [expandedInProgressMajors, setExpandedInProgressMajors] = useState<Set<string>>(new Set())
   const [expandedNotStartedMajors, setExpandedNotStartedMajors] = useState<Set<string>>(new Set())
   const [expandedCompletedMajors, setExpandedCompletedMajors] = useState<Set<string>>(new Set())
+  const [expandedDelayedMajors, setExpandedDelayedMajors] = useState<Set<string>>(new Set())
 
   if (!isOpen) return null
 
@@ -50,7 +52,20 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
 
   // 작업을 상태별로 분류
   const completedTasks = tasks.filter(task => (task.percentComplete || 0) >= 100)
-  const notStartedTasks = tasks.filter(task => (task.percentComplete || 0) === 0)
+  const notStartedAll = tasks.filter(task => (task.percentComplete || 0) === 0)
+  // 기준일(오늘 00:00)
+  const today = new Date(); today.setHours(0,0,0,0)
+  const todayMs = today.getTime()
+  // 미시작 중 지연(시작일이 오늘 이전)
+  const delayedTasks = notStartedAll.filter(task => {
+    const startMs = task.start ? new Date(task.start).getTime() : NaN
+    return Number.isFinite(startMs) && startMs < todayMs
+  })
+  // 남은 미시작(지연 제외)
+  const notStartedTasks = notStartedAll.filter(task => {
+    const startMs = task.start ? new Date(task.start).getTime() : NaN
+    return !(Number.isFinite(startMs) && startMs < todayMs)
+  })
   const inProgressTasks = tasks.filter(task => {
     const p = task.percentComplete || 0
     return p > 0 && p < 100
@@ -70,13 +85,15 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
   const groupedInProgress = groupByMajorCategory(inProgressTasks)
   const groupedNotStarted = groupByMajorCategory(notStartedTasks)
   const groupedCompleted = groupByMajorCategory(completedTasks)
+  const groupedDelayed = groupByMajorCategory(delayedTasks)
 
   // 섹션별 대분류 펼치기/접기 토글 및 일괄 처리
-  const toggleMajor = (section: 'inProgress' | 'notStarted' | 'completed', majorCategory: string) => {
+  const toggleMajor = (section: 'inProgress' | 'notStarted' | 'completed' | 'delayed', majorCategory: string) => {
     const map = {
-      inProgress: [expandedInProgressMajors, setExpandedInProgressMajors] as const,
-      notStarted: [expandedNotStartedMajors, setExpandedNotStartedMajors] as const,
-      completed: [expandedCompletedMajors, setExpandedCompletedMajors] as const,
+    inProgress: [expandedInProgressMajors, setExpandedInProgressMajors] as const,
+    notStarted: [expandedNotStartedMajors, setExpandedNotStartedMajors] as const,
+    completed: [expandedCompletedMajors, setExpandedCompletedMajors] as const,
+    delayed: [expandedDelayedMajors, setExpandedDelayedMajors] as const,
     }
     const [set, setter] = map[section]
     const next = new Set(set)
@@ -85,21 +102,23 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
     setter(next)
   }
 
-  const expandAll = (section: 'inProgress' | 'notStarted' | 'completed') => {
+  const expandAll = (section: 'inProgress' | 'notStarted' | 'completed' | 'delayed') => {
     const map = {
-      inProgress: [groupedInProgress, setExpandedInProgressMajors] as const,
-      notStarted: [groupedNotStarted, setExpandedNotStartedMajors] as const,
-      completed: [groupedCompleted, setExpandedCompletedMajors] as const,
+    inProgress: [groupedInProgress, setExpandedInProgressMajors] as const,
+    notStarted: [groupedNotStarted, setExpandedNotStartedMajors] as const,
+    completed: [groupedCompleted, setExpandedCompletedMajors] as const,
+    delayed: [groupedDelayed, setExpandedDelayedMajors] as const,
     }
     const [grouped, setter] = map[section]
     setter(new Set(Object.keys(grouped)))
   }
 
-  const collapseAll = (section: 'inProgress' | 'notStarted' | 'completed') => {
+  const collapseAll = (section: 'inProgress' | 'notStarted' | 'completed' | 'delayed') => {
     const map = {
-      inProgress: setExpandedInProgressMajors,
-      notStarted: setExpandedNotStartedMajors,
-      completed: setExpandedCompletedMajors,
+    inProgress: setExpandedInProgressMajors,
+    notStarted: setExpandedNotStartedMajors,
+    completed: setExpandedCompletedMajors,
+    delayed: setExpandedDelayedMajors,
     }
     map[section](new Set())
   }
@@ -204,6 +223,11 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
             {task.detail}
           </div>
         )}
+
+        {/* 기간: 시작일 ~ 종료일 (오른쪽 하단) */}
+        <div className="mt-2 text-xs text-gray-500 text-right">
+          {formatDate(task.start)} ~ {formatDate(task.end)}
+        </div>
       </div>
     )
   }
@@ -235,18 +259,26 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
           
           {/* 통계 요약 */}
           <div className="p-6 bg-gray-50 border-b">
-              <div className="grid grid-cols-3 gap-4 text-center">
+            <div className="grid grid-cols-5 gap-4 text-center">
               <div>
                 <div className="text-2xl font-bold text-blue-600">{tasks.length}</div>
                 <div className="text-sm text-gray-600">총 업무</div>
               </div>
               <div>
-                <div className="text-2xl font-bold text-green-600">{completedTasks.length}</div>
-                <div className="text-sm text-gray-600">완료</div>
+                <div className="text-2xl font-bold text-red-600">{delayedTasks.length}</div>
+                <div className="text-sm text-gray-600">지연</div>
               </div>
               <div>
-                  <div className="text-2xl font-bold text-yellow-600">{inProgressTasks.length}</div>
+                <div className="text-2xl font-bold text-gray-600">{notStartedTasks.length}</div>
+                <div className="text-sm text-gray-600">미시작</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-yellow-600">{inProgressTasks.length}</div>
                 <div className="text-sm text-gray-600">진행중</div>
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-green-600">{completedTasks.length}</div>
+                <div className="text-sm text-gray-600">완료</div>
               </div>
             </div>
           </div>
@@ -324,6 +356,69 @@ const ResourceTasksPopup: React.FC<ResourceTasksPopupProps> = ({
                 )}
                 
                 {/* 미시작 업무 - 대분류별 그룹핑 */}
+                {/* 지연 업무 - 대분류별 그룹핑 (미시작 중 시작일이 오늘 이전) */}
+                {Object.keys(groupedDelayed).length > 0 && (
+                  <div>
+                    <div className={`flex justify-between items-center mb-3 ${styles.sectionHeader}`}>
+                      <h3 className="text-lg font-semibold text-gray-900">
+                        ⏰ 지연 업무 ({delayedTasks.length}개)
+                      </h3>
+                      <div className="flex gap-2">
+                        <button
+                          onClick={() => expandAll('delayed')}
+                          className="px-3 py-1 text-xs bg-blue-100 text-blue-600 rounded hover:bg-blue-200 transition-colors"
+                        >
+                          모두 펼치기
+                        </button>
+                        <button
+                          onClick={() => collapseAll('delayed')}
+                          className="px-3 py-1 text-xs bg-gray-100 text-gray-600 rounded hover:bg-gray-200 transition-colors"
+                        >
+                          모두 접기
+                        </button>
+                      </div>
+                    </div>
+                    <div className="space-y-4">
+                      {Object.entries(groupedDelayed)
+                        .sort(([a], [b]) => {
+                          const orderA = getMajorCategoryOrder(a)
+                          const orderB = getMajorCategoryOrder(b)
+                          if (orderA !== orderB) return orderA - orderB
+                          return a.localeCompare(b)
+                        })
+                        .map(([majorCategory, categoryTasks]) => (
+                        <div key={majorCategory} className={`border border-gray-200 rounded-lg overflow-hidden ${styles.categoryGroup}`}>
+                          {/* 대분류 헤더 */}
+                          <div 
+                            className="flex justify-between items-center p-3 bg-gray-100 cursor-pointer hover:bg-gray-150 transition-colors"
+                            onClick={() => toggleMajor('delayed', majorCategory)}
+                          >
+                            <div className="flex items-center gap-2">
+                              <span className="text-lg">
+                                {expandedDelayedMajors.has(majorCategory) ? '📂' : '📁'}
+                              </span>
+                              <span className="font-medium text-gray-900">{majorCategory}</span>
+                              <span className="text-sm text-gray-500">({categoryTasks.length}개)</span>
+                            </div>
+                            <span className="text-gray-400">
+                              {expandedDelayedMajors.has(majorCategory) ? '▼' : '▶'}
+                            </span>
+                          </div>
+                          {/* 대분류별 업무 목록 */}
+                          {expandedDelayedMajors.has(majorCategory) && (
+                            <div className="p-3 space-y-3 bg-white">
+                              {categoryTasks.map((task) => (
+                                <TaskItem key={task.id} task={task} isCompleted={false} />
+                              ))}
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 미시작 업무 - 대분류별 그룹핑 (지연 제외) */}
                 {Object.keys(groupedNotStarted).length > 0 && (
                   <div>
                     <div className={`flex justify-between items-center mb-3 ${styles.sectionHeader}`}>
