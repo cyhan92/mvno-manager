@@ -1,0 +1,165 @@
+import { useCallback, useEffect, useRef } from 'react'
+
+export interface UseScrollSyncOptions {
+  toleranceRatio?: number // 허용 오차 (비율)
+  rounding?: boolean // 픽셀 라운딩 적용 여부
+}
+
+export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
+  const { toleranceRatio = 0.005, rounding = true } = options
+
+  const actionItemScrollRef = useRef<HTMLDivElement>(null)
+  const ganttChartScrollRef = useRef<HTMLDivElement>(null)
+  const headerScrollRef = useRef<HTMLDivElement>(null)
+  const isScrollingSyncRef = useRef(false)
+  const lastChartScrollStateRef = useRef<{ hasH: boolean; max: number } | null>(null)
+
+  // 세로 스크롤 동기화 (Action ↔ Chart)
+  const handleActionItemScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    if (isScrollingSyncRef.current) return
+    const scrollTop = e.currentTarget.scrollTop
+    if (ganttChartScrollRef.current) {
+      isScrollingSyncRef.current = true
+      ganttChartScrollRef.current.scrollTop = scrollTop
+      requestAnimationFrame(() => { isScrollingSyncRef.current = false })
+    }
+  }, [])
+
+  const handleGanttChartScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    if (isScrollingSyncRef.current) return
+    const scrollTop = e.currentTarget.scrollTop
+    const source = e.currentTarget
+    const sourceMax = Math.max(1, source.scrollWidth - source.clientWidth)
+    const ratio = sourceMax > 0 ? source.scrollLeft / sourceMax : 0
+
+    // 가로 스크롤바 등장/변화 감지 후, 다음 프레임에서 헤더 재동기화
+    const hasH = source.scrollWidth > source.clientWidth
+    const prev = lastChartScrollStateRef.current
+    lastChartScrollStateRef.current = { hasH, max: sourceMax }
+
+    isScrollingSyncRef.current = true
+    if (actionItemScrollRef.current) {
+      actionItemScrollRef.current.scrollTop = scrollTop
+    }
+    if (headerScrollRef.current) {
+      const target = headerScrollRef.current
+      const targetMax = Math.max(0, target.scrollWidth - target.clientWidth)
+      const targetLeft = rounding ? Math.round(ratio * targetMax) : ratio * targetMax
+      target.scrollLeft = targetLeft
+    }
+    requestAnimationFrame(() => {
+      // 소스의 가로 스크롤 가능 상태가 바뀌었거나 max가 달라졌다면 한번 더 비율 재보정
+      const currMax = Math.max(1, source.scrollWidth - source.clientWidth)
+      const currHasH = source.scrollWidth > source.clientWidth
+      const changed = !prev || prev.hasH !== currHasH || Math.abs(prev.max - currMax) > 0
+      if (changed && headerScrollRef.current) {
+        const h = headerScrollRef.current
+        const hMax = Math.max(0, h.scrollWidth - h.clientWidth)
+        const hLeft = rounding ? Math.round((source.scrollLeft / currMax) * hMax) : (source.scrollLeft / currMax) * hMax
+        h.scrollLeft = hLeft
+      }
+      isScrollingSyncRef.current = false
+    })
+  }, [rounding])
+
+  const handleHeaderScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
+    if (isScrollingSyncRef.current) return
+    const source = e.currentTarget
+    const sourceMax = Math.max(1, source.scrollWidth - source.clientWidth)
+    const ratio = sourceMax > 0 ? source.scrollLeft / sourceMax : 0
+    const hasH = source.scrollWidth > source.clientWidth
+
+    if (ganttChartScrollRef.current) {
+      isScrollingSyncRef.current = true
+      const target = ganttChartScrollRef.current
+      const targetMax = Math.max(0, target.scrollWidth - target.clientWidth)
+      const targetLeft = rounding ? Math.round(ratio * targetMax) : ratio * targetMax
+      target.scrollLeft = targetLeft
+      requestAnimationFrame(() => {
+        const currMax = Math.max(1, target.scrollWidth - target.clientWidth)
+        const currHasH = target.scrollWidth > target.clientWidth
+        if (hasH !== currHasH) {
+          const newLeft = rounding ? Math.round((source.scrollLeft / sourceMax) * currMax) : (source.scrollLeft / sourceMax) * currMax
+          target.scrollLeft = newLeft
+        }
+        isScrollingSyncRef.current = false
+      })
+    }
+  }, [rounding])
+
+  // 초기 스크롤 위치 설정 (ratio 기반)
+  const setInitialScrollPosition = useCallback((leftPx: number) => {
+    const attempt = (tries = 0) => {
+      if (tries > 20) return
+      const g = ganttChartScrollRef.current
+      const h = headerScrollRef.current
+      if (!g || !h) {
+        setTimeout(() => attempt(tries + 1), 50)
+        return
+      }
+      isScrollingSyncRef.current = true
+      requestAnimationFrame(() => {
+        const gMax = Math.max(1, g.scrollWidth - g.clientWidth)
+        const ratio = Math.min(1, Math.max(0, leftPx / gMax))
+        const gLeft = rounding ? Math.round(ratio * gMax) : ratio * gMax
+        const hMax = Math.max(0, h.scrollWidth - h.clientWidth)
+        const hLeft = rounding ? Math.round(ratio * hMax) : ratio * hMax
+        g.scrollLeft = gLeft
+        h.scrollLeft = hLeft
+        requestAnimationFrame(() => {
+          isScrollingSyncRef.current = false
+          // 최종 비율 검증 및 재보정
+          const g2Max = Math.max(1, g.scrollWidth - g.clientWidth)
+          const h2Max = Math.max(1, h.scrollWidth - h.clientWidth)
+          const rG = g.scrollLeft / g2Max
+          const rH = h.scrollLeft / h2Max
+          if (Math.abs(rG - rH) > toleranceRatio) {
+            const avg = (rG + rH) / 2
+            g.scrollLeft = rounding ? Math.round(avg * g2Max) : avg * g2Max
+            h.scrollLeft = rounding ? Math.round(avg * h2Max) : avg * h2Max
+          }
+        })
+      })
+    }
+    attempt()
+  }, [rounding, toleranceRatio])
+
+  // 헤더 거터(세로 스크롤바 폭) 패딩 동기화
+  useEffect(() => {
+    const header = headerScrollRef.current
+    const chart = ganttChartScrollRef.current
+    if (!header || !chart) return
+
+    const applyGutter = () => {
+      // 실제 스크롤바 폭 계산 (Windows/브라우저 차이 반영)
+      const gutter = Math.max(0, chart.offsetWidth - chart.clientWidth)
+      const targetPadding = gutter > 0 ? `${gutter}px` : ''
+      if (header.style.paddingRight !== targetPadding) header.style.paddingRight = targetPadding
+  // 헤더 폭은 CSS(box-sizing: border-box, width: auto/100%)에 맡기고, 우측 패딩만 동기화
+    }
+
+    applyGutter()
+    const ro = new ResizeObserver(() => requestAnimationFrame(applyGutter))
+    ro.observe(chart)
+    const onScroll = () => requestAnimationFrame(applyGutter)
+    chart.addEventListener('scroll', onScroll, { passive: true })
+    const onWin = () => requestAnimationFrame(applyGutter)
+    window.addEventListener('resize', onWin)
+    return () => {
+      chart.removeEventListener('scroll', onScroll)
+      window.removeEventListener('resize', onWin)
+  ro.disconnect()
+  header.style.paddingRight = ''
+    }
+  }, [])
+
+  return {
+    actionItemScrollRef,
+    ganttChartScrollRef,
+    headerScrollRef,
+    handleActionItemScroll,
+    handleGanttChartScroll,
+    handleHeaderScroll,
+    setInitialScrollPosition
+  }
+}
