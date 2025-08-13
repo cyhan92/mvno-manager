@@ -1,5 +1,40 @@
-import React from 'react'
-import { Task } from '../../types/task'
+import React from   // 팝업 위치 설정을 위한 ref
+  const popupRef = React.useRef<HTMLDivElement>(null)
+  
+  React.useEffect(() => {
+    if (isPopup && position && popupRef.current) {
+      // 화면 경계를 고려한 위치 조정
+      const popup = popupRef.current
+      const rect = popup.getBoundingClientRect()
+      const screenWidth = window.innerWidth
+      const screenHeight = window.innerHeight
+      
+      let adjustedX = position.x
+      let adjustedY = position.y
+
+      // 오른쪽 경계 체크
+      if (position.x + rect.width > screenWidth) {
+        adjustedX = screenWidth - rect.width - 10
+      }
+      
+      // 하단 경계 체크
+      if (position.y + rect.height > screenHeight) {
+        adjustedY = screenHeight - rect.height - 10
+      }
+      
+      popup.style.left = `${adjustedX}px`
+      popup.style.top = `${adjustedY}px`
+    }
+  }, [isPopup, position])
+
+  if (!task) {
+    return null
+  }
+
+  // 팝업 스타일과 기본 스타일 구분
+  const containerClass = isPopup 
+    ? styles.taskDetailPopup
+    : styles.taskDetailNormalport { Task } from '../../types/task'
 import { getStatusBadgeClass, formatDate, formatDuration, formatProgress } from '../../utils/gantt'
 import { styles } from '../../styles'
 

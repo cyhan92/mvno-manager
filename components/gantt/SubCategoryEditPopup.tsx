@@ -169,7 +169,7 @@ const SubCategoryEditPopup: React.FC<SubCategoryEditPopupProps> = ({
           </h2>
           {mode === 'add' && (
             <p className="text-sm text-gray-600 mt-2">
-              새로운 중분류와 소분류를 입력하여 "상세업무_1" Task를 생성합니다.
+              새로운 중분류와 소분류를 입력하여 &quot;상세업무_1&quot; Task를 생성합니다.
             </p>
           )}
         </div>
