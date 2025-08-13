@@ -6,6 +6,7 @@ import CssBaseline from '@mui/material/CssBaseline'
 import { createTheme } from '@mui/material/styles'
 import { AuthProvider } from '../contexts/AuthContext'
 import { getClientSideEmotionCache } from '../lib/emotion'
+import ClientLayout from './ClientLayout'
 
 // MUI 테마 생성
 const theme = createTheme({
@@ -44,7 +45,9 @@ export default function ClientProviders({ children }: ClientProvidersProps) {
       <ThemeProvider theme={theme}>
         <CssBaseline enableColorScheme />
         <AuthProvider>
-          {children}
+          <ClientLayout>
+            {children}
+          </ClientLayout>
         </AuthProvider>
       </ThemeProvider>
     </CacheProvider>

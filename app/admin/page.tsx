@@ -3,6 +3,7 @@
 import React from 'react'
 import { Container, Typography, Box } from '@mui/material'
 import TaskStatusManager from '../../components/TaskStatusManager'
+import BackupManager from '../../components/BackupManager'
 
 export default function AdminPage() {
   return (
@@ -16,6 +17,7 @@ export default function AdminPage() {
         </Typography>
       </Box>
 
+      <BackupManager />
       <TaskStatusManager />
     </Container>
   )
