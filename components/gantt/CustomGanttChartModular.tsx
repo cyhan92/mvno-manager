@@ -149,7 +149,17 @@ const CustomGanttChartModular: React.FC<CustomGanttChartProps> = ({
           onAfterHeaderRender={() => {
             try {
               // 헤더 렌더 직후 강제 재동기화 시도 (내부 리프레시 타이밍 대응)
+              // 다중 재동기화로 스크롤 위치 확실히 맞추기
               scroll.resyncHorizontal?.()
+              
+              // 추가 재동기화 (내부 리프레시로 인한 레이아웃 변경 대응)
+              setTimeout(() => {
+                scroll.resyncHorizontal?.()
+              }, 50)
+              
+              setTimeout(() => {
+                scroll.resyncHorizontal?.()
+              }, 150)
             } catch {}
           }}
         />

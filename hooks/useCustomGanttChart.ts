@@ -33,6 +33,7 @@ export const useCustomGanttChart = ({
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const containerRef = useRef<HTMLDivElement>(null)
   const [isLoading, setIsLoading] = useState(true)
+  const hasSetInitialScrollRef = useRef(false) // 초기 스크롤 설정 여부 추적
   const [currentChartWidth, setCurrentChartWidth] = useState<number>(0)
   const lastRenderTimeRef = useRef<number>(0)
   
@@ -213,6 +214,12 @@ export const useCustomGanttChart = ({
   useEffect(() => {
     if (!setInitialScrollPosition || displayTasks.length === 0) return
     
+    // 이미 초기 스크롤이 설정되었다면 재설정하지 않음 (대분류 이동 등의 업데이트 시)
+    if (hasSetInitialScrollRef.current) {
+      console.log('useCustomGanttChart: 스크롤 재설정 건너뜀 - 이미 설정됨')
+      return
+    }
+    
     const validTasks = validateTasks(displayTasks)
     if (validTasks.length === 0) return
     
@@ -265,6 +272,8 @@ export const useCustomGanttChart = ({
       // 렌더링 후 스크롤 위치 설정 - 빠른 이동을 위해 지연 시간 단축
       const timer = setTimeout(() => {
         setInitialScrollPosition(adjustedScrollLeft)
+        hasSetInitialScrollRef.current = true // 초기 스크롤 설정 완료 표시
+        console.log('초기 스크롤 위치 설정 완료:', adjustedScrollLeft)
       }, 100) // 500ms에서 100ms로 단축
       
       return () => clearTimeout(timer)
