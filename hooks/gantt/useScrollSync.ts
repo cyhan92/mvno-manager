@@ -13,6 +13,7 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
   const headerScrollRef = useRef<HTMLDivElement>(null)
   const isScrollingSyncRef = useRef(false)
   const lastChartScrollStateRef = useRef<{ hasH: boolean; max: number } | null>(null)
+  const lastSyncTimeRef = useRef<number>(0) // 마지막 동기화 시간
 
   // 세로 스크롤 동기화 (Action ↔ Chart)
   const handleActionItemScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
@@ -27,6 +28,11 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
 
   const handleGanttChartScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     if (isScrollingSyncRef.current) return
+    
+    // 디바운싱: 10ms 내 연속 호출 방지
+    const now = Date.now()
+    if (now - lastSyncTimeRef.current < 10) return
+    
     const scrollTop = e.currentTarget.scrollTop
     const source = e.currentTarget
     const sourceMax = Math.max(1, source.scrollWidth - source.clientWidth)
@@ -37,7 +43,6 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
     const prev = lastChartScrollStateRef.current
     lastChartScrollStateRef.current = { hasH, max: sourceMax }
 
-    isScrollingSyncRef.current = true
     if (actionItemScrollRef.current) {
       actionItemScrollRef.current.scrollTop = scrollTop
     }
@@ -51,27 +56,36 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
       
       // 의미있는 차이가 있을 때만 업데이트 (연쇄 방지)
       if (Math.abs(currentTargetScroll - targetLeft) > 0.5) {
+        // 동기화 시작 직전에 플래그 설정
+        isScrollingSyncRef.current = true
+        lastSyncTimeRef.current = now
         target.scrollLeft = targetLeft
         
         console.log('Chart → Header 스크롤 동기화:', {
           chart: { scroll: sourceScrollLeft, max: sourceMax },
           header: { set: targetLeft, max: targetMax, actual: target.scrollLeft }
         })
+        
+        // 즉시 해제하여 다음 이벤트는 정상 처리되도록 함
+        setTimeout(() => {
+          isScrollingSyncRef.current = false
+        }, 0)
       }
     }
-    requestAnimationFrame(() => {
-      isScrollingSyncRef.current = false
-    })
   }, [rounding])
 
   const handleHeaderScroll = useCallback((e: React.UIEvent<HTMLDivElement>) => {
     if (isScrollingSyncRef.current) return
+    
+    // 디바운싱: 10ms 내 연속 호출 방지
+    const now = Date.now()
+    if (now - lastSyncTimeRef.current < 10) return
+    
     const source = e.currentTarget
     const sourceMax = Math.max(1, source.scrollWidth - source.clientWidth)
     const sourceScrollLeft = source.scrollLeft
 
     if (ganttChartScrollRef.current) {
-      isScrollingSyncRef.current = true
       const target = ganttChartScrollRef.current
       const targetMax = Math.max(0, target.scrollWidth - target.clientWidth)
       
@@ -81,18 +95,21 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
       
       // 의미있는 차이가 있을 때만 업데이트 (연쇄 방지)
       if (Math.abs(currentTargetScroll - targetLeft) > 0.5) {
+        // 동기화 시작 직전에 플래그 설정
+        isScrollingSyncRef.current = true
+        lastSyncTimeRef.current = now
         target.scrollLeft = targetLeft
         
         console.log('Header → Chart 스크롤 동기화:', {
           header: { scroll: sourceScrollLeft, max: sourceMax },
           chart: { set: targetLeft, max: targetMax, actual: target.scrollLeft }
         })
+        
+        // 즉시 해제하여 다음 이벤트는 정상 처리되도록 함
+        setTimeout(() => {
+          isScrollingSyncRef.current = false
+        }, 0)
       }
-      
-      // 다음 프레임에서 동기화 해제
-      requestAnimationFrame(() => {
-        isScrollingSyncRef.current = false
-      })
     }
   }, [rounding])
 
@@ -115,10 +132,10 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
       h.scrollLeft = desired
       console.log('resyncHorizontal 실행:', { chart: gScrollLeft, header: { desired, actual: h.scrollLeft } })
       
-      // 다음 프레임에서 해제
-      requestAnimationFrame(() => {
+      // 즉시 해제
+      setTimeout(() => {
         isScrollingSyncRef.current = false
-      })
+      }, 0)
     }
   }, [rounding])
 
