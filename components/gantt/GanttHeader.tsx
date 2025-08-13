@@ -94,14 +94,17 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
     const needsResize = canvas.width !== targetPixelWidth || canvas.height !== targetPixelHeight
     const needsStyleInit = !canvas.style.width || canvas.style.width === ''
     
-  if (needsResize || needsStyleInit) {
+    if (needsResize || needsStyleInit) {
+      // 현재 스크롤 위치 보존 (내부 리프레시 중 스크롤 유지)
+      const currentScrollLeft = scrollRef.current?.scrollLeft || 0
+      
       // Canvas 속성 및 스타일을 한번에 설정 (DOM 조작 최소화)
       canvas.width = targetPixelWidth
       canvas.height = targetPixelHeight
       
       // 스타일 일괄 설정 (reflow 최소화)
       const styleUpdates = {
-    width: `${targetCssWidth}px`,
+        width: `${targetCssWidth}px`,
         height: `${targetCssHeight}px`,
         minWidth: dateUnit === 'week' ? '1800px' : `${finalChartWidth}px`,
         maxWidth: 'none',
@@ -109,6 +112,16 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
       }
       
       Object.assign(canvas.style, styleUpdates)
+      
+      // 스크롤 위치 복원 (Canvas 크기 변경으로 인한 스크롤 리셋 방지)
+      if (currentScrollLeft > 0 && scrollRef.current) {
+        requestAnimationFrame(() => {
+          if (scrollRef.current && scrollRef.current.scrollLeft !== currentScrollLeft) {
+            scrollRef.current.scrollLeft = currentScrollLeft
+            console.log('Header 스크롤 위치 복원:', currentScrollLeft)
+          }
+        })
+      }
     }
     // 매 렌더마다 변환 초기화 후 DPR 스케일 적용
     ctx.setTransform(1, 0, 0, 1, 0, 0)
@@ -210,7 +223,17 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
     isRenderingRef.current = false
     if (onAfterRender) {
       try {
-        requestAnimationFrame(() => onAfterRender())
+        requestAnimationFrame(() => {
+          onAfterRender()
+          
+          // 추가 스크롤 동기화 시도 (내부 리프레시 대응)
+          setTimeout(() => {
+            if (scrollRef.current) {
+              const currentScroll = scrollRef.current.scrollLeft
+              console.log('Header 렌더링 완료 후 스크롤 상태:', currentScroll)
+            }
+          }, 50)
+        })
       } catch {}
     }
   }
