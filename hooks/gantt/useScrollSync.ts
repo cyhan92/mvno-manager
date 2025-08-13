@@ -113,24 +113,33 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
       }
       isScrollingSyncRef.current = true
       requestAnimationFrame(() => {
+        // 차트에는 정확한 픽셀 값 사용
         const gMax = Math.max(1, g.scrollWidth - g.clientWidth)
-        const ratio = Math.min(1, Math.max(0, leftPx / gMax))
-        const gLeft = rounding ? Math.round(ratio * gMax) : ratio * gMax
-        const hMax = Math.max(0, h.scrollWidth - h.clientWidth)
-        const hLeft = rounding ? Math.round(ratio * hMax) : ratio * hMax
+        const gLeft = Math.min(leftPx, gMax) // 최대값 제한
         g.scrollLeft = gLeft
+        
+        // 헤더에도 동일한 픽셀 값 시도 (비율 변환 없이)
+        const hMax = Math.max(0, h.scrollWidth - h.clientWidth)
+        const hLeft = Math.min(leftPx, hMax) // 헤더 최대값 제한
         h.scrollLeft = hLeft
+        
+        console.log('setInitialScrollPosition 실행:', {
+          target: leftPx,
+          chart: { max: gMax, set: gLeft, actual: g.scrollLeft },
+          header: { max: hMax, set: hLeft, actual: h.scrollLeft }
+        })
+        
         requestAnimationFrame(() => {
           isScrollingSyncRef.current = false
-          // 최종 비율 검증 및 재보정
-          const g2Max = Math.max(1, g.scrollWidth - g.clientWidth)
-          const h2Max = Math.max(1, h.scrollWidth - h.clientWidth)
-          const rG = g.scrollLeft / g2Max
-          const rH = h.scrollLeft / h2Max
-          if (Math.abs(rG - rH) > toleranceRatio) {
-            const avg = (rG + rH) / 2
-            g.scrollLeft = rounding ? Math.round(avg * g2Max) : avg * g2Max
-            h.scrollLeft = rounding ? Math.round(avg * h2Max) : avg * h2Max
+          // 최종 검증 (픽셀 기준)
+          const actualG = g.scrollLeft
+          const actualH = h.scrollLeft
+          const pixelDiff = Math.abs(actualG - actualH)
+          
+          if (pixelDiff > 1) { // 1픽셀 이상 차이나면 재조정
+            console.log('스크롤 위치 불일치 감지:', { chart: actualG, header: actualH, diff: pixelDiff })
+            // 차트 기준으로 헤더 재조정
+            h.scrollLeft = Math.min(actualG, hMax)
           }
         })
       })
