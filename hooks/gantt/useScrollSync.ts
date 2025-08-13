@@ -50,8 +50,16 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
       const target = headerScrollRef.current
       const targetMax = Math.max(0, target.scrollWidth - target.clientWidth)
       
-      // 절대 픽셀 기반 동기화
-      const targetLeft = Math.min(sourceScrollLeft, targetMax)
+      // 스크롤 끝단 정밀 처리
+      let targetLeft: number
+      if (sourceScrollLeft >= sourceMax - 1) {
+        // 소스가 끝단에 가까우면 타겟도 끝단으로 설정
+        targetLeft = targetMax
+      } else {
+        // 일반적인 절대 픽셀 기반 동기화
+        targetLeft = Math.min(sourceScrollLeft, targetMax)
+      }
+      
       const currentTargetScroll = target.scrollLeft
       
       // 의미있는 차이가 있을 때만 업데이트 (연쇄 방지)
@@ -62,7 +70,7 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
         target.scrollLeft = targetLeft
         
         console.log('Chart → Header 스크롤 동기화:', {
-          chart: { scroll: sourceScrollLeft, max: sourceMax },
+          chart: { scroll: sourceScrollLeft, max: sourceMax, isEnd: sourceScrollLeft >= sourceMax - 1 },
           header: { set: targetLeft, max: targetMax, actual: target.scrollLeft }
         })
         
@@ -89,8 +97,16 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
       const target = ganttChartScrollRef.current
       const targetMax = Math.max(0, target.scrollWidth - target.clientWidth)
       
-      // 절대 픽셀 기반 동기화
-      const targetLeft = Math.min(sourceScrollLeft, targetMax)
+      // 스크롤 끝단 정밀 처리
+      let targetLeft: number
+      if (sourceScrollLeft >= sourceMax - 1) {
+        // 소스가 끝단에 가까우면 타겟도 끝단으로 설정
+        targetLeft = targetMax
+      } else {
+        // 일반적인 절대 픽셀 기반 동기화
+        targetLeft = Math.min(sourceScrollLeft, targetMax)
+      }
+      
       const currentTargetScroll = target.scrollLeft
       
       // 의미있는 차이가 있을 때만 업데이트 (연쇄 방지)
@@ -101,7 +117,7 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
         target.scrollLeft = targetLeft
         
         console.log('Header → Chart 스크롤 동기화:', {
-          header: { scroll: sourceScrollLeft, max: sourceMax },
+          header: { scroll: sourceScrollLeft, max: sourceMax, isEnd: sourceScrollLeft >= sourceMax - 1 },
           chart: { set: targetLeft, max: targetMax, actual: target.scrollLeft }
         })
         
@@ -121,16 +137,28 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
     const h = headerScrollRef.current
     if (!g || !h) return
     
-    // 차트 기준으로 헤더 동기화 (절대 픽셀 기반)
+    // 차트 기준으로 헤더 동기화 - 끝단 정밀 처리
     const gScrollLeft = g.scrollLeft
+    const gMax = Math.max(0, g.scrollWidth - g.clientWidth)
     const hMax = Math.max(0, h.scrollWidth - h.clientWidth)
-    const desired = Math.min(gScrollLeft, hMax)
+    
+    let desired: number
+    if (gScrollLeft >= gMax - 1) {
+      // 차트가 끝단에 가까우면 헤더도 끝단으로 설정
+      desired = hMax
+    } else {
+      // 일반적인 절대 픽셀 기반 동기화
+      desired = Math.min(gScrollLeft, hMax)
+    }
     
     if (Math.abs(h.scrollLeft - desired) > 0.5) {
       // 임시로 동기화 차단하여 연쇄 호출 방지
       isScrollingSyncRef.current = true
       h.scrollLeft = desired
-      console.log('resyncHorizontal 실행:', { chart: gScrollLeft, header: { desired, actual: h.scrollLeft } })
+      console.log('resyncHorizontal 실행:', { 
+        chart: { scroll: gScrollLeft, max: gMax, isEnd: gScrollLeft >= gMax - 1 }, 
+        header: { desired, actual: h.scrollLeft, max: hMax } 
+      })
       
       // 즉시 해제
       setTimeout(() => {
@@ -153,11 +181,20 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
       // 동기화 차단: 초기 설정 중에는 실시간 동기화 비활성화
       isScrollingSyncRef.current = true
       
-      // 동시에 설정하여 이벤트 핸들러 간섭 최소화
+      // 동시에 설정하여 이벤트 핸들러 간섭 최소화 - 끝단 정밀 처리
       const gMax = Math.max(1, g.scrollWidth - g.clientWidth)
       const hMax = Math.max(0, h.scrollWidth - h.clientWidth)
-      const gLeft = Math.min(leftPx, gMax)
-      const hLeft = Math.min(leftPx, hMax)
+      
+      let gLeft: number, hLeft: number
+      if (leftPx >= gMax - 1) {
+        // 끝단 근처면 둘 다 끝단으로 설정
+        gLeft = gMax
+        hLeft = hMax
+      } else {
+        // 일반적인 처리
+        gLeft = Math.min(leftPx, gMax)
+        hLeft = Math.min(leftPx, hMax)
+      }
       
       // 즉시 설정 (requestAnimationFrame 없이)
       g.scrollLeft = gLeft
@@ -165,6 +202,7 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
       
       console.log('setInitialScrollPosition 실행:', {
         target: leftPx,
+        isEnd: leftPx >= gMax - 1,
         chart: { max: gMax, set: gLeft, actual: g.scrollLeft },
         header: { max: hMax, set: hLeft, actual: h.scrollLeft }
       })
