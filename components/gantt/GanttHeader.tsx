@@ -172,13 +172,17 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
 
     // 오늘 날짜 세로선 (차트가 전달한 좌표 우선)
     if (typeof todayX === 'number') {
+      // DPR 보정된 정확한 좌표 계산 (차트와 동일한 방식)
+      const dpr = window.devicePixelRatio || 1
+      const exactX = todayX * dpr
+      
       ctx.strokeStyle = '#ef4444'
-      ctx.lineWidth = 2
+      ctx.lineWidth = 2 * dpr
       ctx.beginPath()
-      ctx.moveTo(todayX, 0)
-      ctx.lineTo(todayX, canvas.height)
+      ctx.moveTo(exactX, 0)
+      ctx.lineTo(exactX, canvas.height)
       ctx.stroke()
-      try { console.log('Header today line drawn at (prop):', todayX) } catch {}
+      try { console.log('Header today line drawn at (prop):', todayX, 'DPR-adjusted:', exactX, 'DPR:', dpr) } catch {}
     } else {
       // 차트가 전달한 todayDate를 우선 사용, 없으면 새로 생성
       const today = todayDate || new Date()
@@ -187,14 +191,17 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
       }
       if (today >= startDate && today <= endDate) {
         const todayXRaw = leftMargin + ((today.getTime() - startDate.getTime()) / timeRange) * finalChartWidth
-        const tX = Math.round(todayXRaw) + 0.5
+        const dpr = window.devicePixelRatio || 1
+        const alignedX = Math.round(todayXRaw) + 0.5
+        const exactX = alignedX * dpr
+        
         ctx.strokeStyle = '#ef4444'
-        ctx.lineWidth = 2
+        ctx.lineWidth = 2 * dpr
         ctx.beginPath()
-        ctx.moveTo(tX, 0)
-        ctx.lineTo(tX, canvas.height)
+        ctx.moveTo(exactX, 0)
+        ctx.lineTo(exactX, canvas.height)
         ctx.stroke()
-        try { console.log('Header today line drawn at (calc):', tX, 'using todayDate:', !!todayDate) } catch {}
+        try { console.log('Header today line drawn at (calc):', alignedX, 'DPR-adjusted:', exactX, 'using todayDate:', !!todayDate, 'DPR:', dpr) } catch {}
       }
     }
 

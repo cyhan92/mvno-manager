@@ -20,16 +20,17 @@ export const drawTodayLine = (
   
   // 오늘 날짜가 차트 범위 내에 있는지 확인
   if (todayMs >= startDateMs && todayMs <= (startDateMs + timeRange)) {
-    // 오늘 날짜의 x 위치 계산
-  const xRaw = leftMargin + ((todayMs - startDateMs) / timeRange) * chartWidth
-  const x = Math.round(xRaw) + 0.5
+    // 오늘 날짜의 x 위치 계산 (DPR 보정 적용)
+    const dpr = window.devicePixelRatio || 1
+    const xRaw = leftMargin + ((todayMs - startDateMs) / timeRange) * chartWidth
+    const x = (Math.round(xRaw) + 0.5) * dpr
     
-    console.log('Gantt today line drawn at:', x, 'startDate:', startDate.toISOString(), 'timeRange:', timeRange, 'leftMargin:', leftMargin)
+    console.log('Gantt today line drawn at:', x, 'startDate:', startDate.toISOString(), 'timeRange:', timeRange, 'leftMargin:', leftMargin, 'DPR:', dpr)
     
-    // 빨간 세로선 그리기
+    // 빨간 세로선 그리기 (DPR 보정된 좌표와 선 두께)
     ctx.beginPath()
     ctx.strokeStyle = '#ef4444' // 빨간색
-    ctx.lineWidth = 2
+    ctx.lineWidth = 2 * dpr
     ctx.moveTo(x, 0)
     ctx.lineTo(x, chartHeight)
     ctx.stroke()

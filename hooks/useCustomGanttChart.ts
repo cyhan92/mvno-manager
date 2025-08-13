@@ -6,8 +6,7 @@ import {
   drawBackground,
   drawGridLines,
   drawGanttBar,
-  drawChartBorder,
-  drawTodayLine
+  drawChartBorder
 } from '../utils/canvas'
 
 interface UseCustomGanttChartProps {
@@ -192,7 +191,17 @@ export const useCustomGanttChart = ({
       const aligned = Math.round(raw) + 0.5
       setTodayX(aligned)
       console.log('Chart today line X calculated:', aligned, 'for date:', today.toISOString())
-      drawTodayLine(ctx, startDate, timeRange, dimensions.chartWidth, dimensions.chartHeight, 0)
+      
+      // 계산된 좌표로 직접 오늘 선 그리기 (DPR 보정 적용)
+      const dpr = window.devicePixelRatio || 1
+      const exactX = aligned * dpr
+      
+      ctx.beginPath()
+      ctx.strokeStyle = '#ef4444'
+      ctx.lineWidth = 2 * dpr
+      ctx.moveTo(exactX, 0)
+      ctx.lineTo(exactX, dimensions.chartHeight)
+      ctx.stroke()
     } else {
       setTodayX(null)
     }
