@@ -56,10 +56,16 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
+    // 내부 리프레시 중에는 차트 정보가 준비될 때까지 대기
+    if (!chartWidth || chartWidth <= 0) {
+      try { console.log('Header render delayed - waiting for chartWidth:', chartWidth) } catch {}
+      return
+    }
+
     // 현재 렌더링 설정 생성
-  const rangeKey = dateRange ? `${dateRange.startDate.getTime()}-${dateRange.endDate.getTime()}-${dateRange.timeRange}` : 'auto'
-  const todayKey = typeof todayX === 'number' ? `${todayX}` : 'auto'
-  const currentConfig = `${displayTasks.length}-${dateUnit}-${expandedNodesSize}-${chartWidth}-${rangeKey}-${todayKey}-${renderTrigger}`
+    const rangeKey = dateRange ? `${dateRange.startDate.getTime()}-${dateRange.endDate.getTime()}-${dateRange.timeRange}` : 'auto'
+    const todayKey = typeof todayX === 'number' ? `${todayX}` : 'auto'
+    const currentConfig = `${displayTasks.length}-${dateUnit}-${expandedNodesSize}-${chartWidth}-${rangeKey}-${todayKey}-${renderTrigger}`
     
     // 동일한 설정이면 렌더링 스킵 (불필요한 재렌더링 방지)
     if (lastRenderConfigRef.current === currentConfig) {
@@ -170,7 +176,7 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
         ctx.setLineDash([])
     })
 
-    // 오늘 날짜 세로선 (차트가 전달한 좌표 우선)
+    // 오늘 날짜 세로선 (차트가 전달한 좌표 우선, 없으면 그리지 않음)
     if (typeof todayX === 'number') {
       // DPR 보정된 정확한 좌표 계산 (차트와 동일한 방식)
       const dpr = window.devicePixelRatio || 1
@@ -183,12 +189,9 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
       ctx.lineTo(exactX, canvas.height)
       ctx.stroke()
       try { console.log('Header today line drawn at (prop):', todayX, 'DPR-adjusted:', exactX, 'DPR:', dpr) } catch {}
-    } else {
-      // 차트가 전달한 todayDate를 우선 사용, 없으면 새로 생성
-      const today = todayDate || new Date()
-      if (!todayDate) {
-        today.setHours(0, 0, 0, 0)
-      }
+    } else if (chartWidth && chartWidth > 0 && dateRange && todayDate) {
+      // 차트 정보가 완전히 준비된 경우에만 fallback 계산 허용
+      const today = todayDate
       if (today >= startDate && today <= endDate) {
         const todayXRaw = leftMargin + ((today.getTime() - startDate.getTime()) / timeRange) * finalChartWidth
         const dpr = window.devicePixelRatio || 1
@@ -201,8 +204,11 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
         ctx.moveTo(exactX, 0)
         ctx.lineTo(exactX, canvas.height)
         ctx.stroke()
-        try { console.log('Header today line drawn at (calc):', alignedX, 'DPR-adjusted:', exactX, 'using todayDate:', !!todayDate, 'DPR:', dpr) } catch {}
+        try { console.log('Header today line drawn at (fallback):', alignedX, 'DPR-adjusted:', exactX, 'chartWidth:', chartWidth, 'DPR:', dpr) } catch {}
       }
+    } else {
+      // 차트 정보가 아직 준비되지 않은 경우 오늘 날짜선을 그리지 않음
+      try { console.log('Header today line skipped - waiting for chart data:', { todayX, chartWidth, hasDateRange: !!dateRange, hasTodayDate: !!todayDate }) } catch {}
     }
 
     // 렌더링 완료 처리
