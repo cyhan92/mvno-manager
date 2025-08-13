@@ -10,32 +10,25 @@ export const calculateTaskStats = (tasks: Task[]): TaskStats => {
   
   const completed = safeTasks.filter(t => {
     if (!t) return false
-    // 상태값이 있으면 우선 사용
-    if (t.status) {
-      return t.status === '완료'
-    }
-    // 상태값이 없으면 완료율로 판단
-    return typeof t.percentComplete === 'number' && t.percentComplete === 100
+    const byStatus = t.status === '완료'
+    const byPercent = typeof t.percentComplete === 'number' && t.percentComplete === 100
+    return byStatus || byPercent
   }).length
   
   const inProgress = safeTasks.filter(t => {
     if (!t) return false
-    // 상태값이 있으면 우선 사용
-    if (t.status) {
-      return t.status === '진행중'
-    }
-    // 상태값이 없으면 완료율로 판단
-    return typeof t.percentComplete === 'number' && t.percentComplete > 0 && t.percentComplete < 100
+    const byStatus = t.status === '진행중'
+    const byPercent = typeof t.percentComplete === 'number' && t.percentComplete > 0 && t.percentComplete < 100
+    return byStatus || byPercent
   }).length
   
   const notStarted = safeTasks.filter(t => {
     if (!t) return false
-    // 상태값이 있으면 우선 사용
-    if (t.status) {
-      return t.status === '미진행' || t.status === '미완료'
-    }
-    // 상태값이 없으면 완료율로 판단
-    return typeof t.percentComplete !== 'number' || t.percentComplete === 0
+    const byStatus = t.status === '미진행' || t.status === '미완료'
+    const byPercent = typeof t.percentComplete !== 'number' || t.percentComplete === 0
+    // notStarted는 completed/inProgress에 해당하지 않는 나머지로도 계산될 수 있으나,
+    // 여기서는 명시 조건(byStatus 또는 byPercent)을 만족하는 경우로 한정
+    return byStatus || byPercent
   }).length
   
   const averageProgress = safeTasks.length > 0 

@@ -45,6 +45,32 @@ export const adjustProgressByStatus = (status: string, percentComplete: number):
 }
 
 /**
+ * 상태 문자열을 정규화합니다.
+ * - 트림/대소문자/동의어/변형을 허용 목록으로 매핑
+ */
+export const normalizeStatus = (raw: unknown): string => {
+  if (typeof raw !== 'string') return ''
+  const s = raw.trim()
+  // 정확 매칭 우선
+  if (s === EXCEL_CONFIG.STATUS_VALUES.COMPLETED) return EXCEL_CONFIG.STATUS_VALUES.COMPLETED
+  if (s === EXCEL_CONFIG.STATUS_VALUES.IN_PROGRESS) return EXCEL_CONFIG.STATUS_VALUES.IN_PROGRESS
+  if (s === EXCEL_CONFIG.STATUS_VALUES.NOT_STARTED) return EXCEL_CONFIG.STATUS_VALUES.NOT_STARTED
+
+  // 흔한 변형/동의어 매핑
+  const lower = s.toLowerCase()
+  if (lower === '완료됨' || lower === 'complete' || lower === 'completed' || lower === 'done') {
+    return EXCEL_CONFIG.STATUS_VALUES.COMPLETED
+  }
+  if (lower === '진행' || lower === 'in progress' || lower === 'progress') {
+    return EXCEL_CONFIG.STATUS_VALUES.IN_PROGRESS
+  }
+  if (lower === '미시작' || lower === 'not started' || lower === 'todo') {
+    return EXCEL_CONFIG.STATUS_VALUES.NOT_STARTED
+  }
+  return s
+}
+
+/**
  * 담당자 정보 추출 (정담당자 우선, 없으면 부담당자)
  */
 export const extractResource = (mainResource: string, subResource: string): string => {

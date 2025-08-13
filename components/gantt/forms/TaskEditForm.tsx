@@ -1,5 +1,4 @@
 import React from 'react'
-import { Task } from '../../../types/task'
 
 interface TaskEditFormProps {
   editData: {
@@ -43,6 +42,7 @@ export const TaskEditForm: React.FC<TaskEditFormProps> = ({
             value={editData.startDate}
             onChange={(e) => onEditDataChange('startDate', e.target.value)}
             className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            title="시작일을 선택하세요"
           />
         </div>
         <div>
@@ -52,6 +52,7 @@ export const TaskEditForm: React.FC<TaskEditFormProps> = ({
             value={editData.endDate}
             onChange={(e) => onEditDataChange('endDate', e.target.value)}
             className="w-full p-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            title="종료일을 선택하세요"
           />
         </div>
         <div>
@@ -64,8 +65,14 @@ export const TaskEditForm: React.FC<TaskEditFormProps> = ({
             max="100"
             step="5"
             value={editData.percentComplete}
-            onChange={(e) => onEditDataChange('percentComplete', Number(e.target.value))}
+            onChange={(e) => {
+              const p = Number(e.target.value)
+              onEditDataChange('percentComplete', p)
+              const status = p >= 100 ? '완료' : p > 0 ? '진행중' : '미완료'
+              onEditDataChange('status', status)
+            }}
             className="w-full"
+            title="진행률을 조정하세요"
           />
           <div className="flex justify-between text-xs text-gray-500 mt-1">
             <span>0%</span>

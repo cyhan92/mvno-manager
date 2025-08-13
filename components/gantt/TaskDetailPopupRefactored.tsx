@@ -29,6 +29,7 @@ interface TaskEditData {
   majorCategory: string
   middleCategory: string
   minorCategory: string
+  status: string
   detail: string
 }
 
@@ -55,6 +56,7 @@ const TaskDetailPopupRefactored: React.FC<TaskDetailPopupProps> = ({
     majorCategory: '',
     middleCategory: '',
     minorCategory: '',
+  status: '미완료',
     detail: ''
   })
 
@@ -85,6 +87,7 @@ const TaskDetailPopupRefactored: React.FC<TaskDetailPopupProps> = ({
       majorCategory: task.majorCategory || '',
       middleCategory: task.middleCategory || '',
       minorCategory: task.minorCategory || '',
+  status: task.status || ((task.percentComplete || 0) >= 100 ? '완료' : (task.percentComplete || 0) > 0 ? '진행중' : '미완료'),
       detail: task.detail || ''
     })
   }, [task])
@@ -124,6 +127,7 @@ const TaskDetailPopupRefactored: React.FC<TaskDetailPopupProps> = ({
       majorCategory: task.majorCategory || '',
       middleCategory: task.middleCategory || '',
       minorCategory: task.minorCategory || '',
+  status: task.status || ((task.percentComplete || 0) >= 100 ? '완료' : (task.percentComplete || 0) > 0 ? '진행중' : '미완료'),
       detail: task.detail || ''
     })
     setIsEditing(false)
@@ -178,7 +182,11 @@ const TaskDetailPopupRefactored: React.FC<TaskDetailPopupProps> = ({
           {isEditing ? (
             <TaskEditForm
               editData={editData}
-              onEditDataChange={setEditData}
+              onEditDataChange={(data) => {
+                const p = typeof data.percentComplete === 'number' ? data.percentComplete : 0
+                const newStatus = p >= 100 ? '완료' : p > 0 ? '진행중' : '미완료'
+                setEditData({ ...data, status: newStatus })
+              }}
               onSave={handleSave}
               onCancel={handleCancel}
               isLoading={isLoading}

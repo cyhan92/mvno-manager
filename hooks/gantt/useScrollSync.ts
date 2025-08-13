@@ -87,6 +87,20 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
     }
   }, [rounding])
 
+  // 외부에서 강제로 가로 스크롤 동기화 재보정
+  const resyncHorizontal = useCallback(() => {
+    const g = ganttChartScrollRef.current
+    const h = headerScrollRef.current
+    if (!g || !h) return
+    const gMax = Math.max(1, g.scrollWidth - g.clientWidth)
+    const ratio = gMax > 0 ? g.scrollLeft / gMax : 0
+    const hMax = Math.max(0, h.scrollWidth - h.clientWidth)
+    const desired = rounding ? Math.round(ratio * hMax) : ratio * hMax
+    if (Math.abs(h.scrollLeft - desired) > 0.5) {
+      h.scrollLeft = desired
+    }
+  }, [rounding])
+
   // 초기 스크롤 위치 설정 (ratio 기반)
   const setInitialScrollPosition = useCallback((leftPx: number) => {
     const attempt = (tries = 0) => {
@@ -181,6 +195,7 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
     handleActionItemScroll,
     handleGanttChartScroll,
     handleHeaderScroll,
-    setInitialScrollPosition
+  setInitialScrollPosition,
+  resyncHorizontal
   }
 }

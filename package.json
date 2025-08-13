@@ -33,6 +33,8 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "@types/xlsx": "^0.0.35",
+    "eslint": "9.33.0",
+    "eslint-config-next": "15.4.6",
     "rimraf": "^6.0.1",
     "tailwindcss": "^4",
     "typescript": "^5"

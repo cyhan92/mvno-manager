@@ -68,6 +68,9 @@ const CustomGanttChartModular: React.FC<CustomGanttChartProps> = ({
     handleCanvasClick,
     handleCanvasDoubleClick,
     chartWidth,
+    dateRange,
+    todayX,
+    todayDate,
     popup,
     scroll,
     synchronizedTasks
@@ -134,12 +137,21 @@ const CustomGanttChartModular: React.FC<CustomGanttChartProps> = ({
           renderTrigger={renderTrigger}
           containerRef={containerRef}
           chartWidth={chartWidth}
+          dateRange={dateRange}
+          todayX={todayX}
+          todayDate={todayDate}
           canvasRef={canvasRef}
           isLoading={isLoading}
           onHeaderScroll={scroll.handleHeaderScroll}
           onGanttScroll={scroll.handleGanttChartScroll}
           onCanvasClick={handleCanvasClick}
           onCanvasDoubleClick={handleCanvasDoubleClick}
+          onAfterHeaderRender={() => {
+            try {
+              // 헤더 렌더 직후 강제 재동기화 시도 (내부 리프레시 타이밍 대응)
+              scroll.resyncHorizontal?.()
+            } catch {}
+          }}
         />
       </div>
 

@@ -15,12 +15,16 @@ interface GanttChartAreaProps {
   renderTrigger: number
   containerRef: React.RefObject<HTMLDivElement | null>
   chartWidth: number
+  dateRange?: { startDate: Date; endDate: Date; timeRange: number } | null
+  todayX?: number | null
+  todayDate?: Date | null
   canvasRef: React.RefObject<HTMLCanvasElement | null>
   isLoading: boolean
   onHeaderScroll: (e: React.UIEvent<HTMLDivElement>) => void
   onGanttScroll: (e: React.UIEvent<HTMLDivElement>) => void
   onCanvasClick: (event: React.MouseEvent<HTMLCanvasElement>) => void
   onCanvasDoubleClick: (event: React.MouseEvent<HTMLCanvasElement>) => void
+  onAfterHeaderRender?: () => void
 }
 
 const GanttChartArea: React.FC<GanttChartAreaProps> = ({
@@ -31,12 +35,16 @@ const GanttChartArea: React.FC<GanttChartAreaProps> = ({
   renderTrigger,
   containerRef,
   chartWidth,
+  dateRange,
+  todayX,
+  todayDate,
   canvasRef,
   isLoading,
   onHeaderScroll,
   onGanttScroll,
   onCanvasClick,
-  onCanvasDoubleClick
+  onCanvasDoubleClick,
+  onAfterHeaderRender
 }) => {
   return (
     <div className={styles.ganttChartArea}>
@@ -49,7 +57,11 @@ const GanttChartArea: React.FC<GanttChartAreaProps> = ({
         renderTrigger={renderTrigger}
         containerRef={containerRef}
         chartWidth={chartWidth}
+        dateRange={dateRange || undefined}
+        todayX={todayX ?? undefined}
+        todayDate={todayDate ?? undefined}
         onScroll={onHeaderScroll}
+        onAfterRender={onAfterHeaderRender}
       />
       
       {/* Gantt Chart 내용 */}

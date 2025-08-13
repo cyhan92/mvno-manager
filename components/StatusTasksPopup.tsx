@@ -1,9 +1,10 @@
 import React, { useState } from 'react'
 import { Task } from '../types/task'
+import { getMajorCategoryOrder } from '../utils/tree/builder'
 import TaskDetailPopupRefactored from './gantt/TaskDetailPopupRefactored'
 
 interface StatusTasksPopupProps {
-  status: 'completed' | 'inProgress' | 'notStarted'
+  status: 'completed' | 'inProgress' | 'notStarted' | 'delayed'
   tasks: Task[]
   isOpen: boolean
   onClose: () => void
@@ -20,6 +21,8 @@ const StatusTasksPopup: React.FC<StatusTasksPopupProps> = ({
   const [selectedTask, setSelectedTask] = useState<Task | null>(null)
   const [isTaskDetailOpen, setIsTaskDetailOpen] = useState(false)
   const [expandedDepartments, setExpandedDepartments] = useState<Set<string>>(new Set())
+  // 부서별 대분류 접기/펼치기 상태: key = `${department}::${major}`
+  const [expandedMajors, setExpandedMajors] = useState<Set<string>>(new Set())
 
   if (!isOpen) return null
 
@@ -46,12 +49,19 @@ const StatusTasksPopup: React.FC<StatusTasksPopupProps> = ({
           borderColor: 'border-gray-200',
           hoverColor: 'hover:bg-gray-100'
         }
+      case 'delayed':
+        return {
+          title: '⏰ 지연 작업',
+          bgColor: 'bg-red-50',
+          borderColor: 'border-red-200',
+          hoverColor: 'hover:bg-red-100'
+        }
     }
   }
 
   const statusInfo = getStatusInfo()
 
-  // 부서별로 작업 그룹핑
+  // 부서 > 대분류로 작업 그룹핑 (대분류 정렬은 Action Items 정렬 사용)
   const groupTasksByDepartment = (tasks: Task[]) => {
     const grouped = tasks.reduce((acc, task) => {
       const department = task.department || '미지정'
@@ -67,12 +77,30 @@ const StatusTasksPopup: React.FC<StatusTasksPopupProps> = ({
       a.localeCompare(b, 'ko', { numeric: true })
     )
 
-    return sortedDepartments.map(department => ({
-      department,
-      tasks: grouped[department].sort((a, b) => 
-        (a.name || '').localeCompare(b.name || '', 'ko', { numeric: true })
-      )
-    }))
+    return sortedDepartments.map(department => {
+      const deptTasks = grouped[department]
+      // 대분류별 그룹핑
+      const majorMap = deptTasks.reduce((m, t) => {
+        const major = t.majorCategory || '미분류'
+        if (!m[major]) m[major] = []
+        m[major].push(t)
+        return m
+      }, {} as Record<string, Task[]>)
+
+      // 대분류 정렬 (Action Items 동일 로직) 후 배열화
+      const sortedMajorKeys = Object.keys(majorMap).sort((a, b) => {
+        const oa = getMajorCategoryOrder(a)
+        const ob = getMajorCategoryOrder(b)
+        if (oa !== ob) return oa - ob
+        return a.localeCompare(b, 'ko', { numeric: true })
+      })
+      const majors = sortedMajorKeys.map(major => ({
+        major,
+        tasks: majorMap[major].sort((a, b) => (a.name || '').localeCompare(b.name || '', 'ko', { numeric: true }))
+      }))
+
+      return { department, majors }
+    })
   }
 
   const groupedTasks = groupTasksByDepartment(tasks)
@@ -95,6 +123,14 @@ const StatusTasksPopup: React.FC<StatusTasksPopupProps> = ({
     } else {
       setExpandedDepartments(new Set(groupedTasks.map(group => group.department)))
     }
+  }
+
+  const toggleMajor = (department: string, major: string) => {
+    const key = `${department}::${major}`
+    const next = new Set(expandedMajors)
+    if (next.has(key)) next.delete(key)
+    else next.add(key)
+    setExpandedMajors(next)
   }
 
   // Task 아이템 컴포넌트
@@ -210,7 +246,7 @@ const StatusTasksPopup: React.FC<StatusTasksPopupProps> = ({
           </div>
 
           {/* 업무 목록 */}
-          <div className="p-6 overflow-y-auto max-h-96">
+          <div className="p-6 overflow-y-auto max-h-96 transform-gpu will-change-transform relative z-0">
             {tasks.length === 0 ? (
               <div className="text-center text-gray-500 py-8">
                 해당 상태의 작업이 없습니다.
@@ -226,12 +262,13 @@ const StatusTasksPopup: React.FC<StatusTasksPopupProps> = ({
                     onClick={toggleAllDepartments}
                     className="text-sm text-blue-600 hover:text-blue-800 font-medium"
                   >
-                    {expandedDepartments.size === groupedTasks.length ? '🔼 모두 접기' : '🔽 모두 펼치기'}
+                    {expandedDepartments.size === groupedTasks.length ? '▲ 모두 접기' : '▼ 모두 펼치기'}
                   </button>
                 </div>
 
-                {groupedTasks.map(({ department, tasks: departmentTasks }) => {
+                {groupedTasks.map(({ department, majors }) => {
                   const isExpanded = expandedDepartments.has(department)
+                  const deptCount = majors.reduce((sum, m) => sum + m.tasks.length, 0)
                   
                   return (
                     <div key={department} className="border border-gray-200 rounded-lg">
@@ -242,7 +279,7 @@ const StatusTasksPopup: React.FC<StatusTasksPopupProps> = ({
                       >
                         <div className="flex items-center space-x-2">
                           <span className="text-lg">
-                            {isExpanded ? '🔽' : '▶️'}
+                            {isExpanded ? '▼' : '▶'}
                           </span>
                           <h3 className="text-lg font-semibold text-gray-800">
                             🏢 {department}
@@ -250,7 +287,7 @@ const StatusTasksPopup: React.FC<StatusTasksPopupProps> = ({
                         </div>
                         <div className="flex items-center space-x-2">
                           <span className="text-sm text-gray-500 bg-white px-2 py-1 rounded-full border">
-                            {departmentTasks.length}개 작업
+                            {deptCount}개 작업
                           </span>
                           {!isExpanded && (
                             <span className="text-xs text-gray-400">
@@ -262,10 +299,37 @@ const StatusTasksPopup: React.FC<StatusTasksPopupProps> = ({
                       
                       {/* 부서별 작업 목록 (접기/펼치기) */}
                       {isExpanded && (
-                        <div className="p-3 space-y-3 bg-white rounded-b-lg">
-                          {departmentTasks.map((task) => (
-                            <TaskItem key={task.id} task={task} />
-                          ))}
+                        <div className="p-3 space-y-4 bg-white rounded-b-lg">
+                          {majors.map(({ major, tasks: majorTasks }) => {
+                            const majorKey = `${department}::${major}`
+                            const isMajorExpanded = expandedMajors.has(majorKey)
+                            return (
+                              <div key={major} className="space-y-2 border border-gray-100 rounded-md">
+                                {/* 대분류 헤더 (클릭으로 접기/펼치기) */}
+                                <button
+                                  type="button"
+                                  className="w-full flex items-center justify-between text-left px-3 py-2 bg-gray-50 hover:bg-gray-100 rounded-t-md"
+                                  onClick={() => toggleMajor(department, major)}
+                                >
+                                  <span className="text-sm font-semibold text-gray-700">
+                                    {isMajorExpanded ? '▼' : '▶'} {major}
+                                  </span>
+                                  <span className="text-xs text-gray-500 bg-white px-2 py-1 rounded-full border">
+                                    {majorTasks.length}개
+                                  </span>
+                                </button>
+                                {isMajorExpanded && (
+                                  <div className="grid gap-2 p-2 rounded-b-md">
+                                    {majorTasks.map((task: Task) => (
+                                      <div key={task.id} className="transform-gpu will-change-transform">
+                                        <TaskItem task={task} />
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            )
+                          })}
                         </div>
                       )}
                     </div>

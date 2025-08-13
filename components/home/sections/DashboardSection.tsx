@@ -2,7 +2,6 @@ import React from 'react'
 import { Box, Typography, Paper } from '@mui/material'
 import { Task } from '../../../types/task'
 import StatsDashboard from '../../StatsDashboard'
-import RiskAnalysisComponent from '../../RiskAnalysis'
 import { useTaskAnalytics } from '../../../hooks'
 
 interface DashboardSectionProps {
@@ -14,7 +13,7 @@ const DashboardSection: React.FC<DashboardSectionProps> = ({
   tasks,
   onTaskUpdate
 }) => {
-  const { stats, riskAnalysis } = useTaskAnalytics(tasks)
+  const { stats } = useTaskAnalytics(tasks)
 
   return (
     <Box mb={4}>
@@ -30,11 +29,7 @@ const DashboardSection: React.FC<DashboardSectionProps> = ({
         />
       </Paper>
 
-      <Box flex={1}>
-        <Paper elevation={2} sx={{ p: 2 }}>
-          <RiskAnalysisComponent riskAnalysis={riskAnalysis} />
-        </Paper>
-      </Box>
+  {/* 주의가 필요한 작업들 블록 제거됨 */}
     </Box>
   )
 }

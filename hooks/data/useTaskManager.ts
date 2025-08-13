@@ -180,12 +180,22 @@ export const useTaskManager = ({ tasks, setTasks, refetch, onTaskAction }: UseTa
 
       const result = await response.json()
 
+      // 1) 로컬 상태 즉시 업데이트 (동기 UI 반영)
+      // 기존 대분류명이 oldCategory인 모든 Task의 majorCategory를 newCategory로 교체
+      // 트리(대분류/소분류) 표시가 tasks 기반으로 다시 계산되므로 즉시 Action Items에 반영됨
+      const locallyUpdatedTasks = tasks.map((t: Task) =>
+        (t.majorCategory || '') === (oldCategory || '')
+          ? { ...t, majorCategory: newCategory }
+          : t
+      )
+      setTasks(locallyUpdatedTasks)
+
       // 액션 타입 알림 (데이터 동기화를 위해)
       if (onTaskAction) {
         onTaskAction('update')
       }
 
-      // 전체 데이터 다시 로드
+      // 2) 전체 데이터 다시 로드 (DB와 최종 동기화)
       if (refetch) {
         await refetch()
       } else {

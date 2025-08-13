@@ -13,7 +13,11 @@ interface GanttHeaderProps {
   renderTrigger: number
   containerRef?: React.RefObject<HTMLDivElement | null>
   chartWidth?: number // 메인 차트에서 계산된 최종 너비
+  dateRange?: { startDate: Date; endDate: Date; timeRange: number }
+  todayX?: number
+  todayDate?: Date
   onScroll?: (e: React.UIEvent<HTMLDivElement>) => void // 스크롤 핸들러 추가
+  onAfterRender?: () => void // 렌더 완료 후 동기화 콜백
 }
 
 const GanttHeader: React.FC<GanttHeaderProps> = ({
@@ -24,7 +28,11 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
   renderTrigger,
   containerRef,
   chartWidth, // 메인 차트에서 전달받은 최종 너비
-  onScroll // 스크롤 핸들러 추가
+  dateRange,
+  todayX,
+  todayDate,
+  onScroll, // 스크롤 핸들러 추가
+  onAfterRender
 }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null)
   const observerRef = useRef<MutationObserver | null>(null)
@@ -49,7 +57,9 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
     if (!ctx) return
 
     // 현재 렌더링 설정 생성
-    const currentConfig = `${displayTasks.length}-${dateUnit}-${expandedNodesSize}-${chartWidth}-${renderTrigger}`
+  const rangeKey = dateRange ? `${dateRange.startDate.getTime()}-${dateRange.endDate.getTime()}-${dateRange.timeRange}` : 'auto'
+  const todayKey = typeof todayX === 'number' ? `${todayX}` : 'auto'
+  const currentConfig = `${displayTasks.length}-${dateUnit}-${expandedNodesSize}-${chartWidth}-${rangeKey}-${todayKey}-${renderTrigger}`
     
     // 동일한 설정이면 렌더링 스킵 (불필요한 재렌더링 방지)
     if (lastRenderConfigRef.current === currentConfig) {
@@ -75,19 +85,24 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
       }
     }
 
-    // Canvas 크기 및 스타일 최적화 (깜빡임 완전 방지)
-    const needsResize = canvas.width !== finalChartWidth || canvas.height !== 80
+    // DPR 고려한 Canvas 크기 및 스타일 최적화
+    const dpr = (typeof window !== 'undefined' && window.devicePixelRatio) ? window.devicePixelRatio : 1
+    const targetCssWidth = finalChartWidth
+    const targetCssHeight = 80
+    const targetPixelWidth = Math.floor(targetCssWidth * dpr)
+    const targetPixelHeight = Math.floor(targetCssHeight * dpr)
+    const needsResize = canvas.width !== targetPixelWidth || canvas.height !== targetPixelHeight
     const needsStyleInit = !canvas.style.width || canvas.style.width === ''
     
   if (needsResize || needsStyleInit) {
       // Canvas 속성 및 스타일을 한번에 설정 (DOM 조작 최소화)
-      canvas.width = finalChartWidth
-      canvas.height = 80
+      canvas.width = targetPixelWidth
+      canvas.height = targetPixelHeight
       
       // 스타일 일괄 설정 (reflow 최소화)
       const styleUpdates = {
-    width: `${finalChartWidth}px`,
-        height: '80px',
+    width: `${targetCssWidth}px`,
+        height: `${targetCssHeight}px`,
         minWidth: dateUnit === 'week' ? '1800px' : `${finalChartWidth}px`,
         maxWidth: 'none',
         display: 'block'
@@ -95,20 +110,27 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
       
       Object.assign(canvas.style, styleUpdates)
     }
+    // 매 렌더마다 변환 초기화 후 DPR 스케일 적용
+    ctx.setTransform(1, 0, 0, 1, 0, 0)
+    if (dpr !== 1) {
+      ctx.scale(dpr, dpr)
+    }
 
-    const validTasks = displayTasks.filter(task => task.start && task.end)
-    if (validTasks.length === 0) return
+    let effectiveRange = dateRange
+    if (!effectiveRange) {
+      const validTasks = displayTasks.filter(task => task.start && task.end)
+      if (validTasks.length === 0) return
+      effectiveRange = calculateDateRange(validTasks)
+      if (!effectiveRange) return
+    }
 
-    const dateRange = calculateDateRange(validTasks)
-    if (!dateRange) return
-
-    const { startDate, endDate, timeRange } = dateRange
+    const { startDate, endDate, timeRange } = effectiveRange
 
     if (timeRange <= 0) return
 
     // 배경 그리기
     ctx.fillStyle = '#f7f7f7'
-    ctx.fillRect(0, 0, canvas.width, canvas.height)
+  ctx.fillRect(0, 0, targetCssWidth, targetCssHeight)
 
     const leftMargin = 0
 
@@ -148,23 +170,42 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
         ctx.setLineDash([])
     })
 
-    // 오늘 날짜 세로선
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
-    if (today >= startDate && today <= endDate) {
-  const todayXRaw = leftMargin + ((today.getTime() - startDate.getTime()) / timeRange) * finalChartWidth
-  const todayX = Math.round(todayXRaw) + 0.5
+    // 오늘 날짜 세로선 (차트가 전달한 좌표 우선)
+    if (typeof todayX === 'number') {
       ctx.strokeStyle = '#ef4444'
       ctx.lineWidth = 2
       ctx.beginPath()
       ctx.moveTo(todayX, 0)
       ctx.lineTo(todayX, canvas.height)
       ctx.stroke()
+      try { console.log('Header today line drawn at (prop):', todayX) } catch {}
+    } else {
+      // 차트가 전달한 todayDate를 우선 사용, 없으면 새로 생성
+      const today = todayDate || new Date()
+      if (!todayDate) {
+        today.setHours(0, 0, 0, 0)
+      }
+      if (today >= startDate && today <= endDate) {
+        const todayXRaw = leftMargin + ((today.getTime() - startDate.getTime()) / timeRange) * finalChartWidth
+        const tX = Math.round(todayXRaw) + 0.5
+        ctx.strokeStyle = '#ef4444'
+        ctx.lineWidth = 2
+        ctx.beginPath()
+        ctx.moveTo(tX, 0)
+        ctx.lineTo(tX, canvas.height)
+        ctx.stroke()
+        try { console.log('Header today line drawn at (calc):', tX, 'using todayDate:', !!todayDate) } catch {}
+      }
     }
 
     // 렌더링 완료 처리
     lastRenderConfigRef.current = currentConfig
     isRenderingRef.current = false
+    if (onAfterRender) {
+      try {
+        requestAnimationFrame(() => onAfterRender())
+      } catch {}
+    }
   }
 
   // 최적화된 헤더 렌더링 useEffect (디바운싱 및 중복 방지)
@@ -194,7 +235,17 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
       }
       isRenderingRef.current = false
     }
-  }, [displayTasks.length, dateUnit, expandedNodesSize, renderTrigger, chartWidth])
+  }, [
+    displayTasks.length,
+    dateUnit,
+    expandedNodesSize,
+    renderTrigger,
+    chartWidth,
+    dateRange?.startDate?.getTime(),
+    dateRange?.endDate?.getTime(),
+    dateRange?.timeRange,
+    todayX
+  ])
 
   // DOM 변경 감지 (최적화된 디바운싱)
   useEffect(() => {

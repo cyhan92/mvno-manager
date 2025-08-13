@@ -11,6 +11,7 @@ interface TaskEditData {
   majorCategory: string
   middleCategory: string
   minorCategory: string
+  status?: string
   detail: string
 }
 
@@ -57,6 +58,13 @@ export const useTaskApi = ({ onTaskUpdate, onDataRefresh }: UseTaskApiProps) => 
         return
       }
 
+      // 진행률 기준 상태 결정 (서버/DB 제약과 일치)
+      const computedStatus = editData.percentComplete >= 100
+        ? '완료'
+        : editData.percentComplete > 0
+          ? '진행중'
+          : '미완료'
+
       const updateData = {
         name: editData.name,
         start: editData.startDate ? new Date(editData.startDate).toISOString() : task.start.toISOString(),
@@ -67,6 +75,7 @@ export const useTaskApi = ({ onTaskUpdate, onDataRefresh }: UseTaskApiProps) => 
         major_category: editData.majorCategory,
         middle_category: editData.middleCategory,
         minor_category: editData.minorCategory,
+        status: computedStatus,
         detail: editData.detail
       }
 
@@ -98,7 +107,8 @@ export const useTaskApi = ({ onTaskUpdate, onDataRefresh }: UseTaskApiProps) => 
           majorCategory: result.data.major_category || editData.majorCategory,
           middleCategory: result.data.middle_category || editData.middleCategory,
           minorCategory: result.data.minor_category || editData.minorCategory,
-          detail: result.data.detail || editData.detail
+          detail: result.data.detail || editData.detail,
+          status: result.data.status || computedStatus
         }
         onTaskUpdate(updatedTask)
       }

@@ -7,7 +7,8 @@ import {
   adjustProgressByStatus,
   extractResource,
   extractDepartment,
-  extractCategory
+  extractCategory,
+  normalizeStatus
 } from './utils'
 
 /**
@@ -38,7 +39,7 @@ export const parseExcelRow = (row: any[], index: number): ExcelTask => {
   let percentComplete = normalizePercentComplete(row[COLUMN_MAPPING.PERCENT_COMPLETE])
   
   // 상태에 따른 진행률 조정
-  const status = row[COLUMN_MAPPING.STATUS]
+  const status = normalizeStatus(row[COLUMN_MAPPING.STATUS])
   percentComplete = adjustProgressByStatus(status, percentComplete)
   
   return {
@@ -54,7 +55,7 @@ export const parseExcelRow = (row: any[], index: number): ExcelTask => {
     subcategory: row[COLUMN_MAPPING.MINOR_CATEGORY],
     detail: row[COLUMN_MAPPING.DETAIL],
     department: extractDepartment(row[COLUMN_MAPPING.MAIN_DEPARTMENT], row[COLUMN_MAPPING.SUB_DEPARTMENT]),
-    status: status,
+  status: status,
     cost: row[COLUMN_MAPPING.COST],
     notes: row[COLUMN_MAPPING.NOTES],
     // 그룹핑을 위한 추가 필드

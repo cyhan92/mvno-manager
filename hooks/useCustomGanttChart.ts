@@ -36,6 +36,11 @@ export const useCustomGanttChart = ({
   const [isLoading, setIsLoading] = useState(true)
   const [currentChartWidth, setCurrentChartWidth] = useState<number>(0)
   const lastRenderTimeRef = useRef<number>(0)
+  
+  // 오늘 날짜를 렌더링 세션마다 한 번만 계산하여 헤더와 차트가 동일한 값 사용
+  const todayRef = useRef<Date | null>(null)
+  const [currentDateRange, setCurrentDateRange] = useState<{ startDate: Date; endDate: Date; timeRange: number } | null>(null)
+  const [todayX, setTodayX] = useState<number | null>(null)
 
   // 실제 렌더링할 데이터 계산
   const displayTasks = useMemo(() => {
@@ -72,6 +77,15 @@ export const useCustomGanttChart = ({
     
     const fullDateRange = calculateDateRange(validTasks)
     if (!fullDateRange) return
+    
+    // 저장하여 헤더와 동일한 범위를 공유
+    setCurrentDateRange(fullDateRange)
+    
+    // 오늘 날짜를 렌더링 세션마다 한 번만 계산
+    if (!todayRef.current) {
+      todayRef.current = new Date()
+      todayRef.current.setHours(0, 0, 0, 0)
+    }
 
     // 초기 뷰포트 계산 (오늘 날짜 기준 왼쪽 1달까지만 표시)
     const initialViewport = calculateInitialViewport(fullDateRange)
@@ -171,8 +185,17 @@ export const useCustomGanttChart = ({
     // 차트 테두리
     drawChartBorder(ctx, 0, 0, dimensions.chartWidth, dimensions.chartHeight)
 
-    // 오늘 날짜 선
-    drawTodayLine(ctx, startDate, timeRange, dimensions.chartWidth, dimensions.chartHeight, 0)
+    // 오늘 날짜 선 (좌표 계산 후 공유)
+    const today = todayRef.current!
+    if (today >= startDate && today <= endDate) {
+      const raw = ((today.getTime() - startDate.getTime()) / timeRange) * dimensions.chartWidth
+      const aligned = Math.round(raw) + 0.5
+      setTodayX(aligned)
+      console.log('Chart today line X calculated:', aligned, 'for date:', today.toISOString())
+      drawTodayLine(ctx, startDate, timeRange, dimensions.chartWidth, dimensions.chartHeight, 0)
+    } else {
+      setTodayX(null)
+    }
 
     setIsLoading(false)
   }, [tasksKey, displayTasks, dateUnit]) // 안정적인 의존성 배열
@@ -316,6 +339,10 @@ export const useCustomGanttChart = ({
     handleCanvasClick,
     handleCanvasDoubleClick,
     renderChart,
-    chartWidth: currentChartWidth
+    chartWidth: currentChartWidth,
+    dateRange: currentDateRange,
+    todayX,
+    // 헤더가 동일한 today 인스턴스를 사용할 수 있도록 전달
+    todayDate: todayRef.current
   }
 }

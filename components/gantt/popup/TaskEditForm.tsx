@@ -12,6 +12,7 @@ interface TaskEditData {
   majorCategory: string
   middleCategory: string
   minorCategory: string
+  status: string
   detail: string
 }
 
@@ -33,9 +34,19 @@ const TaskEditForm: React.FC<TaskEditFormProps> = ({
   tasks
 }) => {
   const handleFieldChange = (field: keyof TaskEditData, value: string | number) => {
+    if (field === 'percentComplete' && typeof value === 'number') {
+      const p = value
+      const status = p >= 100 ? '완료' : p > 0 ? '진행중' : '미완료'
+      onEditDataChange({
+        ...editData,
+        percentComplete: p,
+        status
+      })
+      return
+    }
     onEditDataChange({
       ...editData,
-      [field]: value
+      [field]: value as string
     })
   }
 
@@ -69,7 +80,7 @@ const TaskEditForm: React.FC<TaskEditFormProps> = ({
             value={editData.startDate}
             onChange={(e) => handleFieldChange('startDate', e.target.value)}
             className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            title="시작일을 선택하세요"
+              title="시작일을 선택하세요" // Added title attribute
           />
         </div>
         <div>
@@ -82,7 +93,7 @@ const TaskEditForm: React.FC<TaskEditFormProps> = ({
             value={editData.endDate}
             onChange={(e) => handleFieldChange('endDate', e.target.value)}
             className="mt-1 w-full px-3 py-2 border border-gray-300 rounded-md text-sm text-gray-800 focus:outline-none focus:ring-2 focus:ring-blue-500"
-            title="종료일을 선택하세요"
+              title="종료일을 선택하세요" // Added title attribute
           />
         </div>
       </div>
@@ -100,7 +111,7 @@ const TaskEditForm: React.FC<TaskEditFormProps> = ({
             value={editData.percentComplete}
             onChange={(e) => handleFieldChange('percentComplete', parseInt(e.target.value))}
             className="w-full"
-            title="진행률을 조정하세요"
+              title="진행률을 조정하세요" // Added title attribute
           />
           <div className="flex justify-between text-xs text-gray-600 mt-1">
             <span>0%</span>

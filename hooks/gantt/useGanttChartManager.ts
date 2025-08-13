@@ -68,7 +68,10 @@ export const useGanttChartManager = ({
     handleCanvasClick,
     handleCanvasDoubleClick,
     renderChart,
-    chartWidth
+    chartWidth,
+    dateRange,
+    todayX,
+    todayDate
   } = useCustomGanttChart({
     tasks: flattenedTasks,
     viewMode,
@@ -121,6 +124,9 @@ export const useGanttChartManager = ({
     handleCanvasClick,
     handleCanvasDoubleClick,
     chartWidth,
+    dateRange,
+    todayX,
+    todayDate,
     
     // 팝업 관련
     popup,
