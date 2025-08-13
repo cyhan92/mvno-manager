@@ -199,10 +199,12 @@ export const useCustomGanttChart = ({
       
       ctx.beginPath()
       ctx.strokeStyle = '#ef4444'
-      ctx.lineWidth = 2 * dpr
+      ctx.lineWidth = 1.5 * dpr
+      ctx.setLineDash([4, 4]) // 점선 패턴 추가
       ctx.moveTo(exactX, 0)
       ctx.lineTo(exactX, dimensions.chartHeight)
       ctx.stroke()
+      ctx.setLineDash([]) // 점선 패턴 리셋
     } else {
       setTodayX(null)
     }

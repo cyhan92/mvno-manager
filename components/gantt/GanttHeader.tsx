@@ -166,7 +166,7 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
       headers = generateWeekHeaders(startDate, endDate)
     }
     
-    ctx.font = dateUnit === 'week' ? '12px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' : '14px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
+    ctx.font = dateUnit === 'week' ? 'bold 12px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif' : 'bold 14px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif'
     ctx.fillStyle = '#374151'
     ctx.textAlign = 'center'
 
@@ -201,11 +201,13 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
       const exactX = todayX * dpr
       
       ctx.strokeStyle = '#ef4444'
-      ctx.lineWidth = 2 * dpr
+      ctx.lineWidth = 1.5 * dpr
+      ctx.setLineDash([4, 4]) // 점선 패턴 추가
       ctx.beginPath()
       ctx.moveTo(exactX, 0)
       ctx.lineTo(exactX, canvas.height)
       ctx.stroke()
+      ctx.setLineDash([]) // 점선 패턴 리셋
       try { console.log('Header today line drawn at (prop):', todayX, 'DPR-adjusted:', exactX, 'DPR:', dpr) } catch {}
     } else if (chartWidth && chartWidth > 0 && dateRange && todayDate) {
       // 차트 정보가 완전히 준비된 경우에만 fallback 계산 허용
@@ -217,11 +219,13 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
         const exactX = alignedX * dpr
         
         ctx.strokeStyle = '#ef4444'
-        ctx.lineWidth = 2 * dpr
+        ctx.lineWidth = 1.5 * dpr
+        ctx.setLineDash([4, 4]) // 점선 패턴 추가
         ctx.beginPath()
         ctx.moveTo(exactX, 0)
         ctx.lineTo(exactX, canvas.height)
         ctx.stroke()
+        ctx.setLineDash([]) // 점선 패턴 리셋
         try { console.log('Header today line drawn at (fallback):', alignedX, 'DPR-adjusted:', exactX, 'chartWidth:', chartWidth, 'DPR:', dpr) } catch {}
       }
     } else {

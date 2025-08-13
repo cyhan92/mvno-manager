@@ -21,7 +21,7 @@ interface HeaderRenderStyle {
 const getHeaderStyle = (dateUnit: DateUnit): HeaderRenderStyle => {
   if (dateUnit === 'week') {
     return {
-      fontSize: '12px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      fontSize: 'bold 12px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
       textY: 30,
       lineColor: '#d1d5db',
       lineWidth: 1,
@@ -29,7 +29,7 @@ const getHeaderStyle = (dateUnit: DateUnit): HeaderRenderStyle => {
     }
   } else {
     return {
-      fontSize: '14px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
+      fontSize: 'bold 14px Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif',
       textY: 40,
       lineColor: '#e5e7eb',
       lineWidth: 1,
@@ -126,11 +126,13 @@ export const drawTodayLine = (
     const todayX = leftMargin + ((todayMs - startDateMs) / timeRange) * chartWidth
     
     ctx.strokeStyle = '#ef4444'
-    ctx.lineWidth = 2
+    ctx.lineWidth = 1.5
+    ctx.setLineDash([4, 4]) // 점선 패턴 추가
     ctx.beginPath()
     ctx.moveTo(todayX, 0)
     ctx.lineTo(todayX, 80)
     ctx.stroke()
+    ctx.setLineDash([]) // 점선 패턴 리셋
     
     console.log('Header today line drawn at:', todayX, 'startDate:', startDate.toISOString(), 'timeRange:', timeRange)
   }

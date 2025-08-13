@@ -30,10 +30,12 @@ export const drawTodayLine = (
     // 빨간 세로선 그리기 (DPR 보정된 좌표와 선 두께)
     ctx.beginPath()
     ctx.strokeStyle = '#ef4444' // 빨간색
-    ctx.lineWidth = 2 * dpr
+    ctx.lineWidth = 1.5 * dpr
+    ctx.setLineDash([4, 4]) // 점선 패턴 추가
     ctx.moveTo(x, 0)
     ctx.lineTo(x, chartHeight)
     ctx.stroke()
+    ctx.setLineDash([]) // 점선 패턴 리셋
     
     // 오늘 날짜 라벨 추가
     ctx.fillStyle = '#ef4444'

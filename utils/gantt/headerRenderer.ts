@@ -70,7 +70,7 @@ export const renderHeaderToCanvas = ({
 
     // 텍스트 렌더링
     ctx.fillStyle = '#374151'
-    ctx.font = dateUnit === 'week' ? '12px -apple-system, BlinkMacSystemFont, sans-serif' : '14px -apple-system, BlinkMacSystemFont, sans-serif'
+    ctx.font = dateUnit === 'week' ? 'bold 12px -apple-system, BlinkMacSystemFont, sans-serif' : 'bold 14px -apple-system, BlinkMacSystemFont, sans-serif'
     ctx.textAlign = 'center'
     ctx.textBaseline = 'middle'
 
