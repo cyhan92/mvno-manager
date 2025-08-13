@@ -114,11 +114,22 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
       Object.assign(canvas.style, styleUpdates)
       
       // 스크롤 위치 복원 (Canvas 크기 변경으로 인한 스크롤 리셋 방지)
-      if (currentScrollLeft > 0 && scrollRef.current) {
+      if (scrollRef.current) {
+        const targetScrollLeft = currentScrollLeft
+        
+        // 다중 복원 시도로 확실한 스크롤 위치 보장
         requestAnimationFrame(() => {
-          if (scrollRef.current && scrollRef.current.scrollLeft !== currentScrollLeft) {
-            scrollRef.current.scrollLeft = currentScrollLeft
-            console.log('Header 스크롤 위치 복원:', currentScrollLeft)
+          if (scrollRef.current && scrollRef.current.scrollLeft !== targetScrollLeft) {
+            scrollRef.current.scrollLeft = targetScrollLeft
+            console.log('Header 스크롤 위치 복원 (즉시):', targetScrollLeft)
+            
+            // 추가 복원 시도
+            setTimeout(() => {
+              if (scrollRef.current && scrollRef.current.scrollLeft !== targetScrollLeft) {
+                scrollRef.current.scrollLeft = targetScrollLeft
+                console.log('Header 스크롤 위치 복원 (지연):', targetScrollLeft)
+              }
+            }, 50)
           }
         })
       }

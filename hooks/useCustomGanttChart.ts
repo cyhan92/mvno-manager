@@ -274,6 +274,17 @@ export const useCustomGanttChart = ({
         setInitialScrollPosition(adjustedScrollLeft)
         hasSetInitialScrollRef.current = true // 초기 스크롤 설정 완료 표시
         console.log('초기 스크롤 위치 설정 완료:', adjustedScrollLeft)
+        
+        // 추가적인 강제 동기화 (헤더 렌더링으로 인한 스크롤 변경 대응)
+        setTimeout(() => {
+          setInitialScrollPosition(adjustedScrollLeft)
+          console.log('추가 스크롤 동기화 (200ms):', adjustedScrollLeft)
+        }, 200)
+        
+        setTimeout(() => {
+          setInitialScrollPosition(adjustedScrollLeft)
+          console.log('추가 스크롤 동기화 (500ms):', adjustedScrollLeft)
+        }, 500)
       }, 100) // 500ms에서 100ms로 단축
       
       return () => clearTimeout(timer)
