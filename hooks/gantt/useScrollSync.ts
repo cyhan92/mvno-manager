@@ -30,7 +30,7 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
     const scrollTop = e.currentTarget.scrollTop
     const source = e.currentTarget
     const sourceMax = Math.max(1, source.scrollWidth - source.clientWidth)
-    const ratio = sourceMax > 0 ? source.scrollLeft / sourceMax : 0
+    const sourceScrollLeft = source.scrollLeft
 
     // 가로 스크롤바 등장/변화 감지 후, 다음 프레임에서 헤더 재동기화
     const hasH = source.scrollWidth > source.clientWidth
@@ -44,19 +44,27 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
     if (headerScrollRef.current) {
       const target = headerScrollRef.current
       const targetMax = Math.max(0, target.scrollWidth - target.clientWidth)
-      const targetLeft = rounding ? Math.round(ratio * targetMax) : ratio * targetMax
+      // 절대 픽셀 기반 동기화 (비율 변환 없이)
+      const targetLeft = Math.min(sourceScrollLeft, targetMax)
       target.scrollLeft = targetLeft
+      
+      console.log('Chart → Header 스크롤 동기화:', {
+        chart: { scroll: sourceScrollLeft, max: sourceMax },
+        header: { set: targetLeft, max: targetMax, actual: target.scrollLeft }
+      })
     }
     requestAnimationFrame(() => {
-      // 소스의 가로 스크롤 가능 상태가 바뀌었거나 max가 달라졌다면 한번 더 비율 재보정
+      // 소스의 가로 스크롤 가능 상태가 바뀌었거나 max가 달라졌다면 한번 더 재보정
       const currMax = Math.max(1, source.scrollWidth - source.clientWidth)
       const currHasH = source.scrollWidth > source.clientWidth
       const changed = !prev || prev.hasH !== currHasH || Math.abs(prev.max - currMax) > 0
       if (changed && headerScrollRef.current) {
         const h = headerScrollRef.current
         const hMax = Math.max(0, h.scrollWidth - h.clientWidth)
-        const hLeft = rounding ? Math.round((source.scrollLeft / currMax) * hMax) : (source.scrollLeft / currMax) * hMax
+        // 절대 픽셀 기반 재보정
+        const hLeft = Math.min(source.scrollLeft, hMax)
         h.scrollLeft = hLeft
+        console.log('Chart → Header 스크롤 재보정:', { chart: source.scrollLeft, header: hLeft })
       }
       isScrollingSyncRef.current = false
     })
@@ -66,21 +74,30 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
     if (isScrollingSyncRef.current) return
     const source = e.currentTarget
     const sourceMax = Math.max(1, source.scrollWidth - source.clientWidth)
-    const ratio = sourceMax > 0 ? source.scrollLeft / sourceMax : 0
+    const sourceScrollLeft = source.scrollLeft
     const hasH = source.scrollWidth > source.clientWidth
 
     if (ganttChartScrollRef.current) {
       isScrollingSyncRef.current = true
       const target = ganttChartScrollRef.current
       const targetMax = Math.max(0, target.scrollWidth - target.clientWidth)
-      const targetLeft = rounding ? Math.round(ratio * targetMax) : ratio * targetMax
+      // 절대 픽셀 기반 동기화 (비율 변환 없이)
+      const targetLeft = Math.min(sourceScrollLeft, targetMax)
       target.scrollLeft = targetLeft
+      
+      console.log('Header → Chart 스크롤 동기화:', {
+        header: { scroll: sourceScrollLeft, max: sourceMax },
+        chart: { set: targetLeft, max: targetMax, actual: target.scrollLeft }
+      })
+      
       requestAnimationFrame(() => {
         const currMax = Math.max(1, target.scrollWidth - target.clientWidth)
         const currHasH = target.scrollWidth > target.clientWidth
         if (hasH !== currHasH) {
-          const newLeft = rounding ? Math.round((source.scrollLeft / sourceMax) * currMax) : (source.scrollLeft / sourceMax) * currMax
+          // 절대 픽셀 기반 재보정
+          const newLeft = Math.min(source.scrollLeft, currMax)
           target.scrollLeft = newLeft
+          console.log('Header → Chart 스크롤 재보정:', { header: source.scrollLeft, chart: newLeft })
         }
         isScrollingSyncRef.current = false
       })
@@ -92,12 +109,15 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
     const g = ganttChartScrollRef.current
     const h = headerScrollRef.current
     if (!g || !h) return
-    const gMax = Math.max(1, g.scrollWidth - g.clientWidth)
-    const ratio = gMax > 0 ? g.scrollLeft / gMax : 0
+    
+    // 차트 기준으로 헤더 동기화 (절대 픽셀 기반)
+    const gScrollLeft = g.scrollLeft
     const hMax = Math.max(0, h.scrollWidth - h.clientWidth)
-    const desired = rounding ? Math.round(ratio * hMax) : ratio * hMax
+    const desired = Math.min(gScrollLeft, hMax)
+    
     if (Math.abs(h.scrollLeft - desired) > 0.5) {
       h.scrollLeft = desired
+      console.log('resyncHorizontal 실행:', { chart: gScrollLeft, header: { desired, actual: h.scrollLeft } })
     }
   }, [rounding])
 
