@@ -62,39 +62,65 @@ const BackupManager: React.FC = () => {
         setLatestBackup(data.latestBackup || null)
         if (data.error && data.error.includes('table may not exist')) {
           setTableSetupNeeded(true)
-          setError('백업 이력 테이블이 생성되지 않았습니다. 먼저 테이블을 설정해주세요.')
+          // fetchLatestBackup이 자동 호출될 때는 오류 메시지 설정하지 않음
+          // setError('백업 이력 테이블이 생성되지 않았습니다. 먼저 테이블을 설정해주세요.')
+        } else {
+          setTableSetupNeeded(false)
         }
       } else {
-        setError('백업 정보를 불러오는데 실패했습니다.')
+        // 자동 호출 시에는 오류 메시지 표시하지 않음
+        console.log('No backup history available')
       }
     } catch (err) {
-      setError('백업 정보를 불러오는데 실패했습니다.')
       console.error('Error fetching latest backup:', err)
+      // 자동 호출 시에는 오류 메시지 표시하지 않음
     }
   }
 
   // 백업 테이블 설정
   const setupBackupTable = async () => {
     setLoading(true)
+    setError('')
+    setSuccess('')
+    setTableSetupNeeded(false) // 설정 시도 시 플래그 초기화
+    
     try {
       const response = await fetch('/api/create-backup-table', {
         method: 'POST'
       })
       const data = await response.json()
       
+      console.log('Setup response status:', response.status)
+      console.log('Setup response data:', data) // 디버깅용
+      
       if (response.ok) {
-        if (data.sql) {
-          setError(`백업 테이블을 수동으로 생성해야 합니다. Supabase SQL 에디터에서 다음 쿼리를 실행하세요:\n\n${data.sql}`)
-        } else {
-          setSuccess('백업 테이블이 준비되었습니다.')
+        if (data.tableExists === false && data.sql) {
+          // 테이블이 존재하지 않음 - SQL 생성 스크립트 제공
+          setTableSetupNeeded(true)
+          setError(`백업 테이블을 수동으로 생성해야 합니다.\n\nSupabase 대시보드 → SQL Editor에서 다음 쿼리를 실행하세요:\n\n${data.sql}`)
+        } else if (data.tableExists === true) {
+          // 테이블이 존재하고 사용 가능
+          setSuccess('백업 테이블이 준비되었습니다!')
           setTableSetupNeeded(false)
+          setError('') // 명시적으로 오류 초기화
+          fetchLatestBackup()
+        } else {
+          // 기타 성공 응답
+          setSuccess(data.message || '백업 테이블 설정이 완료되었습니다.')
+          setTableSetupNeeded(false)
+          setError('') // 명시적으로 오류 초기화
           fetchLatestBackup()
         }
       } else {
-        setError('백업 테이블 설정에 실패했습니다.')
+        // 서버 오류
+        console.error('Server error:', data)
+        setTableSetupNeeded(true)
+        setError(`백업 테이블 설정에 실패했습니다.\n오류: ${data.error}\n상세: ${data.details || '알 수 없는 오류'}`)
       }
     } catch (err) {
-      setError('백업 테이블 설정 중 오류가 발생했습니다.')
+      console.error('Network error:', err)
+      setTableSetupNeeded(true)
+      setError('백업 테이블 설정 중 네트워크 오류가 발생했습니다.')
     } finally {
       setLoading(false)
     }
@@ -121,16 +147,23 @@ const BackupManager: React.FC = () => {
       })
 
       const data = await response.json()
+      console.log('Backup response:', data) // 디버깅용
 
       if (response.ok) {
         setLastBackup(data)
         setSuccess(`백업이 성공적으로 완료되었습니다. (${data.recordsCount}개 레코드)`)
         fetchLatestBackup() // 최신 백업 정보 새로고침
       } else {
-        setError(data.error || '백업에 실패했습니다.')
+        // 백업 히스토리 테이블이 없는 경우
+        if (data.error && data.error.includes('Backup history table does not exist')) {
+          setTableSetupNeeded(true)
+          setError('백업 히스토리 테이블이 생성되지 않았습니다.\n먼저 "테이블 설정하기" 버튼을 클릭하여 백업 테이블을 생성해주세요.')
+        } else {
+          setError(`백업 실패: ${data.error}\n상세: ${data.details || '알 수 없는 오류'}`)
+        }
       }
     } catch (err) {
-      setError('백업 요청 중 오류가 발생했습니다.')
+      setError('백업 요청 중 네트워크 오류가 발생했습니다.')
       console.error('Backup error:', err)
     } finally {
       setLoading(false)
