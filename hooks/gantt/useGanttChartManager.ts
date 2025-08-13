@@ -89,7 +89,8 @@ export const useGanttChartManager = ({
     expandedNodesSize: treeState.expandedNodes.size,
     canvasRef,
     renderChart,
-    triggerRender
+    triggerRender,
+    resyncHorizontal: scroll.resyncHorizontal
   })
 
   // 거터 동기화는 useScrollSync 내부에서 수행됨
