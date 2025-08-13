@@ -56,12 +56,6 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
     const ctx = canvas.getContext('2d')
     if (!ctx) return
 
-    // 내부 리프레시 중에는 차트 정보가 준비될 때까지 대기
-    if (!chartWidth || chartWidth <= 0) {
-      try { console.log('Header render delayed - waiting for chartWidth:', chartWidth) } catch {}
-      return
-    }
-
     // 현재 렌더링 설정 생성
     const rangeKey = dateRange ? `${dateRange.startDate.getTime()}-${dateRange.endDate.getTime()}-${dateRange.timeRange}` : 'auto'
     const todayKey = typeof todayX === 'number' ? `${todayX}` : 'auto'
@@ -176,7 +170,7 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
         ctx.setLineDash([])
     })
 
-    // 오늘 날짜 세로선 (차트가 전달한 좌표 우선, 없으면 그리지 않음)
+    // 오늘 날짜 세로선 (차트가 전달한 좌표 우선, 없으면 차트 정보가 완전할 때만 fallback)
     if (typeof todayX === 'number') {
       // DPR 보정된 정확한 좌표 계산 (차트와 동일한 방식)
       const dpr = window.devicePixelRatio || 1
