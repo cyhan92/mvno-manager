@@ -44,28 +44,22 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
     if (headerScrollRef.current) {
       const target = headerScrollRef.current
       const targetMax = Math.max(0, target.scrollWidth - target.clientWidth)
-      // 절대 픽셀 기반 동기화 (비율 변환 없이)
-      const targetLeft = Math.min(sourceScrollLeft, targetMax)
-      target.scrollLeft = targetLeft
       
-      console.log('Chart → Header 스크롤 동기화:', {
-        chart: { scroll: sourceScrollLeft, max: sourceMax },
-        header: { set: targetLeft, max: targetMax, actual: target.scrollLeft }
-      })
+      // 절대 픽셀 기반 동기화
+      const targetLeft = Math.min(sourceScrollLeft, targetMax)
+      const currentTargetScroll = target.scrollLeft
+      
+      // 의미있는 차이가 있을 때만 업데이트 (연쇄 방지)
+      if (Math.abs(currentTargetScroll - targetLeft) > 0.5) {
+        target.scrollLeft = targetLeft
+        
+        console.log('Chart → Header 스크롤 동기화:', {
+          chart: { scroll: sourceScrollLeft, max: sourceMax },
+          header: { set: targetLeft, max: targetMax, actual: target.scrollLeft }
+        })
+      }
     }
     requestAnimationFrame(() => {
-      // 소스의 가로 스크롤 가능 상태가 바뀌었거나 max가 달라졌다면 한번 더 재보정
-      const currMax = Math.max(1, source.scrollWidth - source.clientWidth)
-      const currHasH = source.scrollWidth > source.clientWidth
-      const changed = !prev || prev.hasH !== currHasH || Math.abs(prev.max - currMax) > 0
-      if (changed && headerScrollRef.current) {
-        const h = headerScrollRef.current
-        const hMax = Math.max(0, h.scrollWidth - h.clientWidth)
-        // 절대 픽셀 기반 재보정
-        const hLeft = Math.min(source.scrollLeft, hMax)
-        h.scrollLeft = hLeft
-        console.log('Chart → Header 스크롤 재보정:', { chart: source.scrollLeft, header: hLeft })
-      }
       isScrollingSyncRef.current = false
     })
   }, [rounding])
@@ -75,37 +69,37 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
     const source = e.currentTarget
     const sourceMax = Math.max(1, source.scrollWidth - source.clientWidth)
     const sourceScrollLeft = source.scrollLeft
-    const hasH = source.scrollWidth > source.clientWidth
 
     if (ganttChartScrollRef.current) {
       isScrollingSyncRef.current = true
       const target = ganttChartScrollRef.current
       const targetMax = Math.max(0, target.scrollWidth - target.clientWidth)
-      // 절대 픽셀 기반 동기화 (비율 변환 없이)
+      
+      // 절대 픽셀 기반 동기화
       const targetLeft = Math.min(sourceScrollLeft, targetMax)
-      target.scrollLeft = targetLeft
+      const currentTargetScroll = target.scrollLeft
       
-      console.log('Header → Chart 스크롤 동기화:', {
-        header: { scroll: sourceScrollLeft, max: sourceMax },
-        chart: { set: targetLeft, max: targetMax, actual: target.scrollLeft }
-      })
+      // 의미있는 차이가 있을 때만 업데이트 (연쇄 방지)
+      if (Math.abs(currentTargetScroll - targetLeft) > 0.5) {
+        target.scrollLeft = targetLeft
+        
+        console.log('Header → Chart 스크롤 동기화:', {
+          header: { scroll: sourceScrollLeft, max: sourceMax },
+          chart: { set: targetLeft, max: targetMax, actual: target.scrollLeft }
+        })
+      }
       
+      // 다음 프레임에서 동기화 해제
       requestAnimationFrame(() => {
-        const currMax = Math.max(1, target.scrollWidth - target.clientWidth)
-        const currHasH = target.scrollWidth > target.clientWidth
-        if (hasH !== currHasH) {
-          // 절대 픽셀 기반 재보정
-          const newLeft = Math.min(source.scrollLeft, currMax)
-          target.scrollLeft = newLeft
-          console.log('Header → Chart 스크롤 재보정:', { header: source.scrollLeft, chart: newLeft })
-        }
         isScrollingSyncRef.current = false
       })
     }
   }, [rounding])
 
-  // 외부에서 강제로 가로 스크롤 동기화 재보정
+  // 외부에서 강제로 가로 스크롤 동기화 재보정 - 동기화 충돌 방지
   const resyncHorizontal = useCallback(() => {
+    if (isScrollingSyncRef.current) return // 동기화 중일 때는 건너뜀
+    
     const g = ganttChartScrollRef.current
     const h = headerScrollRef.current
     if (!g || !h) return
@@ -116,12 +110,19 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
     const desired = Math.min(gScrollLeft, hMax)
     
     if (Math.abs(h.scrollLeft - desired) > 0.5) {
+      // 임시로 동기화 차단하여 연쇄 호출 방지
+      isScrollingSyncRef.current = true
       h.scrollLeft = desired
       console.log('resyncHorizontal 실행:', { chart: gScrollLeft, header: { desired, actual: h.scrollLeft } })
+      
+      // 다음 프레임에서 해제
+      requestAnimationFrame(() => {
+        isScrollingSyncRef.current = false
+      })
     }
   }, [rounding])
 
-  // 초기 스크롤 위치 설정 (ratio 기반)
+  // 초기 스크롤 위치 설정 - 실시간 동기화와의 충돌 방지
   const setInitialScrollPosition = useCallback((leftPx: number) => {
     const attempt = (tries = 0) => {
       if (tries > 20) return
@@ -131,35 +132,45 @@ export const useScrollSync = (options: UseScrollSyncOptions = {}) => {
         setTimeout(() => attempt(tries + 1), 50)
         return
       }
+      
+      // 동기화 차단: 초기 설정 중에는 실시간 동기화 비활성화
       isScrollingSyncRef.current = true
+      
+      // 동시에 설정하여 이벤트 핸들러 간섭 최소화
+      const gMax = Math.max(1, g.scrollWidth - g.clientWidth)
+      const hMax = Math.max(0, h.scrollWidth - h.clientWidth)
+      const gLeft = Math.min(leftPx, gMax)
+      const hLeft = Math.min(leftPx, hMax)
+      
+      // 즉시 설정 (requestAnimationFrame 없이)
+      g.scrollLeft = gLeft
+      h.scrollLeft = hLeft
+      
+      console.log('setInitialScrollPosition 실행:', {
+        target: leftPx,
+        chart: { max: gMax, set: gLeft, actual: g.scrollLeft },
+        header: { max: hMax, set: hLeft, actual: h.scrollLeft }
+      })
+      
+      // 두 프레임 후에 동기화 재활성화 (충분한 지연)
       requestAnimationFrame(() => {
-        // 차트에는 정확한 픽셀 값 사용
-        const gMax = Math.max(1, g.scrollWidth - g.clientWidth)
-        const gLeft = Math.min(leftPx, gMax) // 최대값 제한
-        g.scrollLeft = gLeft
-        
-        // 헤더에도 동일한 픽셀 값 시도 (비율 변환 없이)
-        const hMax = Math.max(0, h.scrollWidth - h.clientWidth)
-        const hLeft = Math.min(leftPx, hMax) // 헤더 최대값 제한
-        h.scrollLeft = hLeft
-        
-        console.log('setInitialScrollPosition 실행:', {
-          target: leftPx,
-          chart: { max: gMax, set: gLeft, actual: g.scrollLeft },
-          header: { max: hMax, set: hLeft, actual: h.scrollLeft }
-        })
-        
         requestAnimationFrame(() => {
           isScrollingSyncRef.current = false
-          // 최종 검증 (픽셀 기준)
+          
+          // 최종 검증 및 재조정
           const actualG = g.scrollLeft
           const actualH = h.scrollLeft
           const pixelDiff = Math.abs(actualG - actualH)
           
-          if (pixelDiff > 1) { // 1픽셀 이상 차이나면 재조정
-            console.log('스크롤 위치 불일치 감지:', { chart: actualG, header: actualH, diff: pixelDiff })
-            // 차트 기준으로 헤더 재조정
+          if (pixelDiff > 1) {
+            console.log('초기 스크롤 재조정:', { chart: actualG, header: actualH, diff: pixelDiff })
+            // 차트 기준으로 헤더 재조정 (동기화 비활성화 상태에서)
+            isScrollingSyncRef.current = true
             h.scrollLeft = Math.min(actualG, hMax)
+            // 다음 프레임에서 동기화 재활성화
+            requestAnimationFrame(() => {
+              isScrollingSyncRef.current = false
+            })
           }
         })
       })
