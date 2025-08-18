@@ -81,10 +81,29 @@ export const useCustomGanttChart = ({
     // 저장하여 헤더와 동일한 범위를 공유
     setCurrentDateRange(fullDateRange)
     
-    // 오늘 날짜를 렌더링 세션마다 한 번만 계산
+    // 정확한 오늘 날짜 계산 (한국 시간대 고려)
     if (!todayRef.current) {
-      todayRef.current = new Date()
-      todayRef.current.setHours(0, 0, 0, 0)
+      const getTodayDate = (): Date => {
+        const now = new Date()
+        // 한국 시간대 고려하여 정확한 오늘 날짜 계산
+        const kstOffset = 9 * 60 // UTC+9 (분 단위)
+        const utc = now.getTime() + (now.getTimezoneOffset() * 60000)
+        const kst = new Date(utc + (kstOffset * 60000))
+        
+        // 오늘 날짜의 시작 시간 (00:00:00.000)
+        const today = new Date(kst.getFullYear(), kst.getMonth(), kst.getDate())
+        
+        console.log('Chart: Today calculated:', {
+          original: now.toISOString(),
+          kst: kst.toISOString(),
+          today: today.toISOString(),
+          todayTime: today.getTime()
+        })
+        
+        return today
+      }
+      
+      todayRef.current = getTodayDate()
     }
 
     // 초기 뷰포트 계산 (오늘 날짜 기준 왼쪽 1달까지만 표시)
@@ -185,28 +204,48 @@ export const useCustomGanttChart = ({
     // 차트 테두리
     drawChartBorder(ctx, 0, 0, dimensions.chartWidth, dimensions.chartHeight)
 
-    // 오늘 날짜 선 (좌표 계산 후 공유)
+    // 오늘 날짜 선 계산 및 그리기 (개선된 로직)
     const today = todayRef.current!
-    if (today >= startDate && today <= endDate) {
+    
+    // 날짜 범위 확인 (종료일 포함)
+    const adjustedEndDate = new Date(endDate.getTime() + (24 * 60 * 60 * 1000) - 1) // 종료일 23:59:59
+    
+    if (today >= startDate && today <= adjustedEndDate) {
       const raw = ((today.getTime() - startDate.getTime()) / timeRange) * dimensions.chartWidth
       const aligned = Math.round(raw) + 0.5
       setTodayX(aligned)
-      console.log('Chart today line X calculated:', aligned, 'for date:', today.toISOString())
       
-      // 계산된 좌표로 직접 오늘 선 그리기 (DPR 보정 적용)
-      const dpr = window.devicePixelRatio || 1
-      const exactX = aligned * dpr
+      console.log('Chart: Today line calculation:', {
+        today: today.toISOString(),
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        adjustedEndDate: adjustedEndDate.toISOString(),
+        todayTime: today.getTime(),
+        startTime: startDate.getTime(),
+        timeDiff: today.getTime() - startDate.getTime(),
+        timeRange,
+        chartWidth: dimensions.chartWidth,
+        rawX: raw,
+        alignedX: aligned
+      })
       
+      // 오늘 날짜 선 그리기
       ctx.beginPath()
       ctx.strokeStyle = '#ef4444'
-      ctx.lineWidth = 1.5 * dpr
-      ctx.setLineDash([4, 4]) // 점선 패턴 추가
-      ctx.moveTo(exactX, 0)
-      ctx.lineTo(exactX, dimensions.chartHeight)
+      ctx.lineWidth = 1.5
+      ctx.setLineDash([4, 4]) // 점선 패턴
+      ctx.moveTo(aligned, 0)
+      ctx.lineTo(aligned, dimensions.chartHeight)
       ctx.stroke()
       ctx.setLineDash([]) // 점선 패턴 리셋
     } else {
       setTodayX(null)
+      console.log('Chart: Today outside range:', {
+        today: today.toISOString(),
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        adjustedEndDate: adjustedEndDate.toISOString()
+      })
     }
 
     setIsLoading(false)

@@ -40,6 +40,63 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
   const isRenderingRef = useRef(false) // 렌더링 중복 방지
   const lastRenderConfigRef = useRef<string>('') // 마지막 렌더링 설정 캐시
 
+  // 정확한 오늘 날짜 계산 함수 (시간대 고려)
+  const getTodayDate = (): Date => {
+    const now = new Date()
+    // 한국 시간대 고려하여 정확한 오늘 날짜 계산
+    const kstOffset = 9 * 60 // UTC+9 (분 단위)
+    const utc = now.getTime() + (now.getTimezoneOffset() * 60000)
+    const kst = new Date(utc + (kstOffset * 60000))
+    
+    // 오늘 날짜의 시작 시간 (00:00:00.000)
+    const today = new Date(kst.getFullYear(), kst.getMonth(), kst.getDate())
+    
+    console.log('Today calculated:', {
+      original: now.toISOString(),
+      kst: kst.toISOString(),
+      today: today.toISOString(),
+      todayTime: today.getTime()
+    })
+    
+    return today
+  }
+
+  // 정확한 오늘 날짜 X 좌표 계산
+  const calculateTodayX = (startDate: Date, endDate: Date, timeRange: number, width: number): number | null => {
+    const today = getTodayDate()
+    
+    // 날짜 범위 확인 (시작일 00:00:00 ~ 종료일 23:59:59)
+    const adjustedEndDate = new Date(endDate.getTime() + (24 * 60 * 60 * 1000) - 1) // 종료일 23:59:59
+    
+    if (today < startDate || today > adjustedEndDate) {
+      console.log('Today outside range:', {
+        today: today.toISOString(),
+        startDate: startDate.toISOString(),
+        endDate: endDate.toISOString(),
+        adjustedEndDate: adjustedEndDate.toISOString()
+      })
+      return null
+    }
+
+    // X 좌표 계산
+    const todayXRaw = ((today.getTime() - startDate.getTime()) / timeRange) * width
+    const todayX = Math.round(todayXRaw) + 0.5 // 픽셀 정렬
+    
+    console.log('Today X calculation:', {
+      today: today.toISOString(),
+      startDate: startDate.toISOString(),
+      todayTime: today.getTime(),
+      startTime: startDate.getTime(),
+      timeDiff: today.getTime() - startDate.getTime(),
+      timeRange,
+      width,
+      rawX: todayXRaw,
+      finalX: todayX
+    })
+    
+    return todayX
+  }
+
   // 헤더 렌더링 함수 (성능 최적화)
   const renderHeader = () => {
     // 중복 렌더링 방지
@@ -194,43 +251,50 @@ const GanttHeader: React.FC<GanttHeaderProps> = ({
         ctx.setLineDash([])
     })
 
-    // 오늘 날짜 세로선 (차트가 전달한 좌표 우선, 없으면 차트 정보가 완전할 때만 fallback)
-    if (typeof todayX === 'number') {
-      // DPR 보정된 정확한 좌표 계산 (차트와 동일한 방식)
-      const dpr = window.devicePixelRatio || 1
-      const exactX = todayX * dpr
-      
+    // 오늘 날짜 세로선 그리기 (개선된 로직)
+    let drawnTodayLine = false
+    
+    // 1순위: 차트에서 전달받은 todayX prop 사용
+    if (typeof todayX === 'number' && todayX >= 0) {
       ctx.strokeStyle = '#ef4444'
-      ctx.lineWidth = 1.5 * dpr
-      ctx.setLineDash([4, 4]) // 점선 패턴 추가
+      ctx.lineWidth = 1.5
+      ctx.setLineDash([4, 4]) // 점선 패턴
       ctx.beginPath()
-      ctx.moveTo(exactX, 0)
-      ctx.lineTo(exactX, canvas.height)
+      ctx.moveTo(todayX, 0)
+      ctx.lineTo(todayX, targetCssHeight)
       ctx.stroke()
       ctx.setLineDash([]) // 점선 패턴 리셋
-      try { console.log('Header today line drawn at (prop):', todayX, 'DPR-adjusted:', exactX, 'DPR:', dpr) } catch {}
-    } else if (chartWidth && chartWidth > 0 && dateRange && todayDate) {
-      // 차트 정보가 완전히 준비된 경우에만 fallback 계산 허용
-      const today = todayDate
-      if (today >= startDate && today <= endDate) {
-        const todayXRaw = leftMargin + ((today.getTime() - startDate.getTime()) / timeRange) * finalChartWidth
-        const dpr = window.devicePixelRatio || 1
-        const alignedX = Math.round(todayXRaw) + 0.5
-        const exactX = alignedX * dpr
-        
+      
+      drawnTodayLine = true
+      console.log('Header: Today line drawn (from prop):', todayX)
+    }
+    
+    // 2순위: 자체 계산으로 오늘 날짜 X 좌표 계산
+    else if (finalChartWidth > 0 && timeRange > 0) {
+      const calculatedTodayX = calculateTodayX(startDate, endDate, timeRange, finalChartWidth)
+      
+      if (calculatedTodayX !== null) {
         ctx.strokeStyle = '#ef4444'
-        ctx.lineWidth = 1.5 * dpr
-        ctx.setLineDash([4, 4]) // 점선 패턴 추가
+        ctx.lineWidth = 1.5
+        ctx.setLineDash([4, 4]) // 점선 패턴
         ctx.beginPath()
-        ctx.moveTo(exactX, 0)
-        ctx.lineTo(exactX, canvas.height)
+        ctx.moveTo(calculatedTodayX, 0)
+        ctx.lineTo(calculatedTodayX, targetCssHeight)
         ctx.stroke()
         ctx.setLineDash([]) // 점선 패턴 리셋
-        try { console.log('Header today line drawn at (fallback):', alignedX, 'DPR-adjusted:', exactX, 'chartWidth:', chartWidth, 'DPR:', dpr) } catch {}
+        
+        drawnTodayLine = true
+        console.log('Header: Today line drawn (calculated):', calculatedTodayX)
       }
-    } else {
-      // 차트 정보가 아직 준비되지 않은 경우 오늘 날짜선을 그리지 않음
-      try { console.log('Header today line skipped - waiting for chart data:', { todayX, chartWidth, hasDateRange: !!dateRange, hasTodayDate: !!todayDate }) } catch {}
+    }
+
+    if (!drawnTodayLine) {
+      console.log('Header: Today line not drawn', {
+        todayX,
+        finalChartWidth,
+        timeRange,
+        hasDateRange: !!dateRange
+      })
     }
 
     // 렌더링 완료 처리
