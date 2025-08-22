@@ -1,12 +1,36 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
-
 export async function POST() {
   try {
+    console.log('Create backup table API called - checking environment variables...')
+    
+    // 환경 변수 가져오기
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    
+    console.log('Environment check:', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseServiceKey,
+      urlLength: supabaseUrl?.length || 0,
+      keyLength: supabaseServiceKey?.length || 0
+    })
+    
+    // 환경 변수 확인
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Missing environment variables:', {
+        NEXT_PUBLIC_SUPABASE_URL: !!supabaseUrl,
+        SUPABASE_SERVICE_ROLE_KEY: !!supabaseServiceKey
+      })
+      return NextResponse.json({ 
+        error: 'Supabase configuration missing',
+        details: `Missing: ${!supabaseUrl ? 'NEXT_PUBLIC_SUPABASE_URL' : ''} ${!supabaseServiceKey ? 'SUPABASE_SERVICE_ROLE_KEY' : ''}`.trim()
+      }, { status: 500 })
+    }
+    
+    console.log('Creating Supabase client...')
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    console.log('Supabase client created successfully')
     
     // 환경 변수 확인
     if (!supabaseUrl || !supabaseServiceKey) {

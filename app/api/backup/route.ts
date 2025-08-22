@@ -1,20 +1,38 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY!
+// 환경 변수를 함수 내에서 직접 가져와서 사용
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    console.log('Backup API called - checking environment variables...')
+    
+    // 환경 변수 상세 확인
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    
+    console.log('Environment check:', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseServiceKey,
+      urlLength: supabaseUrl?.length || 0,
+      keyLength: supabaseServiceKey?.length || 0
+    })
     
     // 환경 변수 확인
     if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('Missing environment variables:', {
+        NEXT_PUBLIC_SUPABASE_URL: !!supabaseUrl,
+        SUPABASE_SERVICE_ROLE_KEY: !!supabaseServiceKey
+      })
       return NextResponse.json({ 
         error: 'Supabase configuration missing',
-        details: 'NEXT_PUBLIC_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY not found'
+        details: `Missing: ${!supabaseUrl ? 'NEXT_PUBLIC_SUPABASE_URL' : ''} ${!supabaseServiceKey ? 'SUPABASE_SERVICE_ROLE_KEY' : ''}`.trim()
       }, { status: 500 })
     }
+    
+    console.log('Creating Supabase client...')
+    const supabase = createClient(supabaseUrl, supabaseServiceKey)
+    console.log('Supabase client created successfully')
     
     // 현재 날짜
     const now = new Date()
@@ -129,6 +147,19 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
+    // 환경 변수 가져오기
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    
+    // 환경 변수 확인
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('GET: Missing environment variables')
+      return NextResponse.json({ 
+        backupHistory: [],
+        error: 'Supabase configuration missing' 
+      }, { status: 500 })
+    }
+    
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     
     // 최신 백업 하나만 조회
