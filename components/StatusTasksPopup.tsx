@@ -26,6 +26,24 @@ const StatusTasksPopup: React.FC<StatusTasksPopupProps> = ({
 
   if (!isOpen) return null
 
+  // Task 상세 정보 관련 핸들러들을 컴포넌트 최상위로 이동
+  const handleTaskDoubleClick = (task: Task) => {
+    setSelectedTask(task)
+    setIsTaskDetailOpen(true)
+  }
+
+  const handleTaskDetailClose = () => {
+    setIsTaskDetailOpen(false)
+    setSelectedTask(null)
+  }
+
+  const handleTaskUpdate = (updatedTask: Task) => {
+    if (onTaskUpdate) {
+      onTaskUpdate(updatedTask)
+    }
+    handleTaskDetailClose()
+  }
+
   const getStatusInfo = () => {
     switch (status) {
       case 'completed':
@@ -135,23 +153,6 @@ const StatusTasksPopup: React.FC<StatusTasksPopupProps> = ({
 
   // Task 아이템 컴포넌트
   const TaskItem: React.FC<{ task: Task }> = ({ task }) => {
-    const handleTaskDoubleClick = () => {
-      setSelectedTask(task)
-      setIsTaskDetailOpen(true)
-    }
-
-    const handleTaskDetailClose = () => {
-      setIsTaskDetailOpen(false)
-      setSelectedTask(null)
-    }
-
-    const handleTaskUpdate = (updatedTask: Task) => {
-      if (onTaskUpdate) {
-        onTaskUpdate(updatedTask)
-      }
-      handleTaskDetailClose()
-    }
-
     // 카테고리 계층 구조 생성
     const hierarchy = [
       task.majorCategory,
@@ -161,23 +162,22 @@ const StatusTasksPopup: React.FC<StatusTasksPopupProps> = ({
     ].filter(Boolean)
 
     return (
-      <>
-        <div
-          className={`p-3 rounded-lg border cursor-pointer transition-all shadow-sm ${statusInfo.bgColor} ${statusInfo.borderColor} ${statusInfo.hoverColor}`}
-          onDoubleClick={handleTaskDoubleClick}
-          title="더블클릭하여 상세 정보 보기"
-        >
-          <div className="flex justify-between items-start mb-2">
-            <div className="flex-1">
-              {/* 계층 구조 표시 */}
-              <div className="text-xs text-gray-500 mb-1">
-                {hierarchy.length > 1 ? (
-                  <span>{hierarchy.slice(0, -1).join(' > ')}</span>
-                ) : (
-                  <span>기타</span>
-                )}
-              </div>
-              {/* 세부업무명 */}
+      <div
+        className={`p-3 rounded-lg border cursor-pointer transition-all shadow-sm ${statusInfo.bgColor} ${statusInfo.borderColor} ${statusInfo.hoverColor}`}
+        onDoubleClick={() => handleTaskDoubleClick(task)}
+        title="더블클릭하여 상세 정보 보기"
+      >
+        <div className="flex justify-between items-start mb-2">
+          <div className="flex-1">
+            {/* 계층 구조 표시 */}
+            <div className="text-xs text-gray-500 mb-1">
+              {hierarchy.length > 1 ? (
+                <span>{hierarchy.slice(0, -1).join(' > ')}</span>
+              ) : (
+                <span>기타</span>
+              )}
+            </div>
+            {/* 세부업무명 */}
               <div className="font-medium text-gray-900">
                 {hierarchy[hierarchy.length - 1] || '업무명 없음'}
               </div>
@@ -205,18 +205,6 @@ const StatusTasksPopup: React.FC<StatusTasksPopupProps> = ({
             </div>
           )}
         </div>
-
-        {/* Task 상세 정보 팝업 */}
-        {selectedTask && selectedTask.id === task.id && (
-          <TaskDetailPopupRefactored
-            task={selectedTask}
-            position={{ x: window.innerWidth / 2 - 300, y: window.innerHeight / 2 - 250 }}
-            onClose={handleTaskDetailClose}
-            onTaskUpdate={handleTaskUpdate}
-            tasks={tasks}
-          />
-        )}
-      </>
     )
   }
 
@@ -350,6 +338,17 @@ const StatusTasksPopup: React.FC<StatusTasksPopupProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Task 상세 정보 팝업 - 메인 팝업보다 높은 z-index로 렌더링 */}
+      {selectedTask && isTaskDetailOpen && (
+        <TaskDetailPopupRefactored
+          task={selectedTask}
+          position={{ x: window.innerWidth / 2 - 300, y: window.innerHeight / 2 - 250 }}
+          onClose={handleTaskDetailClose}
+          onTaskUpdate={handleTaskUpdate}
+          tasks={tasks}
+        />
+      )}
     </>
   )
 }
