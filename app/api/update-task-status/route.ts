@@ -3,14 +3,35 @@ import { createClient } from '@supabase/supabase-js'
 
 // Supabase 클라이언트 생성 함수 (런타임에 환경변수 체크)
 function getSupabaseClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY
+  console.log('=== Update Task Status API - Environment Check ===')
+  console.log('NODE_ENV:', process.env.NODE_ENV)
+  console.log('VERCEL_ENV:', process.env.VERCEL_ENV)
   
-  if (!url || !key) {
-    throw new Error('Supabase environment variables are not configured')
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+  const anonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  
+  // Service Role Key가 없으면 Anon Key 사용 (제한된 권한)
+  const effectiveKey = serviceKey || anonKey
+  
+  console.log('Environment variables check:', {
+    hasUrl: !!url,
+    hasServiceKey: !!serviceKey,
+    hasAnonKey: !!anonKey,
+    hasEffectiveKey: !!effectiveKey,
+    usingServiceRole: !!serviceKey
+  })
+  
+  if (!url || !effectiveKey) {
+    const missingVars = []
+    if (!url) missingVars.push('NEXT_PUBLIC_SUPABASE_URL')
+    if (!effectiveKey) missingVars.push('SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY')
+    
+    throw new Error(`Supabase environment variables are not configured: ${missingVars.join(', ')}`)
   }
   
-  return createClient(url, key)
+  console.log('Creating Supabase client with', serviceKey ? 'Service Role Key' : 'Anon Key')
+  return createClient(url, effectiveKey)
 }
 
 /**

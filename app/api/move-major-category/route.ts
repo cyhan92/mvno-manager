@@ -2,7 +2,11 @@ import { NextResponse } from 'next/server'
 import { createClient } from '@supabase/supabase-js'
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+
+// Service Role Key가 있으면 우선 사용, 없으면 Anon Key 사용
+const effectiveKey = supabaseServiceKey || supabaseAnonKey
 
 /**
  * 소분류의 대분류 이동 API
@@ -19,14 +23,21 @@ export async function PUT(request: Request) {
       }, { status: 400 })
     }
 
-    if (!supabaseUrl || !supabaseKey) {
+    if (!supabaseUrl || !effectiveKey) {
       return NextResponse.json({
         success: false,
         error: 'Supabase 환경변수가 설정되지 않았습니다.'
       }, { status: 500 })
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    console.log('Environment check:', {
+      hasUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey,
+      hasAnonKey: !!supabaseAnonKey,
+      usingServiceRole: !!supabaseServiceKey
+    })
+
+    const supabase = createClient(supabaseUrl, effectiveKey)
 
     // 1. 현재 소분류에 속한 모든 Task 조회
     const { data: tasksToUpdate, error: selectError } = await supabase

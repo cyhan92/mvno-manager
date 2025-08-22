@@ -9,9 +9,20 @@ export async function POST(request: Request) {
   try {
     // Supabase 클라이언트 생성
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.SUPABASE_ANON_KEY
+    
+    // Service Role Key가 있으면 우선 사용, 없으면 Anon Key 사용
+    const effectiveKey = supabaseServiceKey || supabaseAnonKey
 
-    if (!supabaseUrl || !supabaseKey) {
+    console.log('Environment check:', {
+      hasUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey,
+      hasAnonKey: !!supabaseAnonKey,
+      usingServiceRole: !!supabaseServiceKey
+    })
+
+    if (!supabaseUrl || !effectiveKey) {
       console.error('Supabase configuration missing')
       return NextResponse.json(
         { success: false, message: 'Supabase 설정이 누락되었습니다.' },
@@ -19,7 +30,7 @@ export async function POST(request: Request) {
       )
     }
 
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = createClient(supabaseUrl, effectiveKey)
 
     // 1. 폼 데이터에서 파일 추출
     const formData = await request.formData()

@@ -187,10 +187,21 @@ export async function DELETE(request: Request) {
     console.log('🗑️ DELETE 요청 시작')
     
     // Supabase 클라이언트 초기화
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
+    const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
     
-    if (!supabaseKey || !supabaseUrl) {
+    // Service Role Key가 있으면 우선 사용, 없으면 Anon Key 사용
+    const effectiveKey = supabaseServiceKey || supabaseAnonKey
+    
+    console.log('Environment check:', {
+      hasUrl: !!supabaseUrl,
+      hasServiceKey: !!supabaseServiceKey,
+      hasAnonKey: !!supabaseAnonKey,
+      usingServiceRole: !!supabaseServiceKey
+    })
+    
+    if (!effectiveKey || !supabaseUrl) {
       console.error('❌ Supabase 환경변수가 설정되지 않았습니다.')
       return NextResponse.json({
         success: false,
@@ -198,7 +209,7 @@ export async function DELETE(request: Request) {
       }, { status: 500 })
     }
     
-    const supabase = createClient(supabaseUrl, supabaseKey)
+    const supabase = createClient(supabaseUrl, effectiveKey)
     
     // 요청 본문에서 삭제할 Task ID 추출
     const body = await request.json()
