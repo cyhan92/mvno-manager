@@ -5,28 +5,59 @@ import { createClient } from '@supabase/supabase-js'
 
 export async function POST(request: NextRequest) {
   try {
-    console.log('Backup API called - checking environment variables...')
+    console.log('=== Backup API POST called ===')
+    console.log('NODE_ENV:', process.env.NODE_ENV)
+    console.log('VERCEL_ENV:', process.env.VERCEL_ENV)
     
-    // 환경 변수 상세 확인
+    // 환경 변수 다양한 방법으로 확인
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    
+    // 모든 환경 변수 키 확인 (디버깅용)
+    const allEnvKeys = Object.keys(process.env).filter(key => 
+      key.includes('SUPABASE') || key.includes('NEXT_PUBLIC')
+    )
+    console.log('Available environment variable keys:', allEnvKeys)
     
     console.log('Environment check:', {
       hasUrl: !!supabaseUrl,
       hasKey: !!supabaseServiceKey,
       urlLength: supabaseUrl?.length || 0,
-      keyLength: supabaseServiceKey?.length || 0
+      keyLength: supabaseServiceKey?.length || 0,
+      url: supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : 'MISSING',
+      keyStart: supabaseServiceKey ? `${supabaseServiceKey.substring(0, 20)}...` : 'MISSING'
     })
     
     // 환경 변수 확인
     if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('=== ENVIRONMENT VARIABLES MISSING ===')
       console.error('Missing environment variables:', {
         NEXT_PUBLIC_SUPABASE_URL: !!supabaseUrl,
         SUPABASE_SERVICE_ROLE_KEY: !!supabaseServiceKey
       })
+      
+      const missingVars = []
+      if (!supabaseUrl) missingVars.push('NEXT_PUBLIC_SUPABASE_URL')
+      if (!supabaseServiceKey) missingVars.push('SUPABASE_SERVICE_ROLE_KEY')
+      
+      console.error('Please check Vercel environment variables configuration')
+      console.error('Missing variables:', missingVars)
+      
       return NextResponse.json({ 
         error: 'Supabase configuration missing',
-        details: `Missing: ${!supabaseUrl ? 'NEXT_PUBLIC_SUPABASE_URL' : ''} ${!supabaseServiceKey ? 'SUPABASE_SERVICE_ROLE_KEY' : ''}`.trim()
+        details: `Missing environment variables: ${missingVars.join(', ')}`,
+        environment: process.env.NODE_ENV,
+        vercelEnv: process.env.VERCEL_ENV,
+        troubleshooting: {
+          message: 'Environment variables not found',
+          missingVariables: missingVars,
+          instructions: [
+            '1. Check Vercel Dashboard > Project Settings > Environment Variables',
+            '2. Ensure NEXT_PUBLIC_SUPABASE_URL is set',
+            '3. Ensure SUPABASE_SERVICE_ROLE_KEY is set',
+            '4. Redeploy after adding variables'
+          ]
+        }
       }, { status: 500 })
     }
     
@@ -147,16 +178,38 @@ export async function POST(request: NextRequest) {
 
 export async function GET() {
   try {
+    console.log('=== Backup API GET called ===')
+    console.log('NODE_ENV:', process.env.NODE_ENV)
+    console.log('VERCEL_ENV:', process.env.VERCEL_ENV)
+    
     // 환경 변수 가져오기
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
     
+    console.log('GET Environment check:', {
+      hasUrl: !!supabaseUrl,
+      hasKey: !!supabaseServiceKey,
+      urlLength: supabaseUrl?.length || 0,
+      keyLength: supabaseServiceKey?.length || 0
+    })
+    
     // 환경 변수 확인
     if (!supabaseUrl || !supabaseServiceKey) {
-      console.error('GET: Missing environment variables')
+      console.error('GET: Missing environment variables:', {
+        NEXT_PUBLIC_SUPABASE_URL: !!supabaseUrl,
+        SUPABASE_SERVICE_ROLE_KEY: !!supabaseServiceKey
+      })
+      
+      const missingVars = []
+      if (!supabaseUrl) missingVars.push('NEXT_PUBLIC_SUPABASE_URL')
+      if (!supabaseServiceKey) missingVars.push('SUPABASE_SERVICE_ROLE_KEY')
+      
       return NextResponse.json({ 
         backupHistory: [],
-        error: 'Supabase configuration missing' 
+        error: 'Supabase configuration missing',
+        details: `Missing environment variables: ${missingVars.join(', ')}`,
+        environment: process.env.NODE_ENV,
+        vercelEnv: process.env.VERCEL_ENV
       }, { status: 500 })
     }
     
