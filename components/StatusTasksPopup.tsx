@@ -210,7 +210,7 @@ const StatusTasksPopup: React.FC<StatusTasksPopupProps> = ({
         {selectedTask && selectedTask.id === task.id && (
           <TaskDetailPopupRefactored
             task={selectedTask}
-            position={{ x: window.innerWidth / 2 - 400, y: window.innerHeight / 2 - 300 }}
+            position={{ x: window.innerWidth / 2 - 300, y: window.innerHeight / 2 - 250 }}
             onClose={handleTaskDetailClose}
             onTaskUpdate={handleTaskUpdate}
             tasks={tasks}
