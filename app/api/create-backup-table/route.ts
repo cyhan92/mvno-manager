@@ -10,6 +10,10 @@ export async function POST() {
     // 환경 변수 다양한 방법으로 확인
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL
     const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY
+    const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+    
+    // Service Role Key가 없으면 Anon Key 사용 (제한된 권한)
+    const effectiveKey = supabaseServiceKey || supabaseAnonKey
     
     // 모든 환경 변수 키 확인 (디버깅용)
     const allEnvKeys = Object.keys(process.env).filter(key => 
@@ -19,24 +23,29 @@ export async function POST() {
     
     console.log('Environment check:', {
       hasUrl: !!supabaseUrl,
-      hasKey: !!supabaseServiceKey,
+      hasServiceKey: !!supabaseServiceKey,
+      hasAnonKey: !!supabaseAnonKey,
+      hasEffectiveKey: !!effectiveKey,
+      usingServiceRole: !!supabaseServiceKey,
       urlLength: supabaseUrl?.length || 0,
-      keyLength: supabaseServiceKey?.length || 0,
+      keyLength: effectiveKey?.length || 0,
       url: supabaseUrl ? `${supabaseUrl.substring(0, 30)}...` : 'MISSING',
-      keyStart: supabaseServiceKey ? `${supabaseServiceKey.substring(0, 20)}...` : 'MISSING'
+      keyStart: effectiveKey ? `${effectiveKey.substring(0, 20)}...` : 'MISSING'
     })
     
     // 환경 변수 확인
-    if (!supabaseUrl || !supabaseServiceKey) {
+    if (!supabaseUrl || !effectiveKey) {
       console.error('=== ENVIRONMENT VARIABLES MISSING ===')
       console.error('Missing environment variables:', {
         NEXT_PUBLIC_SUPABASE_URL: !!supabaseUrl,
-        SUPABASE_SERVICE_ROLE_KEY: !!supabaseServiceKey
+        SUPABASE_SERVICE_ROLE_KEY: !!supabaseServiceKey,
+        NEXT_PUBLIC_SUPABASE_ANON_KEY: !!supabaseAnonKey,
+        EFFECTIVE_KEY: !!effectiveKey
       })
       
       const missingVars = []
       if (!supabaseUrl) missingVars.push('NEXT_PUBLIC_SUPABASE_URL')
-      if (!supabaseServiceKey) missingVars.push('SUPABASE_SERVICE_ROLE_KEY')
+      if (!effectiveKey) missingVars.push('SUPABASE_SERVICE_ROLE_KEY or NEXT_PUBLIC_SUPABASE_ANON_KEY')
       
       console.error('Please check Vercel environment variables configuration')
       console.error('Missing variables:', missingVars)
@@ -52,16 +61,17 @@ export async function POST() {
           instructions: [
             '1. Check Vercel Dashboard > Project Settings > Environment Variables',
             '2. Ensure NEXT_PUBLIC_SUPABASE_URL is set',
-            '3. Ensure SUPABASE_SERVICE_ROLE_KEY is set',
-            '4. Redeploy after adding variables'
+            '3. Add SUPABASE_SERVICE_ROLE_KEY for full admin access',
+            '4. NEXT_PUBLIC_SUPABASE_ANON_KEY is available as fallback',
+            '5. Redeploy after adding variables'
           ]
         }
       }, { status: 500 })
     }
     
     console.log('Creating Supabase client...')
-    const supabase = createClient(supabaseUrl, supabaseServiceKey)
-    console.log('Supabase client created successfully')
+    const supabase = createClient(supabaseUrl, effectiveKey)
+    console.log('Supabase client created successfully with', supabaseServiceKey ? 'Service Role' : 'Anon Key')
     
     // 환경 변수 확인
     if (!supabaseUrl || !supabaseServiceKey) {
